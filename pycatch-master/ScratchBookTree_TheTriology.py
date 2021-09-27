@@ -1,10 +1,10 @@
-import sys
+import rpy2
+print(type(rpy2.__version__))
+print(rpy2.__version__)
 
-sys.path.append("./pcrasterModules/") # from PCRasterModules - still needed for other scripts to work?
+print(type('2.9.4'))
+print('2.9.4')
 
-from pcrasterModules import generalfunctions_test01
-from pcraster.framework import *
-
-aVariable = generalfunctions_test01.openSamplesAndTimestepsAsNumpyArraysAsNumpyArray(
-    'biTS', 30, range(100, 5200, 100))
-numpy.save('biTS', aVariable)
+if rpy2.__version__ != '2.9.4':
+    print("Tested for rpy2 version 2.9.4, current version is", rpy2.__version__)
+    print("Please make sure you use the correct version.")

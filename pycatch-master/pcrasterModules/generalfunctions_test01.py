@@ -14,10 +14,10 @@ import rpy2
 
 ##
 import rpy2.robjects.numpy2ri
-
 rpy2.robjects.numpy2ri.activate()  # nodig bij nieuwere rpy2 versie
 import rpy2.robjects as robjects
 ##
+
 from collections import deque
 # from PCRaster.NumPy import *
 import random
@@ -460,6 +460,7 @@ def mapToColAsArray(name):
     mapAsColArray = numpy.column_stack((arrayX, arrayY, arrayName))
     return mapAsColArray
 
+
 def mapToRowAsArray(name):
     nrRows = pcr.clone().nrRows()
     nrCols = pcr.clone().nrCols()
@@ -487,13 +488,16 @@ def mapToRowAsArray(name):
     mapAsRowArray = numpy.row_stack((arrayX, arrayY, arrayName))
     return mapAsRowArray
 
+
 def addTimeColumnToMapAsColArray(mapAsColArray, time):
     b = numpy.insert(mapAsColArray, 2, float(time), axis=1)
     return b
 
+
 def addTimeRowToMapAsRowArray(mapAsRowArray, time):
     b = numpy.insert(mapAsRowArray, 2, float(time), axis=0)
     return b
+
 
 def stackOfMapsToColAsArray(stackOfMapsAsList, currentTime):
     timeOfFirstMap = currentTime - len(stackOfMapsAsList) + 1
@@ -507,6 +511,7 @@ def stackOfMapsToColAsArray(stackOfMapsAsList, currentTime):
     array = numpy.concatenate(stackOfMapsAsColsList, axis=0)
     return array
 
+
 def stackOfMapsToRowAsArray(stackOfMapsAsList, currentTime):
     timeOfFirstMap = currentTime - len(stackOfMapsAsList) + 1
     t = timeOfFirstMap
@@ -518,6 +523,7 @@ def stackOfMapsToRowAsArray(stackOfMapsAsList, currentTime):
         t = t + 1
     array = numpy.concatenate(stackOfMapsAsRowsList, axis=1)
     return array
+
 
 def stackOfMapsToRDataFrame(stackOfMapsAsList, currentTime):
     colAsArray = stackOfMapsToColAsArray(stackOfMapsAsList, currentTime)
@@ -570,12 +576,7 @@ def experimentalVariogramValues(stackOfMapsAsList, boundariesVector, space, save
         robjects.r('''
     experimentalVariogramValues <- function(dataFrame,boundariesVector) {
         #
-        #install.packages("gstat") # used in initial fix (not sure why this worked tho?)
-        #require("automap") # see above
         library(gstat)
-        #
-        #install.packages("automap") # used in initial fix (not sure why this worked tho?)
-        #require("automap") # see above
         library(automap)
         #
         #gstatDataFrame <- gstat(id = "v",formula = v~1, locations = ~x+y+z, data = dataFrame)
@@ -618,7 +619,7 @@ def experimentalVariogramValues(stackOfMapsAsList, boundariesVector, space, save
     if savePlot:
         robjects.r('''
     saveExperimentalVariogram <- function(experimentalVariogram,fileName,maxVarPlot) {
-        require("gstat")
+        library("gstat")
         png(fileName)
         plot(experimentalVariogram$dist,experimentalVariogram$gamma,ylim=c(0,maxVarPlot))
         dev.off()
@@ -657,6 +658,7 @@ def experimentalVariogramValuesInTime(stackOfMapsAsList, bounds):
     distList = map(truedivKoen, sumOfDists, nrPairsOfLags)
     return numpy.array(list(distList)), numpy.array(list(semvarList))
 
+
 ### ADDITIONS ###
 
 def variogramValuesKoen(stackOfMapAsList, bounds, currentTime=10):
@@ -665,16 +667,17 @@ def variogramValuesKoen(stackOfMapAsList, bounds, currentTime=10):
     bin_centers = [0.0] * len(bounds)
     gamma_values = [0.0] * len(bounds)
     for k, bound in enumerate(bounds):
-        # gstools.variogram.standard_bins((MapsAsArray[0], MapsAsArray[1]), max_dist=bound)
-        # bin_center, gamma = gstools.variogram.vario_estimate((MapsAsArray[0], MapsAsArray[1]), MapsAsArray[3])
-        # bin_centers[k] += bin_center
-        # gamma_values[k] += gamma
-        V = skgstat.Variogram(coords, MapsAsArray[3], maxlag=bound)
-        bin_centers[k] = V.bins
-        gamma_values[k] = V.experimental
-    #return numpy.array(list(bin_centers)), numpy.array(list(gamma_values))
+        gstools.variogram.standard_bins((MapsAsArray[0], MapsAsArray[1]), max_dist=bound)
+        bin_center, gamma = gstools.variogram.vario_estimate((MapsAsArray[0], MapsAsArray[1]), MapsAsArray[3])
+        bin_centers[k] += bin_center
+        gamma_values[k] += gamma
+        # V = skgstat.Variogram(coords, MapsAsArray[3], maxlag=bound)
+        # bin_centers[k] = V.bins
+        # gamma_values[k] = V.experimental
+    # return numpy.array(list(bin_centers)), numpy.array(list(gamma_values))
     print(bin_centers, gamma_values)
     return bin_centers, gamma_values
+
 
 ### END OF ADDITIONS ###
 
@@ -741,18 +744,36 @@ def experimentalVariogramValuesInSpace(stackOfMapsAsList, bounds):
 # a,b=experimentalVariogramValuesInSpace(test,[2.3,15,17.8])
 # print a, b
 
-def descriptiveStatistics(stackOfMapsAsRDataFrame):
+def descriptiveStatistics(stackOfMapsAsList):
+    stackOfMapsAsRDataFrame = stackOfMapsToRDataFrame(stackOfMapsAsList, 10)  # Added this for uniformity with the variogram-method - KL
     robjects.r('''
   descriptiveStatistics <- function(dataFrame) {
       mean <- mean(dataFrame$v)
       variance <- var(dataFrame$v)
-      c(mean,variance)
+      library(e1071)
+      skewness <- skewness(dataFrame$v)
+      kurtosis <- kurtosis(dataFrame$v)
+      c(mean, variance, skewness, kurtosis)
       }
       ''')
     descriptiveStatistics = robjects.r['descriptiveStatistics']
-    var = descriptiveStatistics(stackOfMapsAsRDataFrame)
-    return var
+    stats = descriptiveStatistics(stackOfMapsAsRDataFrame)
+    print(stats)
+    return stats
 
+def autocor1(stackOfMapsAsList):
+    stackOfMapsAsRDataFrame = stackOfMapsToRDataFrame(stackOfMapsAsList, 10)  # Added this for uniformity with the variogram-method - KL
+    robjects.r('''
+      descriptiveStatistics <- function(dataFrame) {
+          library(tseries)
+          autocor = acf(dataFrame$v, lag=1, pl=FALSE)
+          autocor$acf[2]
+          }
+          ''')
+    descriptiveStatistics = robjects.r['descriptiveStatistics']
+    autocor = descriptiveStatistics(stackOfMapsAsRDataFrame)
+    print(autocor)
+    return autocor
 
 ###########################
 #   some data management  #

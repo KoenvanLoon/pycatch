@@ -29,6 +29,25 @@ import configuration_weekly as cfg
 # PCRaster itself
 from pcraster.framework import *
 
+# R package loader ### ADDED - KL
+import rpy2
+import rpy2.robjects.packages as rpackages
+from rpy2.robjects.vectors import StrVector
+utils = rpackages.importr('utils')
+utils.chooseCRANmirror(ind=1)   # select the first mirror in the list for R packages
+packageNamesR = ('gstat', 'automap', 'e1071', 'tseries')
+
+# check rpy2 version and R packages
+if rpy2.__version__ != '2.9.4':
+    print("Tested for rpy2 version 2.9.4, current version is", rpy2.__version__)
+    print("Please make sure you use the correct version.")
+names_to_install = [x for x in packageNamesR if not rpackages.isinstalled(x)]
+if len(names_to_install) > 0:
+    print(f"Installing the following R packages: {names_to_install}")
+    utils.install_packages(StrVector(names_to_install))
+
+### END OF ADDITIONS ###
+
 if cfg.fixedStates:
     cfg.numberOfTimeSteps = 52 * 50
     fixedStatesReg = spatial(scalar(float(sys.argv[1])))
@@ -132,6 +151,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.grazingRate = 0.0
         self.runoffMetreWaterDepthPerHour = scalar(0.0)
         self.creepDeposition = spatial(scalar(0.0))
+
 
     def dynamic(self):
 
@@ -398,6 +418,16 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                 numpy.savetxt(generateNameST('bioS', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
                               # Added + '.numpy.txt'
                               numpy.array(gamma))
+                # mean and var ### ADDITION - KL ###
+                MeanVarVariable = generalfunctions_test01.descriptiveStatistics(stackOfMapsAsListVariable)
+                numpy.savetxt(generateNameST('biMV', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                              numpy.array(MeanVarVariable))
+
+                # lag-1 autocorrelation
+                lag1Variable = generalfunctions_test01.autocor1(stackOfMapsAsListVariable)
+                numpy.savetxt(generateNameST('biLO', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                              numpy.array(lag1Variable))
+                # END OF ADDITION ###
             # mean
             # meanVariable=maptotal(variable)/self.numberOfCellsOnMap
             meanVariable = areaaverage(variable, self.zoneMap)
@@ -536,7 +566,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
     def postmcloop(self):
         # import generalfunctions # not sure why this needs to be imported again
-        names = ['gA', 'bioA', 'bioS', 'biTS', 'bioT', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA',
+        names = ['gA', 'bioA', 'bioS', 'bioT', 'biMV', 'biLO', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA',
                  'creA']
         for name in names:
             aVariable = generalfunctions_test01.openSamplesAndTimestepsAsNumpyArraysAsNumpyArray(
