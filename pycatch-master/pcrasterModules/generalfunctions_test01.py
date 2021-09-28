@@ -758,7 +758,7 @@ def descriptiveStatistics(stackOfMapsAsList):
       ''')
     descriptiveStatistics = robjects.r['descriptiveStatistics']
     stats = descriptiveStatistics(stackOfMapsAsRDataFrame)
-    print(stats)
+    # print(stats)
     return stats
 
 def autocor1(stackOfMapsAsList):
@@ -772,7 +772,7 @@ def autocor1(stackOfMapsAsList):
           ''')
     descriptiveStatistics = robjects.r['descriptiveStatistics']
     autocor = descriptiveStatistics(stackOfMapsAsRDataFrame)
-    print(autocor)
+    # print(autocor)
     return autocor
 
 ###########################
