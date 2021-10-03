@@ -128,7 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Ignore output files 0 till 9 and .idea/
+# Ignore output files (0 till 9 for MC simulation) and .idea/
 pycatch-master/[0-9]/
 pycatch-master/.idea/
 .idea/
+*.npy
+*.pdf
