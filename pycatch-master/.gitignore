@@ -130,4 +130,4 @@ dmypy.json
 
 # Ignore output files 0 till 9 and .idea/
 pycatch-master/[0-9]/
-.idea/
+pycatch-master/.idea/
