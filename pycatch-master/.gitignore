@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Ignore output files 0 till 9 and .idea/
+pycatch-master/[0-9]/
+.idea/
