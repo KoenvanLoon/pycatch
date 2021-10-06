@@ -396,11 +396,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         if calculateStats:
             if cfg.variances:
                 # Test case
-                # bins, gamma = generalfunctions_test01.variogramValuesKoen(stackOfMapsAsListVariable, boundVector)
-                # print(bins, gamma)
-                # numpy.savetxt(generateNameST('biTS', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
-                #               # Added + '.numpy.txt'
-                #               numpy.array(gamma))
+                bins, gamma = generalfunctions_test01.variogramValuesKoen(stackOfMapsAsListVariable, boundVector)
+                numpy.savetxt(generateNameST('biTS', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                              numpy.array(gamma))
                 # temporal
                 dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
                                                                                   boundVector, 0, 1,
@@ -566,7 +564,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
     def postmcloop(self):
         # import generalfunctions # not sure why this needs to be imported again
-        names = ['gA', 'bioA', 'bioS', 'bioT', 'biMV', 'biLO', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA',
+        names = ['gA', 'bioA', 'bioS', 'bioT', 'biMV', 'biLO', 'biTS', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA',
                  'creA']
         for name in names:
             aVariable = generalfunctions_test01.openSamplesAndTimestepsAsNumpyArraysAsNumpyArray(

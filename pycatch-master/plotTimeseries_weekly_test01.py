@@ -14,6 +14,7 @@ unit_dict = {
     'bioT': 'unit of biomass var-T',
     'biMV': 'unit of biMV',
     'biLO': 'unit of biLO',
+    'biTS': 'unit of biTS',
     'regA': 'unit of regolith thickness',  # REGOLITH THICKNESS # Added
     'sfA': 'unit of moisture content',  # moisture content
     'qA': 'unit of discharge',  # DISCHARGE # Added
@@ -56,8 +57,8 @@ plot_func(ax1, 'bioA', 0)
 plot_func(ax2, 'bioA', 7)
 plot_func(ax3, 'bioS')
 plot_func(ax4, 'bioT')
-plot_func(ax5, 'biMV')
-plot_func(ax6, 'biLO')
+plot_func(ax5, 'biTS')
+# plot_func(ax6, 'biLO')
 
 plt.tight_layout()
 plt.show()

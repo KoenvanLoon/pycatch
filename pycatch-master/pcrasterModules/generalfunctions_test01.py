@@ -616,6 +616,7 @@ def experimentalVariogramValues(stackOfMapsAsList, boundariesVector, space, save
     experimentalVariogramValues = robjects.r['experimentalVariogramValues']
     boundariesVectorR = robjects.FloatVector(boundariesVector)
     expVariogram = experimentalVariogramValues(stackOfMapsAsRDataFrame, boundariesVectorR)
+    print("expVariogram", expVariogram)
     if savePlot:
         robjects.r('''
     saveExperimentalVariogram <- function(experimentalVariogram,fileName,maxVarPlot) {
@@ -661,21 +662,46 @@ def experimentalVariogramValuesInTime(stackOfMapsAsList, bounds):
 
 ### ADDITIONS ###
 
+# def variogramValuesKoen(stackOfMapAsList, bounds, currentTime=10):
+#     MapsAsArray = stackOfMapsToRowAsArray(stackOfMapAsList, currentTime)
+#     # coords = numpy.column_stack((MapsAsArray[0], MapsAsArray[1]))
+#     bin_centers = [0.0] * len(bounds)
+#     gamma_values = [0.0] * len(bounds)
+#     for k, bound in enumerate(bounds):
+#         # gstools.variogram.standard_bins((MapsAsArray[0], MapsAsArray[1]), max_dist=bound)
+#         bin_center, gamma = gstools.variogram.vario_estimate((MapsAsArray[0], MapsAsArray[1]), MapsAsArray[3])
+#         bin_centers[k] += numpy.average(bin_center) # R returns the average distance between points in the lag
+#         gamma_values[k] += numpy.mean(gamma) # R returns the mean for the lag
+#         # V = skgstat.Variogram(coords, MapsAsArray[3], maxlag=bound)
+#         # bin_centers[k] = V.bins
+#         # gamma_values[k] = V.experimental
+#     # return numpy.array(list(bin_centers)), numpy.array(list(gamma_values))
+#     print(bin_centers, gamma_values)
+#     return bin_centers, gamma_values
+
+# def variogramValuesKoen(stackOfMapAsList, bounds, currentTime=10):
+#     MapsAsArray = stackOfMapsToRowAsArray(stackOfMapAsList, currentTime)
+#     bin_center_averages = [0.0] * len(bounds)
+#     gamma_mean_values = [0.0] * len(bounds)
+#     bin_centers, gamma_values = gstools.variogram.vario_estimate((MapsAsArray[0], MapsAsArray[1]), MapsAsArray[3])
+#     print(bin_centers, gamma_values)
+#     for bound in bounds:
+#         index = next(i for i, j in enumerate(bin_centers) if j > bound)
+#         bin_center_averages += numpy.average(bin_centers[:index]) # R returns the average distance between points in the lag
+#         gamma_mean_values += numpy.mean(gamma_values[:index]) # R returns the mean for the lag
+#     print(bin_center_averages, gamma_mean_values)
+#     return bin_center_averages, gamma_mean_values
+
 def variogramValuesKoen(stackOfMapAsList, bounds, currentTime=10):
     MapsAsArray = stackOfMapsToRowAsArray(stackOfMapAsList, currentTime)
     coords = numpy.column_stack((MapsAsArray[0], MapsAsArray[1]))
     bin_centers = [0.0] * len(bounds)
     gamma_values = [0.0] * len(bounds)
     for k, bound in enumerate(bounds):
-        gstools.variogram.standard_bins((MapsAsArray[0], MapsAsArray[1]), max_dist=bound)
-        bin_center, gamma = gstools.variogram.vario_estimate((MapsAsArray[0], MapsAsArray[1]), MapsAsArray[3])
-        bin_centers[k] += bin_center
-        gamma_values[k] += gamma
-        # V = skgstat.Variogram(coords, MapsAsArray[3], maxlag=bound)
-        # bin_centers[k] = V.bins
-        # gamma_values[k] = V.experimental
-    # return numpy.array(list(bin_centers)), numpy.array(list(gamma_values))
-    print(bin_centers, gamma_values)
+        V = skgstat.Variogram(coords, MapsAsArray[3], maxlag=bound)
+        bin_centers[k] = V.bins
+        gamma_values[k] = V.experimental
+    print("variogramKoen", bin_centers, gamma_values)
     return bin_centers, gamma_values
 
 
