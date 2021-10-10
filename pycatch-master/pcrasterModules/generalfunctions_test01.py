@@ -1,6 +1,7 @@
 import pcraster as pcr
 import pcraster.framework as pcrfw
 import scipy.stats
+from scipy.spatial.distance import pdist
 
 import numpy
 import skgstat
@@ -695,10 +696,11 @@ def experimentalVariogramValuesInTime(stackOfMapsAsList, bounds):
 def variogramValuesKoen(stackOfMapAsList, bounds, currentTime=10):
     MapsAsArray = stackOfMapsToRowAsArray(stackOfMapAsList, currentTime)
     coords = numpy.column_stack((MapsAsArray[0], MapsAsArray[1]))
+    distances = pdist(coords)
     bin_centers = [0.0] * len(bounds)
     gamma_values = [0.0] * len(bounds)
     for k, bound in enumerate(bounds):
-        V = skgstat.Variogram(coords, MapsAsArray[3], maxlag=bound)
+        V = skgstat.Variogram(coords, MapsAsArray[3], maxlag = bound)
         bin_centers[k] = V.bins
         gamma_values[k] = V.experimental
     print("variogramKoen", bin_centers, gamma_values)
