@@ -40,13 +40,16 @@ Methods/indicators per phenomena
 
 Rising memory:
     Spatial correlation: Done & tested
-    Return time*: TODO
+    Return time*: TODO - Only applied in a single paper (Wissel, 1984), only mentioned by name in other works.
+                         Furthermore, this return time (to equilibrium) is a function of time --> temporal
     Discrete Fourier Transform (DFT): TODO
 Rising variability:
     Spatial variance: Done & tested
     Spatial skewness: Done & tested
 Patchiness*:
     Spatial variance & skewness: Done & tested (as above)
+    Patch-size distributions: NOT INCLUDED - Only relevant for biomass
+    Regular spotted patterns: NOT INCLUDED - Only relevant for biomass
     Power spectrum: TODO
     
 *= not sure if necessary for this study
