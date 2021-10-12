@@ -1,4 +1,6 @@
 import pcraster as pcr
+from pcraster import pcr2numpy
+from pcraster._pcraster import readmap
 import pcraster.framework as pcrfw
 import scipy.stats
 from scipy import sparse
@@ -16,15 +18,11 @@ import rpy2
 from libpysal.weights import Queen, lat2W, KNN, lat2SW
 from esda.moran import Moran, Moran_Local
 from scipy.signal import convolve2d
+from scipy.spatial.distance import pdist, squareform
+from scipy import fftpack
 
 import sys
 sys.path.append("./pcrasterModules/")
-
-##
-import rpy2.robjects.numpy2ri
-rpy2.robjects.numpy2ri.activate()  # nodig bij nieuwere rpy2 versie
-import rpy2.robjects as robjects
-##
 
 from collections import deque
 # from PCRaster.NumPy import *
@@ -117,6 +115,24 @@ def spatial_corr_inside(numpy_matrix): # not fit for numpy matrices that contain
 #     mi = Moran_Local(numpy_matrix, weights)
 #     return sum(mi.Is)
 
+def spatial_spec(numpy_matrix):
+    nr = numpy_matrix.shape[0]
+    nc = numpy_matrix.shape[1]
+
+    n0x = np.floor(nc/2)+1
+    n0y = np.floor(nr/2)+1
+
+    f1 = np.repeat(nr, range(1,nc+1))
+    f2 = f1.reshape(nr,nc)
+
+
+    fourier = np.fft.fftn(numpy_matrix)
+    fourier_amp = np.abs(fourier)**2
+    F1 = fftpack.fft2(numpy_matrix)
+    F2 = fftpack.fftshift(F1)
+    psd2D = np.abs(F2)**2
+    return fourier_amp, fourier_amp.shape, psd2D, psd2D.shape
+
 #########################################
 ### Time series early-warning signals ###
 #########################################
@@ -146,10 +162,19 @@ Rising variability & flickering:
 """
 #########################################
 
-def stack_of_maps2time_series(stack_of_maps_as_list): # needs testing, improvements
-    time_series = [0.0] * len(stack_of_maps_as_list)
+def hap_klare_hapjes(lst, n=1):
+    return (lst[i:i + n] for i in range(0, len(lst), n))
+
+def stack_of_maps2mean_time_series(stack_of_maps_as_list, time_window): # needs testing, improvements
+    time_series = [0.0] * time_window
     for k, map in enumerate(stack_of_maps_as_list):
-        time_series[k] += np.nanmean(pcr2numpy(map, np.NaN))
+        time_series[k] += np.nanmean(np.loadtxt(map))
+    return time_series
+
+def stack_of_maps2max_time_series(stack_of_maps_as_list, time_window): # needs testing, improvements
+    time_series = [0.0] * time_window
+    for k, map in enumerate(stack_of_maps_as_list):
+        time_series[k] += np.max(np.loadtxt(map))
     return time_series
 
 def autocovariance(numpy_array, lag=1):
@@ -179,63 +204,64 @@ def temporal_skw(numpy_array):
 def temporal_krt(numpy_array):
     return scipy.stats.kurtosis(np.nditer(numpy_array), nan_policy='omit')
 
-def conditional_heteroskedacity(numpy_array):
-    return None
-
 #########################################
 
-np.random.seed(42)
-data = np.random.rand(100, 100) * 100
-time_series_stack = np.random.rand(10, 1000) * 100
-
-import time
-
-### Spatial tests for single map ###
-print("\n---=<#>=--- start of spatial tests ---=<#>=---")
-start_time = time.time()
-
-print("spatial mean:", spatial_mean(data))
-print("spatial std:", spatial_std(data))
-print("spatial var:", spatial_var(data))
-print("spatial skw:", spatial_skw(data))
-print("spatial krt:", spatial_krt(data))
-print("spatial corr (inside):", spatial_corr_inside(data))
-print("spatial corr (full):", spatial_corr(data))
-
-finished_time = time.time() - start_time
-print(f"-=- runtime is {finished_time} seconds -=-")
-
-### Temporal tests for 10 time series ###
-print("\n---=<#>=--- start of temporal tests ---=<#>=---")
-start_time = time.time()
-
-tstorage = [0.0] * time_series_stack.shape[0]
-
-for k, time_series in enumerate(time_series_stack):
-    tstorage[k] += temporal_mean(time_series)
-print("temporal mean:", tstorage)
-
-for k, time_series in enumerate(time_series_stack):
-    tstorage[k] += temporal_autocorrelation(time_series)
-print("temporal autocorrelation lag-1:", tstorage)
-
-for k, time_series in enumerate(time_series_stack):
-    tstorage[k] += temporal_std(time_series)
-print("temporal std:", tstorage)
-
-for k, time_series in enumerate(time_series_stack):
-    tstorage[k] += temporal_skw(time_series)
-print("temporal skw:", tstorage)
-
-for k, time_series in enumerate(time_series_stack):
-    tstorage[k] += temporal_krt(time_series)
-print("temporal krt:", tstorage)
-
-for k, time_series in enumerate(time_series_stack):
-    tstorage[k] += temporal_cv(time_series)
-print("temporal CV:", tstorage)
-
-finished_time = time.time() - start_time
-print(f"-=- runtime is {finished_time} seconds -=-")
+# np.random.seed(42)
+# # data = np.random.rand(100, 100) * 100
+# # time_series_stack = np.random.rand(10, 1000) * 100
+# data = np.random.normal(10, 5, (100, 100))
+# #data = np.array(range(1,101)).reshape(10,10)
+# time_series_stack = np.random.normal(10, 5, (10, 1000))
+#
+# import time
+#
+# ### Spatial tests for single map ###
+# print("\n---=<#>=--- start of spatial tests ---=<#>=---")
+# start_time = time.time()
+#
+# print("spatial mean:", spatial_mean(data))
+# print("spatial std:", spatial_std(data))
+# print("spatial var:", spatial_var(data))
+# print("spatial skw:", spatial_skw(data))
+# print("spatial krt:", spatial_krt(data))
+# print("spatial corr (inside):", spatial_corr_inside(data))
+# print("spatial corr (full):", spatial_corr(data))
+# #print("rspec:", spatial_spec(data))
+#
+# finished_time = time.time() - start_time
+# print(f"-=- runtime is {finished_time} seconds -=-")
+#
+# ### Temporal tests for 10 time series ###
+# print("\n---=<#>=--- start of temporal tests ---=<#>=---")
+# start_time = time.time()
+#
+# tstorage = [0.0] * time_series_stack.shape[0]
+#
+# for k, time_series in enumerate(time_series_stack):
+#     tstorage[k] += temporal_mean(time_series)
+# print("temporal mean:", tstorage)
+#
+# for k, time_series in enumerate(time_series_stack):
+#     tstorage[k] += temporal_autocorrelation(time_series)
+# print("temporal autocorrelation lag-1:", tstorage)
+#
+# for k, time_series in enumerate(time_series_stack):
+#     tstorage[k] += temporal_std(time_series)
+# print("temporal std:", tstorage)
+#
+# for k, time_series in enumerate(time_series_stack):
+#     tstorage[k] += temporal_skw(time_series)
+# print("temporal skw:", tstorage)
+#
+# for k, time_series in enumerate(time_series_stack):
+#     tstorage[k] += temporal_krt(time_series)
+# print("temporal krt:", tstorage)
+#
+# for k, time_series in enumerate(time_series_stack):
+#     tstorage[k] += temporal_cv(time_series)
+# print("temporal CV:", tstorage)
+#
+# finished_time = time.time() - start_time
+# print(f"-=- runtime is {finished_time} seconds -=-")
 
 #####################################

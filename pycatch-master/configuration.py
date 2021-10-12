@@ -1,7 +1,7 @@
 import pathlib
 
 # define number of hourly timesteps to run
-numberOfTimeSteps = 10968
+numberOfTimeSteps = 1000
 
 # folder with input files (maps, timeseries)
 inputFolder = "inputs"
