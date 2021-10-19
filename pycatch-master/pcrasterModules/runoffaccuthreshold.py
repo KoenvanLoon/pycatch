@@ -46,9 +46,6 @@ class RunoffAccuthreshold(component.Component):
     self.variablesToReport = self.rasters_to_report(self.setOfVariablesToReport)
     self.reportMaps(sample, timestep)
 
-    numpy.savetxt(generateNameST('rQ', sample, timestep) + '.txt',
-                  pcr2numpy(self.RunoffCubicMetrePerHour, numpy.NaN))
-
   def updateVariablesAsNumpyToReport(self):
     self.variablesAsNumpyToReport = {
                                 'Rq': self.RunoffCubicMetrePerHour,
