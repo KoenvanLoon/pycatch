@@ -52,7 +52,7 @@ Patchiness*:
     Spatial variance & skewness: Done & tested (as above)
     Patch-size distributions: NOT INCLUDED - Only relevant for biomass
     Regular spotted patterns: NOT INCLUDED - Only relevant for biomass
-    Power spectrum: TODO
+    Power spectrum: Done - Needs testing & conformation of method!
     
 *= not sure if necessary for this study
 --------------------------------
@@ -120,6 +120,26 @@ def spatial_corr_inside(numpy_matrix): # not fit for numpy matrices that contain
 #     mi = Moran_Local(numpy_matrix, weights)
 #     return sum(mi.Is)
 
+def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power spectrum as function of wave number (P(k))
+    n = numpy_matrix.shape[0]
+
+    fourier_image = fft.fft2(numpy_matrix) # fourier 'image'
+    fourier_amplitudes = np.abs(fourier_image) ** 2 # fourier amplitudes
+
+    kfreq = fft.fftfreq(n) * n # 1D array containing the wave vectors in k space
+    kfreq2D = np.meshgrid(kfreq, kfreq) # convertion to 2D array matching the layout of the fourier 'image'
+    knorm = np.sqrt(kfreq2D[0]**2 + kfreq2D[1]**2) # norm of wave vectors
+    knorm = knorm.flatten()
+    fourier_amplitudes = fourier_amplitudes.flatten()
+
+    kbins = np.arange(0.5, n//2+1, 1.) # start & end points of all bins
+    kvals = 0.5 * (kbins[1:] + kbins[:-1]) # corresponding k values
+
+    Abins, _, _ = scipy.stats.binned_statistic(knorm, fourier_amplitudes, statistic = "mean", bins = kbins) # average Fourier amplitude (**2) in each bin
+    Abins *= np.pi * (kbins[1:]**2 - kbins[:-1]**2) # total power --> multiply by area in each bin (eq5)
+
+    return kvals, Abins
+
 # def spatial_spec(numpy_matrix):
     # nr = numpy_matrix.shape[0]
     # nc = numpy_matrix.shape[1]
@@ -141,12 +161,12 @@ def spatial_corr_inside(numpy_matrix): # not fit for numpy matrices that contain
 #     psd2D = np.abs(fourier_shift) ** 2
 #
 #     return fourier_shift, F2, fourier_shift - F2
-#
-# data = (np.array(range(1,101)).reshape(10,10))
-# print(data)
-# print(spatial_spec(data))
 
-# psd2D = spatial_spec(data)
+data = (np.array(range(1,101)).reshape(10,10))
+print(data)
+print(spatial_power_spec(data))
+
+# psd2D = spatial_power_spec(data)
 # print(psd2D)
 
 # py.figure(1)
@@ -216,8 +236,10 @@ def temporal_spectrum(numpy_array):
     return spectrogram
 
 def temporal_PSD(numpy_array):
-    freqs, psd = signal.welch(numpy_array)
-    return freqs, psd
+    # freqs, psd = signal.welch(numpy_array)
+    # freqs, psd = signal.periodogram(numpy_array)
+    # return freqs, psd
+    return None
 
 def temporal_mean(numpy_array):
     return np.nanmean(numpy_array, axis=1) # return np.array([np.nanmean(array) for array in numpy_array])
