@@ -43,12 +43,12 @@ print(
     ews.temporal_std(stack_of_windows),'\n',
     ews.temporal_cv(stack_of_windows),'\n',
     ews.temporal_skw(stack_of_windows),'\n',
-    ews.temporal_dfa(stack_of_windows, scales=np.array([5,10]))
+    ews.temporal_dfa(stack_of_windows, scales=np.array([10, 5]))
 )
 
 # print(stack_of_windows)
-# print(len(stack_of_windows))
-# print(len(stack_of_windows[0]))
+print(len(stack_of_windows))
+print(len(stack_of_windows[0]))
 
 # for i in stack_of_snapshots:
 #     print(ews.spatial_power_spec(i))

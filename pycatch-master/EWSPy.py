@@ -123,10 +123,12 @@ def spatial_corr(numpy_matrix): # Moran's I
     numpy_matrix_copy = np.copy(numpy_matrix)
     numpy_matrix_copy[is_nan] = 0
 
-    sum_neighbours = np.array([convolve2d(array, rook_neighborhood, mode='same') for array in numpy_matrix_copy])
+    sum_neighbours = convolve(numpy_matrix_copy, rook_neighborhood[None, :, :], mode='same')
+    # sum_neighbours = np.array([convolve2d(array, rook_neighborhood, mode='same') for array in numpy_matrix_copy])
     # sum_neighbours = convolve3D???
 
-    n_neighbours_times_avg = np.array([convolve2d(is_not_nan_as_nr[i], rook_neighborhood * mean[i], mode='same') for i in range(len(is_not_nan_as_nr))])
+    n_neighbours_times_avg = convolve(is_not_nan_as_nr * mean[:, None, None], rook_neighborhood[None, :, :], mode='same')
+    # n_neighbours_times_avg = np.array([convolve2d(is_not_nan_as_nr[i], rook_neighborhood * mean[i], mode='same') for i in range(len(is_not_nan_as_nr))])
     n_neighbours_times_avg[is_nan] = 0
 
     P1 = np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg), axis=(1,2))
@@ -169,7 +171,7 @@ def spatial_corr(numpy_matrix): # Moran's I
 #     return P1 / P2
 
 def spatial_DFT(numpy_matrix):
-    return fft.fft2(numpy_matrix, axes=(-2))
+    return fft.fft2(numpy_matrix, axes=(-2,))
 
 def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power spectrum as function of wave number (P(k))
     n = numpy_matrix.shape[0]
@@ -322,7 +324,7 @@ def calc_rms(numpy_array, scale): # windowed Root Mean Square with linear detren
         rms[i] = np.sqrt(np.nanmean((segment - xfit)**2))
     return rms
 
-def temporal_dfa(stack_of_windows, scales=np.ndarray([10])):
+def temporal_dfa(stack_of_windows, scales=np.array([10])):
     # TODO - Works for a single time_window --> needs to be working *nicely* for array of time_windows
     fluct = []
     coeff = []
