@@ -43,7 +43,7 @@ print(
     ews.temporal_std(stack_of_windows),'\n',
     ews.temporal_cv(stack_of_windows),'\n',
     ews.temporal_skw(stack_of_windows),'\n',
-    ews.temporal_dfa(stack_of_windows)
+    ews.temporal_dfa(stack_of_windows, scales=np.array([5,10]))
 )
 
 # print(stack_of_windows)

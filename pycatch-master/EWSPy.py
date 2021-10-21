@@ -322,7 +322,7 @@ def calc_rms(numpy_array, scale): # windowed Root Mean Square with linear detren
         rms[i] = np.sqrt(np.nanmean((segment - xfit)**2))
     return rms
 
-def temporal_dfa(stack_of_windows, scales=[10]):
+def temporal_dfa(stack_of_windows, scales=np.ndarray([10])):
     # TODO - Works for a single time_window --> needs to be working *nicely* for array of time_windows
     fluct = []
     coeff = []
@@ -340,6 +340,8 @@ def temporal_dfa(stack_of_windows, scales=[10]):
 
         fluct = np.append(fluct, fluctuations)
         coeff = np.append(coeff, coefficients[0])
+
+    fluct = np.array_split(fluct, len(scales))
 
     return scales, fluct, coeff
 
