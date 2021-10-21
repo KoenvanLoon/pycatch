@@ -7,7 +7,7 @@ rising_memory = True
 rising_variability = True
 
 window_size = 10
-snapshot_interval = window_size
+snapshot_interval = 10
 
 ###
 
@@ -29,20 +29,26 @@ stack_of_snapshots = ews.time_series2snapshots(stack_of_maps_as_list, snapshot_i
 ###
 
 print(
-    ews.temporal_mean(stack_of_windows),'\n',
-    ews.temporal_std(stack_of_windows),'\n',
-    ews.temporal_cv(stack_of_windows),'\n',
-    ews.temporal_skw(stack_of_windows)
+    ews.spatial_mean(stack_of_snapshots),'\n',
+    ews.spatial_corr(stack_of_snapshots),'\n',
+    # ews.spatial_DFT(stack_of_snapshots),'\n', # TODO - large output; how2plot?
+    ews.spatial_var(stack_of_snapshots),'\n',
+    ews.spatial_skw(stack_of_snapshots),'\n',
+    # ews.temporal_krt(stack_of_snapshots) #,'\n', # most of the time not included
+    # ews.spatial_power_spec(stack_of_snapshots)
 )
 
 print(
-    # stack_of_snapshots,'\n',
-    ews.spatial_mean(stack_of_snapshots),'\n',
-    #len(ews.spatial_mean(stack_of_snapshots)),'\n',
-    #type(ews.spatial_mean(stack_of_snapshots)),'\n',
-    #ews.spatial_corr(stack_of_snapshots),'\n', # needs work!
-    ews.spatial_var(stack_of_snapshots)
+    ews.temporal_mean(stack_of_windows),'\n',
+    ews.temporal_std(stack_of_windows),'\n',
+    ews.temporal_cv(stack_of_windows),'\n',
+    ews.temporal_skw(stack_of_windows),'\n',
+    ews.temporal_dfa(stack_of_windows)
 )
 
-for i in stack_of_snapshots:
-    print(ews.spatial_corr(i))
+# print(stack_of_windows)
+# print(len(stack_of_windows))
+# print(len(stack_of_windows[0]))
+
+# for i in stack_of_snapshots:
+#     print(ews.spatial_power_spec(i))

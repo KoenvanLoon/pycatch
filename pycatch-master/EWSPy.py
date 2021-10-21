@@ -17,7 +17,7 @@ import math
 import rpy2
 from libpysal.weights import Queen, lat2W, KNN, lat2SW
 from esda.moran import Moran, Moran_Local
-from scipy.signal import convolve2d
+from scipy.signal import convolve, convolve2d
 from scipy import signal
 from scipy.spatial.distance import pdist, squareform
 from scipy import fftpack
@@ -42,9 +42,9 @@ Methods/indicators per phenomena
 
 Rising memory:
     Spatial correlation: Done & tested
-    Return time*: TODO - Only applied in a single paper (Wissel, 1984), only mentioned by name in other works.
-                         Furthermore, this return time (to equilibrium) is a function of time --> temporal
-    Discrete Fourier Transform (DFT): TODO
+    Return time*: NOT INCLUDED - Only applied in a single paper (Wissel, 1984), only mentioned by name in other works.
+                                Furthermore, this return time (to equilibrium) is a function of time --> temporal
+    Discrete Fourier Transform (DFT): Done - Needs testing & conformation of method!
 Rising variability:
     Spatial variance: Done & tested
     Spatial skewness: Done & tested
@@ -60,8 +60,8 @@ Patchiness*:
 #####################################
 
 def time_series2snapshots(numpy_matrix, interval):
-    return numpy_matrix[::interval]
-    # return np.array([numpy_matrix[i] for i in range(len(numpy_matrix)) if i % window_size == 0])
+    # return numpy_matrix[::interval]
+    return np.array([numpy_matrix[i] for i in range(len(numpy_matrix)) if i % interval == 0])
 
 def spatial_mean(numpy_matrix):
     # return np.array([np.nanmean(array) for array in numpy_matrix])
@@ -74,10 +74,10 @@ def spatial_var(numpy_matrix):
     return np.nanvar(numpy_matrix, axis=(1,2))
 
 def spatial_skw(numpy_matrix):
-    return scipy.stats.skew(np.nditer(numpy_matrix), axis=(1,2), nan_policy='omit')
+    return [scipy.stats.skew(np.nditer(array), nan_policy='omit').data for array in numpy_matrix]
 
 def spatial_krt(numpy_matrix):
-    return scipy.stats.kurtosis(np.nditer(numpy_matrix), axis=(1,2), nan_policy='omit')
+    return [scipy.stats.kurtosis(np.nditer(array), nan_policy='omit').data for array in numpy_matrix]
 
 # Rook-neighborhood for spatial correlation analogue to lag-1 autocorrelation in time
 rook_neighborhood = np.array([
@@ -86,39 +86,90 @@ rook_neighborhood = np.array([
     [0, 1, 0]
 ])
 
-def spatial_corr(numpy_matrix):
-    mean = np.nanmean(numpy_matrix)
-    var = np.nanvar(numpy_matrix)
-    numpy_matrix -= mean
+queen_neighborhood = np.array([
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1]
+])
 
-    is_nan = np.isnan(numpy_matrix) # missing values in map are assumed to be np.NaN
+rook_neighborhood_2 = np.array([
+    [0, 0, 1, 0, 0],
+    [0, 1, 1, 1, 0],
+    [1, 1, 0, 1, 1],
+    [0, 1, 1, 1, 0],
+    [0, 0, 1, 0, 0]
+])
+
+queen_neighborhood_2 = np.array([
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 0, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1]
+])
+
+def spatial_corr(numpy_matrix): # Moran's I
+    mean = spatial_mean(numpy_matrix)
+
+    var = spatial_var(numpy_matrix)
+
+    numpy_matrix_mmean = np.copy(numpy_matrix)
+    numpy_matrix_mmean -= mean[:, None, None]
+
+    is_nan = np.isnan(numpy_matrix_mmean) # missing values in map are assumed to be np.NaN
     is_not_nan = ~ is_nan
     is_not_nan_as_nr = is_not_nan.astype(float)
 
-    numpy_matrix_copy = numpy_matrix.copy()
+    numpy_matrix_copy = np.copy(numpy_matrix)
     numpy_matrix_copy[is_nan] = 0
-    sum_neighbours = convolve2d(numpy_matrix_copy, rook_neighborhood, mode='same')
-    n_neighbours_times_avg = convolve2d(is_not_nan_as_nr, rook_neighborhood * mean, mode='same')
+
+    sum_neighbours = np.array([convolve2d(array, rook_neighborhood, mode='same') for array in numpy_matrix_copy])
+    # sum_neighbours = convolve3D???
+
+    n_neighbours_times_avg = np.array([convolve2d(is_not_nan_as_nr[i], rook_neighborhood * mean[i], mode='same') for i in range(len(is_not_nan_as_nr))])
     n_neighbours_times_avg[is_nan] = 0
-    P1 = sum(sum(numpy_matrix * (sum_neighbours - n_neighbours_times_avg)))
 
-    return P1 / (4 * var * np.count_nonzero(is_not_nan_as_nr))
+    P1 = np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg), axis=(1,2))
+    P2 = (4 * var * is_not_nan_as_nr.sum(axis=(1, 2)))
+    return P1 / P2
 
-def spatial_corr_inside(numpy_matrix): # not fit for numpy matrices that contain np.NaN, use spatial_corr instead!
-    mean = spatial_mean(numpy_matrix)
-    var = spatial_var(numpy_matrix)
-    storage = 0.0
-    for m in range(1, numpy_matrix.shape[0]-1):
-        for n in range(1, numpy_matrix.shape[1]-1):
-            storage += (numpy_matrix[m, n] - mean) * ((numpy_matrix[m, n-1] + numpy_matrix[m, n+1] + numpy_matrix[m-1, n]
-                                                      + numpy_matrix[m+1, n]) - (4 * mean))
-    spatial_corr = (storage) / (4 * var * ((numpy_matrix.shape[0]-2) * (numpy_matrix.shape[1]-2)))
-    return spatial_corr
+# def spatial_corr_2D_inside(numpy_matrix): # not fit for numpy matrices that contain np.NaN, use spatial_corr instead!
+#     mean = np.nanmean(numpy_matrix)
+#     var = np.nanvar(numpy_matrix)
+#     storage = 0.0
+#     for m in range(1, numpy_matrix.shape[0]-1):
+#         for n in range(1, numpy_matrix.shape[1]-1):
+#             storage += (numpy_matrix[m, n] - mean) * ((numpy_matrix[m, n-1] + numpy_matrix[m, n+1] + numpy_matrix[m-1, n]
+#                                                       + numpy_matrix[m+1, n]) - (4 * mean))
+#     spatial_corr = (storage) / (4 * var * ((numpy_matrix.shape[0]-2) * (numpy_matrix.shape[1]-2)))
+#     return spatial_corr
+#
+# def spatial_corr_2D(numpy_matrix):
+#     mean = np.nanmean(numpy_matrix)
+#
+#     var = np.nanvar(numpy_matrix)
+#
+#     numpy_matrix_mmean = np.copy(numpy_matrix)
+#     numpy_matrix_mmean -= mean
+#
+#     is_nan = np.isnan(numpy_matrix_mmean) # missing values in map are assumed to be np.NaN
+#     is_not_nan = ~ is_nan
+#     is_not_nan_as_nr = is_not_nan.astype(float)
+#
+#     numpy_matrix_copy = numpy_matrix.copy()
+#     numpy_matrix_copy[is_nan] = 0
+#
+#     sum_neighbours = convolve2d(numpy_matrix_copy, rook_neighborhood, mode='same')
+#
+#     n_neighbours_times_avg = convolve2d(is_not_nan_as_nr, rook_neighborhood * mean, mode='same')
+#     n_neighbours_times_avg[is_nan] = 0
+#
+#     P1 = np.nansum(np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg)))
+#     P2 = (4 * var * np.count_nonzero(is_not_nan_as_nr))
+#     return P1 / P2
 
-# def spatial_corr_package(numpy_matrix):
-#     weights = lat2W(nrows=numpy_matrix.shape[0], ncols=numpy_matrix.shape[1], rook=True)
-#     mi = Moran_Local(numpy_matrix, weights)
-#     return sum(mi.Is)
+def spatial_DFT(numpy_matrix):
+    return fft.fft2(numpy_matrix, axes=(-2))
 
 def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power spectrum as function of wave number (P(k))
     n = numpy_matrix.shape[0]
@@ -138,7 +189,7 @@ def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power sp
     Abins, _, _ = scipy.stats.binned_statistic(knorm, fourier_amplitudes, statistic = "mean", bins = kbins) # average Fourier amplitude (**2) in each bin
     Abins *= np.pi * (kbins[1:]**2 - kbins[:-1]**2) # total power --> multiply by area in each bin (eq5)
 
-    return kvals, Abins
+    return fourier_image, kvals, Abins
 
 # def spatial_spec(numpy_matrix):
     # nr = numpy_matrix.shape[0]
@@ -162,17 +213,9 @@ def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power sp
 #
 #     return fourier_shift, F2, fourier_shift - F2
 
-data = (np.array(range(1,101)).reshape(10,10))
-print(data)
-print(spatial_power_spec(data))
-
-# psd2D = spatial_power_spec(data)
-# print(psd2D)
-
-# py.figure(1)
-# py.clf()
-# py.imshow(np.log10(psd2D), cmap=py.cm.jet)
-# py.show()
+# data = (np.array(range(1,101)).reshape(10,10))
+# print(data)
+# print(spatial_power_spec(data))
 
 #########################################
 ### Time series early-warning signals ###
@@ -185,7 +228,7 @@ Rising memory:
     Autocorrelation lag 1: Done & tested
     Autoregressive coefficient of AR(1) model* ***: NOT INCLUDED
     Return rate (inverse of AR(1) coefficient)* ***: NOT INCLUDED
-    Detrended fluctuation analysis indicator: TODO
+    Detrended fluctuation analysis indicator: Done - Needs testing & further improvements
     Spectral density: TODO
     Spectral ratio (of low to high frequencies): TODO
     Spectral exponent: TODO
@@ -194,7 +237,7 @@ Rising variability & flickering:
     Coefficient of variation: Done & tested
     Skewness: Done & tested
     Kurtosis: Done & tested
-    Conditional heteroskedasticity: TODO
+    Conditional heteroskedasticity*: NOT INCLUDED
     BDS test**: TODO
 
 *Models are not included, metrics are.
@@ -205,6 +248,7 @@ Rising variability & flickering:
 #########################################
 
 def time_series2time_windows(time_series, window_size=10):
+    # return time_series[::window_size]
     return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size)])
 
 def mean_time_series(stack_of_maps_as_list): # needs testing, improvements
@@ -219,7 +263,7 @@ def max_time_series(stack_of_maps_as_list): # needs testing, improvements
         max_time_series[k] += np.nanmax(map)
     return max_time_series
 
-###
+#########################################
 
 def autocovariance(numpy_array, lag=1):
     number = len(numpy_array)
@@ -260,64 +304,43 @@ def temporal_skw(numpy_array):
 def temporal_krt(numpy_array):
     return scipy.stats.kurtosis(numpy_array, axis=1, nan_policy='omit')
 
+def calc_rms(numpy_array, scale): # windowed Root Mean Square with linear detrending
+    # Making of an array with data divided into segments
+    shape = (numpy_array.shape[0] // scale, scale)
+    segments = np.array([numpy_array[i:i + scale] for i in range(0, len(numpy_array), scale)]).reshape(shape)
+
+    # x = np.copy(numpy_array)
+    # segments = np.lib.stride_tricks.as_strided(x, shape=shape) # - 'Dangerous' function; excluded
+
+    # Vector of x-axis
+    scale_ax = np.arange(scale)
+    rms = np.zeros(segments.shape[0])
+    for i, segment in enumerate(segments):
+        coeff = np.polyfit(scale_ax, segment, 1)
+        xfit = np.polyval(coeff, scale_ax)
+        # Detrending & computing RMS of each window
+        rms[i] = np.sqrt(np.nanmean((segment - xfit)**2))
+    return rms
+
+def temporal_dfa(stack_of_windows, scales=[10]):
+    # TODO - Works for a single time_window --> needs to be working *nicely* for array of time_windows
+    fluct = []
+    coeff = []
+
+    for numpy_array in stack_of_windows:
+        # Cumulative sum of a single window with subtracted offset
+        y = np.nancumsum(numpy_array - np.nanmean(numpy_array)) # noise like time series to random walk time series
+
+        # RMS for each segment
+        fluctuations = np.zeros(len(scales)) # a.ii.1
+        for i, sc in enumerate(scales):
+            fluctuations[i] = np.sqrt(np.mean(calc_rms(y, sc)**2))
+
+        coefficients = np.polyfit(np.log2(scales), np.log2(fluctuations), 1)
+
+        fluct = np.append(fluct, fluctuations)
+        coeff = np.append(coeff, coefficients[0])
+
+    return scales, fluct, coeff
+
 #########################################
-
-# np.random.seed(42)
-# # data = np.random.rand(100, 100) * 100
-# # time_series_stack = np.random.rand(10, 1000) * 100
-# data = np.random.normal(10, 5, (100, 100))
-# #data = np.array(range(1,101)).reshape(10,10)
-# time_series_stack = np.random.normal(10, 5, (10, 1000))
-#
-# import time
-#
-# ### Spatial tests for single map ###
-# print("\n---=<#>=--- start of spatial tests ---=<#>=---")
-# start_time = time.time()
-#
-# print("spatial mean:", spatial_mean(data))
-# print("spatial std:", spatial_std(data))
-# print("spatial var:", spatial_var(data))
-# print("spatial skw:", spatial_skw(data))
-# print("spatial krt:", spatial_krt(data))
-# print("spatial corr (inside):", spatial_corr_inside(data))
-# print("spatial corr (full):", spatial_corr(data))
-# #print("rspec:", spatial_spec(data))
-#
-# finished_time = time.time() - start_time
-# print(f"-=- runtime is {finished_time} seconds -=-")
-#
-# ### Temporal tests for 10 time series ###
-# print("\n---=<#>=--- start of temporal tests ---=<#>=---")
-# start_time = time.time()
-#
-# tstorage = [0.0] * time_series_stack.shape[0]
-#
-# for k, time_series in enumerate(time_series_stack):
-#     tstorage[k] += temporal_mean(time_series)
-# print("temporal mean:", tstorage)
-#
-# for k, time_series in enumerate(time_series_stack):
-#     tstorage[k] += temporal_autocorrelation(time_series)
-# print("temporal autocorrelation lag-1:", tstorage)
-#
-# for k, time_series in enumerate(time_series_stack):
-#     tstorage[k] += temporal_std(time_series)
-# print("temporal std:", tstorage)
-#
-# for k, time_series in enumerate(time_series_stack):
-#     tstorage[k] += temporal_skw(time_series)
-# print("temporal skw:", tstorage)
-#
-# for k, time_series in enumerate(time_series_stack):
-#     tstorage[k] += temporal_krt(time_series)
-# print("temporal krt:", tstorage)
-#
-# for k, time_series in enumerate(time_series_stack):
-#     tstorage[k] += temporal_cv(time_series)
-# print("temporal CV:", tstorage)
-#
-# finished_time = time.time() - start_time
-# print(f"-=- runtime is {finished_time} seconds -=-")
-
-#####################################
