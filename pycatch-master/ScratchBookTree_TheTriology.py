@@ -31,7 +31,7 @@ stack_of_snapshots = ews.time_series2snapshots(stack_of_maps_as_list, snapshot_i
 print(
     ews.spatial_mean(stack_of_snapshots),'\n',
     ews.spatial_corr(stack_of_snapshots),'\n',
-    # ews.spatial_DFT(stack_of_snapshots),'\n', # TODO - large output; how2plot?
+    # ews.spatial_DFT(stack_of_snapshots),'\n', # TODO - large output; how to plot?
     ews.spatial_var(stack_of_snapshots),'\n',
     ews.spatial_skw(stack_of_snapshots),'\n',
     # ews.temporal_krt(stack_of_snapshots) #,'\n', # most of the time not included
@@ -46,9 +46,14 @@ print(
     ews.temporal_dfa(stack_of_windows, scales=np.array([10, 5]))
 )
 
-# print(stack_of_windows)
-print(len(stack_of_windows))
-print(len(stack_of_windows[0]))
+# from statsmodels.tsa.ar_model import AutoReg
+#
+# AR1_ = []
+# for i in stack_of_windows:
+#     mod = AutoReg(i, 1).fit()
+#     AR1_ = np.append(AR1_, mod.params[1])
+# print(AR1_)
 
-# for i in stack_of_snapshots:
-#     print(ews.spatial_power_spec(i))
+print(ews.temporal_AR1(stack_of_windows))
+print(ews.temporal_returnrate(stack_of_windows))
+print(ews.temporal_cond_het(stack_of_windows))

@@ -6,6 +6,9 @@ import scipy.stats
 from scipy import sparse
 from scipy.spatial.distance import pdist
 
+from statsmodels.tsa.ar_model import AutoReg
+from statsmodels.stats.diagnostic import het_arch
+
 import numpy as np
 import skgstat
 import gstools
@@ -267,25 +270,47 @@ def max_time_series(stack_of_maps_as_list): # needs testing, improvements
 
 #########################################
 
+def temporal_AR1(stack_of_windows):
+    mean = temporal_mean(stack_of_windows)
+
+    stack_of_windows_mmean = np.copy(stack_of_windows)
+    stack_of_windows_mmean -= mean[:, None]
+
+    AR1_params = []
+    for numpy_array in stack_of_windows_mmean:
+        mod = AutoReg(numpy_array, 1).fit()
+        AR1_params = np.append(AR1_params, mod.params[1])
+    return AR1_params
+
+def temporal_returnrate(stack_of_windows):
+    return np.reciprocal(temporal_AR1(stack_of_windows))
+
+def temporal_cond_het(stack_of_windows, n_lags=4, ddof=1):
+    cond_het = [0.0] * len(stack_of_windows)
+    for k, numpy_array in enumerate(stack_of_windows):
+        residuals = AutoReg(numpy_array, 1).fit().resid
+        cond_het[k] = np.array(het_arch(residuals, nlags=n_lags, ddof=ddof))
+    return cond_het
+
 def autocovariance(numpy_array, lag=1):
     number = len(numpy_array)
     mean = sum(numpy_array) / number
     autocovariance = sum([(numpy_array[i] - mean) * (numpy_array[i+lag] - mean) for i in range(number - lag)]) / number
     return autocovariance
 
-np.seterr(invalid='ignore') # would like to remove this ofc
+np.seterr(invalid='ignore') # would like to do without this
 def temporal_autocorrelation(numpy_array, lag=1):
     return np.true_divide(autocovariance(numpy_array, lag=lag), temporal_var(numpy_array))
 
-def temporal_spectrum(numpy_array):
-    freqs, times, spectrogram = signal.spectrogram(numpy_array)
-    return spectrogram
-
-def temporal_PSD(numpy_array):
-    # freqs, psd = signal.welch(numpy_array)
-    # freqs, psd = signal.periodogram(numpy_array)
-    # return freqs, psd
-    return None
+# def temporal_spectrum(numpy_array):
+#     freqs, times, spectrogram = signal.spectrogram(numpy_array)
+#     return spectrogram
+#
+# def temporal_PSD(numpy_array):
+#     # freqs, psd = signal.welch(numpy_array)
+#     # freqs, psd = signal.periodogram(numpy_array)
+#     # return freqs, psd
+#     return None
 
 def temporal_mean(numpy_array):
     return np.nanmean(numpy_array, axis=1) # return np.array([np.nanmean(array) for array in numpy_array])
@@ -296,7 +321,7 @@ def temporal_std(numpy_array):
 def temporal_var(numpy_array):
     return np.nanvar(numpy_array, axis=1)
 
-np.seterr(invalid='ignore') # would like to remove this ofc
+np.seterr(invalid='ignore') # would like to do without this
 def temporal_cv(numpy_array):
     return np.true_divide(temporal_std(numpy_array), temporal_mean(numpy_array))
 
