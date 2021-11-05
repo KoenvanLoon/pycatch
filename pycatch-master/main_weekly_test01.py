@@ -397,7 +397,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             if cfg.variances:
                 # Test case
                 bins, gamma = generalfunctions_test01.variogramValuesKoen(stackOfMapsAsListVariable, boundVector)
-                numpy.savetxt(generateNameST('biTS', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                numpy.savetxt(generateNameST('biTS', self.currentSampleNumber(), self.currentTimeStep()),
                               numpy.array(gamma))
                 # temporal
                 dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
@@ -405,7 +405,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                                                   'test', 2.0)
                 #dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
                 #                                                                        list(boundVector))
-                numpy.savetxt(generateNameST('bioT', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                numpy.savetxt(generateNameST('bioT', self.currentSampleNumber(), self.currentTimeStep()),
                               # Added + '.numpy.txt'
                               numpy.array(gamma))
 
@@ -413,24 +413,30 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                 dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
                                                                                   boundVector, 1, 1,
                                                                                   'test', 2.0)
-                numpy.savetxt(generateNameST('bioS', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                numpy.savetxt(generateNameST('bioS', self.currentSampleNumber(), self.currentTimeStep()),
                               # Added + '.numpy.txt'
                               numpy.array(gamma))
                 # mean and var ### ADDITION - KL ###
                 MeanVarVariable = generalfunctions_test01.descriptiveStatistics(stackOfMapsAsListVariable)
-                numpy.savetxt(generateNameST('biMV', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                numpy.savetxt(generateNameST('biMV', self.currentSampleNumber(), self.currentTimeStep()),
                               numpy.array(MeanVarVariable))
 
                 # lag-1 autocorrelation
                 lag1Variable = generalfunctions_test01.autocor1(stackOfMapsAsListVariable)
-                numpy.savetxt(generateNameST('biLO', self.currentSampleNumber(), self.currentTimeStep()) + '.numpy.txt',
+                numpy.savetxt(generateNameST('biLO', self.currentSampleNumber(), self.currentTimeStep()),
                               numpy.array(lag1Variable))
                 # END OF ADDITION ###
+
             # mean
             # meanVariable=maptotal(variable)/self.numberOfCellsOnMap
             meanVariable = areaaverage(variable, self.zoneMap)
             generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'bioA',
                                                                 self.currentSampleNumber(), self.currentTimeStep())
+
+            generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, variable, 'bioM',
+                                                                self.currentSampleNumber(), self.currentTimeStep())
+
+            generalfunctions_test01.report_as_map(variable, 'bioT', self.currentSampleNumber(), self.currentTimeStep())
 
         # REGOLITH THICKNESS
         variable = self.d_regolithdemandbedrock.regolithThickness
@@ -564,7 +570,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
     def postmcloop(self):
         # import generalfunctions # not sure why this needs to be imported again
-        names = ['gA', 'bioA', 'bioS', 'bioT', 'biMV', 'biLO', 'biTS', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA',
+        names = ['gA', 'bioA', 'bioM', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA',
                  'creA']
         for name in names:
             aVariable = generalfunctions_test01.openSamplesAndTimestepsAsNumpyArraysAsNumpyArray(

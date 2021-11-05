@@ -6,13 +6,13 @@ import os
 rising_memory = True
 rising_variability = True
 
-window_size = 10
-snapshot_interval = 10
+window_size = 100
+snapshot_interval = 100
 
 ###
 
 path = './1/'
-stack_of_maps_as_list = [pcr2numpy(readmap(path + i), np.NaN) for i in os.listdir(path) if os.path.isfile(os.path.join(path, i)) and 'Mfs' in i]
+stack_of_maps_as_list = [pcr2numpy(readmap(path + i), np.NaN) for i in os.listdir(path) if os.path.isfile(os.path.join(path, i)) and 'bioT' in i]
 # print(stack_of_maps_as_list)
 
 ###
@@ -29,31 +29,22 @@ stack_of_snapshots = ews.time_series2snapshots(stack_of_maps_as_list, snapshot_i
 ###
 
 print(
-    ews.spatial_mean(stack_of_snapshots),'\n',
-    ews.spatial_corr(stack_of_snapshots),'\n',
+    "spatial mean", ews.spatial_mean(stack_of_snapshots),'\n',
+    "spatial corr", ews.spatial_corr(stack_of_snapshots),'\n',
     # ews.spatial_DFT(stack_of_snapshots),'\n', # TODO - large output; how to plot?
-    ews.spatial_var(stack_of_snapshots),'\n',
-    ews.spatial_skw(stack_of_snapshots),'\n',
+    "spatial var", ews.spatial_var(stack_of_snapshots),'\n',
+    "spatial skw", ews.spatial_skw(stack_of_snapshots),'\n',
     # ews.temporal_krt(stack_of_snapshots) #,'\n', # most of the time not included
-    # ews.spatial_power_spec(stack_of_snapshots)
+    # ews.spatial_power_spec(stack_of_snapshots) # TODO - only works for square matrices; representative?
 )
 
 print(
-    ews.temporal_mean(stack_of_windows),'\n',
-    ews.temporal_std(stack_of_windows),'\n',
-    ews.temporal_cv(stack_of_windows),'\n',
-    ews.temporal_skw(stack_of_windows),'\n',
-    ews.temporal_dfa(stack_of_windows, scales=np.array([10, 5]))
+    "temporal mean", ews.temporal_mean(stack_of_windows),'\n',
+    "temporal std", ews.temporal_std(stack_of_windows),'\n',
+    "temporal cv", ews.temporal_cv(stack_of_windows),'\n',
+    # ews.temporal_skw(stack_of_windows),'\n',
+    "temporal dfa", ews.temporal_dfa(stack_of_windows, scales=np.array([10, 5])),'\n',
+    "temporal AR1", ews.temporal_AR1(stack_of_windows),'\n',
+    "temporal return rate", ews.temporal_returnrate(stack_of_windows),'\n',
+    "temporal cond het", ews.temporal_cond_het(stack_of_windows)
 )
-
-# from statsmodels.tsa.ar_model import AutoReg
-#
-# AR1_ = []
-# for i in stack_of_windows:
-#     mod = AutoReg(i, 1).fit()
-#     AR1_ = np.append(AR1_, mod.params[1])
-# print(AR1_)
-
-print(ews.temporal_AR1(stack_of_windows))
-print(ews.temporal_returnrate(stack_of_windows))
-print(ews.temporal_cond_het(stack_of_windows))

@@ -47,7 +47,7 @@ Rising memory:
     Spatial correlation: Done & tested
     Return time*: NOT INCLUDED - Only applied in a single paper (Wissel, 1984), only mentioned by name in other works.
                                 Furthermore, this return time (to equilibrium) is a function of time --> temporal
-    Discrete Fourier Transform (DFT): Done - Needs testing & conformation of method!
+    Discrete Fourier Transform (DFT): Done - Needs testing & conformation of method! -> how2plot?
 Rising variability:
     Spatial variance: Done & tested
     Spatial skewness: Done & tested
@@ -55,7 +55,7 @@ Patchiness*:
     Spatial variance & skewness: Done & tested (as above)
     Patch-size distributions: NOT INCLUDED - Only relevant for biomass
     Regular spotted patterns: NOT INCLUDED - Only relevant for biomass
-    Power spectrum: Done - Needs testing & conformation of method!
+    Power spectrum: Done - Needs testing & conformation of method! -> only works for square matrices
     
 *= not sure if necessary for this study
 --------------------------------
@@ -77,10 +77,10 @@ def spatial_var(numpy_matrix):
     return np.nanvar(numpy_matrix, axis=(1,2))
 
 def spatial_skw(numpy_matrix):
-    return [scipy.stats.skew(np.nditer(array), nan_policy='omit').data for array in numpy_matrix]
+    return [scipy.stats.skew(np.nditer(array), nan_policy='omit') for array in numpy_matrix]
 
 def spatial_krt(numpy_matrix):
-    return [scipy.stats.kurtosis(np.nditer(array), nan_policy='omit').data for array in numpy_matrix]
+    return [scipy.stats.kurtosis(np.nditer(array), nan_policy='omit') for array in numpy_matrix]
 
 # Rook-neighborhood for spatial correlation analogue to lag-1 autocorrelation in time
 rook_neighborhood = np.array([
@@ -231,8 +231,8 @@ Methods/indicators per phenomena
 --------------------------------
 Rising memory:
     Autocorrelation lag 1: Done & tested
-    Autoregressive coefficient of AR(1) model* ***: NOT INCLUDED
-    Return rate (inverse of AR(1) coefficient)* ***: NOT INCLUDED
+    Autoregressive coefficient of AR(1) model: Done - Needs testing & further improvements
+    Return rate (inverse of AR(1) coefficient): Done - Needs testing & further improvements
     Detrended fluctuation analysis indicator: Done - Needs testing & further improvements
     Spectral density: TODO
     Spectral ratio (of low to high frequencies): TODO
@@ -242,7 +242,7 @@ Rising variability & flickering:
     Coefficient of variation: Done & tested
     Skewness: Done & tested
     Kurtosis: Done & tested
-    Conditional heteroskedasticity*: NOT INCLUDED
+    Conditional heteroskedasticity: Done - Needs testing & further improvements
     BDS test**: TODO
 
 *Models are not included, metrics are.
@@ -283,6 +283,7 @@ def temporal_AR1(stack_of_windows):
     return AR1_params
 
 def temporal_returnrate(stack_of_windows):
+    # returns inf when division by zero; NaN is used for division by zero
     return np.reciprocal(temporal_AR1(stack_of_windows))
 
 def temporal_cond_het(stack_of_windows, n_lags=4, ddof=1):

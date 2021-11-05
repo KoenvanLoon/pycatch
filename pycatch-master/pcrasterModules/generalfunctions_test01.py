@@ -49,6 +49,9 @@ def truedivKoen(a, b):
     else:
         return operator.truediv(a, b)
 
+def report_as_map(values, basename, sample_number, time_step):
+    file_name = pcrfw.generateNameST(basename, sample_number, time_step)
+    pcrfw.report(values, file_name)
 
 ### END OF ADD. FUNCTIONS ###
 

@@ -6,7 +6,8 @@ filtering=False
 
 # use for other runs
 #numberOfTimeSteps=1500000   # long run
-numberOfTimeSteps=5200   # test run
+#numberOfTimeSteps=5200   # test run
+numberOfTimeSteps = 104000
 
 # option to fix both the regolith and the vegetation, not typically used
 # in normal simulations
@@ -19,13 +20,14 @@ changeGeomorphology=True
 # number of realizations
 nrOfSamples = 1
 
-# calculation of early warning signals
-intervalForStatsCalculated=100
-#intervalForStatsCalculated=1
+# calculation of early warning signals --- TODO different intervals for map snapshots (~100?) and areaaverage (~1)
+intervalForStatsCalculated=1
+#intervalForStatsCalculated=100
+
 
 # for calculation of early warning signals
 # does not work anymore # fixed it using an alt truediv & some weird R magic - KL
-variances=True
+variances=False
 
 # option to define some parameters as realizations from random
 # functions, typically False

@@ -48,7 +48,7 @@ class RunoffAccuthreshold:
     return self.actualAbstractionFlux
 
   def report(self, sample, timestep):
-    report(self.RunoffCubicMetrePerHour,generateNameST('Rq', sample, timestep))
+    report(self.RunoffCubicMetrePerHour, generateNameST('Rq', sample, timestep))
 
   def budgetCheck(self):
     return self.cumulativeDischargeCubicMetres 
