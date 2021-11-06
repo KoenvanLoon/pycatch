@@ -44,6 +44,7 @@ print(
     "temporal cv", ews.temporal_cv(stack_of_windows),'\n',
     # ews.temporal_skw(stack_of_windows),'\n',
     "temporal dfa", ews.temporal_dfa(stack_of_windows, scales=np.array([10, 5])),'\n',
+    "temporal autocor", ews.temporal_autocorrelation(stack_of_windows),'\n',
     "temporal AR1", ews.temporal_AR1(stack_of_windows),'\n',
     "temporal return rate", ews.temporal_returnrate(stack_of_windows),'\n',
     "temporal cond het", ews.temporal_cond_het(stack_of_windows)

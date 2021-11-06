@@ -278,8 +278,8 @@ def temporal_AR1(stack_of_windows):
 
     AR1_params = []
     for numpy_array in stack_of_windows_mmean:
-        mod = AutoReg(numpy_array, 1).fit()
-        AR1_params = np.append(AR1_params, mod.params[1])
+        mod = AutoReg(numpy_array, 1, trend='n').fit()
+        AR1_params = np.append(AR1_params, mod.params)
     return AR1_params
 
 def temporal_returnrate(stack_of_windows):
@@ -287,21 +287,40 @@ def temporal_returnrate(stack_of_windows):
     return np.reciprocal(temporal_AR1(stack_of_windows))
 
 def temporal_cond_het(stack_of_windows, n_lags=4, ddof=1):
+    mean = temporal_mean(stack_of_windows)
+
+    stack_of_windows_mmean = np.copy(stack_of_windows)
+    stack_of_windows_mmean -= mean[:, None]
+
     cond_het = [0.0] * len(stack_of_windows)
-    for k, numpy_array in enumerate(stack_of_windows):
-        residuals = AutoReg(numpy_array, 1).fit().resid
+    for k, numpy_array in enumerate(stack_of_windows_mmean):
+        residuals = AutoReg(numpy_array, 1, trend='n').fit().resid
         cond_het[k] = np.array(het_arch(residuals, nlags=n_lags, ddof=ddof))
     return cond_het
 
-def autocovariance(numpy_array, lag=1):
-    number = len(numpy_array)
-    mean = sum(numpy_array) / number
-    autocovariance = sum([(numpy_array[i] - mean) * (numpy_array[i+lag] - mean) for i in range(number - lag)]) / number
-    return autocovariance
+# def autocovariance(numpy_array, lag=1):
+#     number = len(numpy_array)
+#     mean = sum(numpy_array) / number
+#     autocovariance = sum([(numpy_array[i] - mean) * (numpy_array[i+lag] - mean) for i in range(number - lag)]) / number
+#     return autocovariance
 
-np.seterr(invalid='ignore') # would like to do without this
+#np.seterr(invalid='ignore') # would like to do without this
 def temporal_autocorrelation(numpy_array, lag=1):
-    return np.true_divide(autocovariance(numpy_array, lag=lag), temporal_var(numpy_array))
+    return np.true_divide(temporal_autocovariance(numpy_array, lag=lag), temporal_var(numpy_array))
+
+def temporal_autocovariance(numpy_array, lag=1):
+    auto_cov = [0.0] * len(numpy_array)
+    for k, window in enumerate(numpy_array):
+        N = len(window)
+        mean = np.nanmean(window)
+
+        end_padded_series = np.zeros(N+lag)
+        end_padded_series[:N] = window - mean
+        start_padded_series = np.zeros(N+lag)
+        start_padded_series[lag:] = window - mean
+
+        auto_cov[k] = np.sum(start_padded_series * end_padded_series) / N
+    return auto_cov
 
 # def temporal_spectrum(numpy_array):
 #     freqs, times, spectrogram = signal.spectrogram(numpy_array)
