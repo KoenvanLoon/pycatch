@@ -47,6 +47,7 @@ Rising memory:
     Spatial correlation: Done & tested
     Return time*: NOT INCLUDED - Only applied in a single paper (Wissel, 1984), only mentioned by name in other works.
                                 Furthermore, this return time (to equilibrium) is a function of time --> temporal
+                                Or, it should be seen as return distance (spatial distance to mean state, bit vague)
     Discrete Fourier Transform (DFT): Done - Needs testing & conformation of method! -> how2plot?
 Rising variability:
     Spatial variance: Done & tested
