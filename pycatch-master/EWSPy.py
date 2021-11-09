@@ -35,6 +35,19 @@ from collections import deque
 # from PCRaster.NumPy import *
 import random
 
+###########################################
+### Class Variable for Variable objects ###
+###########################################
+
+class Variable:
+    def __init__(self, name, meanmax, window_size, snapshot_interval, spatial, temporal):
+        self.name = name
+        self.meanmax = meanmax
+        self.window_size = window_size
+        self.snapshot_interval = snapshot_interval
+        self.spatial = spatial
+        self.temporal = temporal
+
 #####################################
 ### Spatial early-warning signals ###
 #####################################

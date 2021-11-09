@@ -1,42 +1,34 @@
 import EWSPy as ews
 from pcraster import *
 import numpy as np
-import os
 import time
-import itertools
-import threading
-import sys
 import configuration_weekly as cfg
 
-### User input ### TODO - Only single variable/realization; needs automation for multiple variables/realizations
-
-variables = ['bioM', 'demM']
-# variable = 'bioM'
+### User input ### TODO - Only single variable/realization; needs automation for multiple variables/realizations (with different window-sizes/snapshots?)
 
 realizations = cfg.nrOfSamples
-# realizations = 1
-
-spatial_ews = True
-temporal_ews = True
+# realizations = 1 # for test cases
 
 window_size = 100
 snapshot_interval = window_size
 
+# ews.Variable(name, mean/max value, window size, snapshot interval, spatial ews, temporal ews)
+sfM = ews.Variable("sfM", 'mean', window_size, snapshot_interval, True, True)
+bioM = ews.Variable("bioM", 'mean', window_size, snapshot_interval, True, True)
+regM = ews.Variable("regM", 'mean', window_size, snapshot_interval, True, True)
+demM = ews.Variable("demM", 'mean', window_size, snapshot_interval, True, True)
+qM = ews.Variable("qM", "max", window_size, snapshot_interval, True, True) # TODO - meanmax; max point of outflow?
+gM = ews.Variable("gM", "mean", window_size, snapshot_interval, True, True)
+
+variables = [sfM, bioM, regM, demM, qM, gM]
+
 ### End of user input ###
-
-### Loading files animation ###
-
-def animated_loading():
-    chars = "/-\|"
-    for char in chars:
-        sys.stdout.write('\r'+'loading '+char)
-        time.sleep(.1)
-        sys.stdout.flush()
 
 ### Loading files ###
 
 def file_loader(variable, path='./1/', timer_on=False):
     if timer_on == True:
+        print(f"Started loading {variable} files")
         start_time = time.time()
 
     stack_of_maps_as_list = [pcr2numpy(readmap(path + i), np.NaN) for i in os.listdir(path)
@@ -49,7 +41,8 @@ def file_loader(variable, path='./1/', timer_on=False):
 
 ### EWS  calculations ###
 
-def ews_calculations(stack_of_maps_as_list, window_size=100, snapshot_interval=100, time_series='mean', timer_on=True):
+def ews_calculations(stack_of_maps_as_list, window_size=10, snapshot_interval=10, time_series='mean', timer_on=False,
+                     temporal_ews=True, spatial_ews=True, save_img=False):
     ### Temporal EWS ###
     if temporal_ews == True:
         print("Started temporal EWS calculations")
@@ -109,20 +102,9 @@ def ews_calculations(stack_of_maps_as_list, window_size=100, snapshot_interval=1
 
 for realization in range(1, realizations + 1):
     for variable in variables:
-        process = threading.Thread(name='process', target=file_loader(variable))
-        process.start()
-        while process.isAlive():
-            animated_loading()
-
-        stack_of_maps_as_list = file_loader(variable, path=f'./{realization}/', timer_on=True)
-        run = ews_calculations(stack_of_maps_as_list, window_size=window_size, snapshot_interval=snapshot_interval,
-                               time_series='mean', timer_on=True)
-
-# done_loading = False
-# threading.Thread(target=animate_loading(variable)).start()
-# stack_of_maps_as_list = file_loader(variable, './1/', timer_on=True)
-# done_loading = True
-# run = ews_calculations(stack_of_maps_as_list, window_size=window_size, snapshot_interval=snapshot_interval,
-#                        time_series='mean', timer_on=True)
+        stack_of_maps_as_list = file_loader(variable.name, path=f'./{realization}/', timer_on=True)
+        run = ews_calculations(stack_of_maps_as_list, window_size=variable.window_size,
+                               snapshot_interval=variable.snapshot_interval, time_series=variable.meanmax,
+                               timer_on=True, spatial_ews=variable.spatial, temporal_ews=variable.temporal)
 
 ###
