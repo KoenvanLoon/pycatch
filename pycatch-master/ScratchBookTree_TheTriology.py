@@ -9,16 +9,13 @@ import configuration_weekly as cfg
 realizations = cfg.nrOfSamples
 # realizations = 1 # for test cases
 
-window_size = 100
-snapshot_interval = window_size
-
 # ews.Variable(name, mean/max value, window size, snapshot interval, spatial ews, temporal ews)
-sfM = ews.Variable("sfM", 'mean', window_size, snapshot_interval, True, True)
-bioM = ews.Variable("bioM", 'mean', window_size, snapshot_interval, True, True)
-regM = ews.Variable("regM", 'mean', window_size, snapshot_interval, True, True)
-demM = ews.Variable("demM", 'mean', window_size, snapshot_interval, True, True)
-qM = ews.Variable("qM", "max", window_size, snapshot_interval, True, True) # TODO - meanmax; max point of outflow?
-gM = ews.Variable("gM", "mean", window_size, snapshot_interval, True, True)
+sfM = ews.Variable("sfM")
+bioM = ews.Variable("bioM")
+regM = ews.Variable("regM")
+demM = ews.Variable("demM")
+qM = ews.Variable("qM", "max") # TODO - meanmax; max point of outflow? --> fixed point?
+gM = ews.Variable("gM", "mean")
 
 variables = [sfM, bioM, regM, demM, qM, gM]
 
@@ -41,7 +38,7 @@ def file_loader(variable, path='./1/', timer_on=False):
 
 ### EWS  calculations ###
 
-def ews_calculations(stack_of_maps_as_list, window_size=10, snapshot_interval=10, time_series='mean', timer_on=False,
+def ews_calculations(stack_of_maps_as_list, window_size=100, snapshot_interval=100, time_series='mean', timer_on=False,
                      temporal_ews=True, spatial_ews=True, save_img=False):
     ### Temporal EWS ###
     if temporal_ews == True:
@@ -102,9 +99,9 @@ def ews_calculations(stack_of_maps_as_list, window_size=10, snapshot_interval=10
 
 for realization in range(1, realizations + 1):
     for variable in variables:
-        stack_of_maps_as_list = file_loader(variable.name, path=f'./{realization}/', timer_on=True)
+        stack_of_maps_as_list = file_loader(variable.name, path=f'./{realization}/', timer_on=False)
         run = ews_calculations(stack_of_maps_as_list, window_size=variable.window_size,
                                snapshot_interval=variable.snapshot_interval, time_series=variable.meanmax,
-                               timer_on=True, spatial_ews=variable.spatial, temporal_ews=variable.temporal)
+                               timer_on=False, spatial_ews=variable.spatial, temporal_ews=variable.temporal)
 
 ###

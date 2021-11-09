@@ -40,7 +40,7 @@ import random
 ###########################################
 
 class Variable:
-    def __init__(self, name, meanmax, window_size, snapshot_interval, spatial, temporal):
+    def __init__(self, name, meanmax='mean', window_size=100, snapshot_interval=100, spatial=True, temporal=True):
         self.name = name
         self.meanmax = meanmax
         self.window_size = window_size
