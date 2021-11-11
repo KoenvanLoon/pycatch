@@ -19,10 +19,20 @@ changeGeomorphology=True
 # number of realizations
 nrOfSamples = 1
 
-# calculation of early warning signals --- TODO different intervals for map snapshots (~100?) and areaaverage (~1)
-intervalForStatsCalculated=1
-#intervalForStatsCalculated=100
+# calculation of early warning signals
 
+### Saving map files which can be used for both temporal and spatial EWS
+### - Saves all values of the state variables of the complete map
+### - Preferred option for variable intervals & data-usage
+map_data = True
+interval_map_snapshots = 1
+
+### Saving numpy.txt files for spatial and temporal EWS seperately
+### - Snapshots save all values, mean saves average value of the state variables
+### - Preferred option for user-readability (can be opened as .txt file)
+numpy_data = False
+interval_np_spatial_snapshots = 100
+interval_np_temporal_mean_calc = 1
 
 # for calculation of early warning signals
 # does not work anymore # fixed it using an alt truediv & some weird R magic - KL

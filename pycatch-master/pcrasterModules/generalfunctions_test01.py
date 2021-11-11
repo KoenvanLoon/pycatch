@@ -166,9 +166,20 @@ def reportLocationsAsNumpyArray(locations, values, basename, sampleNumber, timeS
     # reports one file per realization and per time step
     fileName = pcrfw.generateNameST(basename, sampleNumber, timeStep)
     numpyArray = returnCellValuesAtLocationsAsNumpyArray(locations, pcr.spatial(values))
+    # numpy.savetxt(fileName + '.numpy.txt', numpyArray)
     numpyArrayAsMapWithOneRow = numpyArray.reshape(1, len(numpyArray))
     numpy.savetxt(fileName + '.numpy.txt', numpyArrayAsMapWithOneRow)
 
+def report_locations_as_mean_np(variable_values, basename, sample_number, time_step): # TODO - Save timeseries?
+    file_name = pcrfw.generateNameST(basename, sample_number, time_step)
+    numpy_array = pcr.pcr2numpy(variable_values, numpy.nan)
+    mean_np = [numpy.nanmean(numpy_array)]
+    numpy.savetxt(file_name + '.numpy.txt', mean_np)
+
+def report_locations_as_np_arr(variable_values, basename, sample_number, time_step):
+    file_name = pcrfw.generateNameST(basename, sample_number, time_step)
+    numpy_array = pcr.pcr2numpy(variable_values, numpy.nan)
+    numpy.savetxt(file_name + '.numpy.txt', numpy_array)
 
 def reportLocationsAsNumpyArrayOneFilePerRealization(locations, values,
                                                      basename, sampleNumber, timeStep, endTimeStep):

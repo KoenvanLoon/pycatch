@@ -1,6 +1,7 @@
 import EWSPy as ews
 from pcraster import *
 import numpy as np
+import os
 import time
 import configuration_weekly as cfg
 
@@ -9,36 +10,42 @@ import configuration_weekly as cfg
 realizations = cfg.nrOfSamples
 # realizations = 1 # for test cases
 
-# ews.Variable(name, mean/max value, window size, snapshot interval, spatial ews, temporal ews)
-sfM = ews.Variable("sfM")
-bioM = ews.Variable("bioM")
-regM = ews.Variable("regM")
-demM = ews.Variable("demM")
-qM = ews.Variable("qM", "max") # TODO - meanmax; max point of outflow? --> fixed point?
-gM = ews.Variable("gM", "mean")
+# ews.Variable(name, mean/max value, window size, snapshot interval, spatial ews, temporal ews, datatype 'map'/'numpy'(.txt))
+sfM = ews.StateVariable("sfM")
+bioM = ews.StateVariable("bioM")
+regM = ews.StateVariable("regM")
+demM = ews.StateVariable("demM")
+qM = ews.StateVariable("qM", meanmax="max") # TODO - meanmax; max point of outflow? --> fixed point?
+gM = ews.StateVariable("gM")
 
-variables = [sfM, bioM, regM, demM, qM, gM]
+weaA = ews.StateVariable("weaA", datatype='numpy', spatial=False)
+weaN = ews.StateVariable("weaN", datatype='numpy', temporal=False)
+weaM = ews.StateVariable("weaM")
+
+variables = [weaA, weaN, weaM]
 
 ### End of user input ###
 
 ### Loading files ###
 
-def file_loader(variable, path='./1/', timer_on=False):
-    if timer_on == True:
-        print(f"Started loading {variable} files")
+def file_loader(variable, path='./1/', timer_on=False, datatype='map'):
+    data_stack = []
+    if timer_on:
+        print(f"Started loading {variable} files",'\n')
         start_time = time.time()
-
-    stack_of_maps_as_list = [pcr2numpy(readmap(path + i), np.NaN) for i in os.listdir(path)
-                             if os.path.isfile(os.path.join(path, i)) and variable in i]
-
-    if timer_on == True:
-        print('\n',"Loading finished with loading time:", time.time() - start_time,'\n')
-
-    return stack_of_maps_as_list
+    if datatype=='map':
+        data_stack = [pcr2numpy(readmap(path + i), np.NaN) for i in os.listdir(path)
+                      if os.path.isfile(os.path.join(path, i)) and variable in i]
+    if datatype=='numpy':
+        data_stack = [np.loadtxt(path + i) for i in os.listdir(path)
+                      if os.path.isfile(os.path.join(path, i)) and variable in i]
+    if timer_on:
+        print("Loading finished with loading time:", time.time() - start_time," seconds",'\n')
+    return data_stack
 
 ### EWS  calculations ###
 
-def ews_calculations(stack_of_maps_as_list, window_size=100, snapshot_interval=100, time_series='mean', timer_on=False,
+def ews_calculations(data_stack, window_size=100, snapshot_interval=100, time_series='mean', timer_on=False,
                      temporal_ews=True, spatial_ews=True, save_img=False):
     ### Temporal EWS ###
     if temporal_ews == True:
@@ -48,9 +55,9 @@ def ews_calculations(stack_of_maps_as_list, window_size=100, snapshot_interval=1
 
         input_time_series = []
         if time_series == 'mean':
-            input_time_series = ews.mean_time_series(stack_of_maps_as_list)
+            input_time_series = ews.mean_time_series(data_stack)
         if time_series == 'max':
-            input_time_series = ews.max_time_series(stack_of_maps_as_list)
+            input_time_series = ews.max_time_series(data_stack)
 
         stack_of_windows = ews.time_series2time_windows(input_time_series, window_size)
 
@@ -77,7 +84,7 @@ def ews_calculations(stack_of_maps_as_list, window_size=100, snapshot_interval=1
         if timer_on == True:
             start_time = time.time()
 
-        stack_of_snapshots = ews.time_series2snapshots(stack_of_maps_as_list, snapshot_interval)
+        stack_of_snapshots = ews.time_series2snapshots(data_stack, snapshot_interval)
 
         print(
             " spatial mean", ews.spatial_mean(stack_of_snapshots),'\n',
@@ -99,9 +106,14 @@ def ews_calculations(stack_of_maps_as_list, window_size=100, snapshot_interval=1
 
 for realization in range(1, realizations + 1):
     for variable in variables:
-        stack_of_maps_as_list = file_loader(variable.name, path=f'./{realization}/', timer_on=False)
-        run = ews_calculations(stack_of_maps_as_list, window_size=variable.window_size,
-                               snapshot_interval=variable.snapshot_interval, time_series=variable.meanmax,
-                               timer_on=False, spatial_ews=variable.spatial, temporal_ews=variable.temporal)
+        data_stack = file_loader(variable.name, path=f'./{realization}/', datatype=variable.datatype, timer_on=True)
+        run = ews_calculations(data_stack, window_size=variable.window_size, snapshot_interval=variable.snapshot_interval,
+                               time_series=variable.meanmax, timer_on=False, spatial_ews=variable.spatial,
+                               temporal_ews=variable.temporal)
+
+# inputs = ['clone.map', 'demini.map', 'mlocs.map', 'zonsc.map']
+#
+# for i in inputs:
+#     print(i, pcr2numpy(readmap('./inputs_weekly/' + i), np.nan))
 
 ###

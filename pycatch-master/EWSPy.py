@@ -35,18 +35,19 @@ from collections import deque
 # from PCRaster.NumPy import *
 import random
 
-###########################################
-### Class Variable for Variable objects ###
-###########################################
+################################################
+### Class StateVariable for Variable objects ###
+################################################
 
-class Variable:
-    def __init__(self, name, meanmax='mean', window_size=100, snapshot_interval=100, spatial=True, temporal=True):
+class StateVariable:
+    def __init__(self, name, meanmax='mean', window_size=100, snapshot_interval=100, spatial=True, temporal=True, datatype='map'):
         self.name = name
         self.meanmax = meanmax
         self.window_size = window_size
         self.snapshot_interval = snapshot_interval
         self.spatial = spatial
         self.temporal = temporal
+        self.datatype = datatype
 
 #####################################
 ### Spatial early-warning signals ###

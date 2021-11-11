@@ -2,7 +2,6 @@
 import datetime
 from collections import deque
 import sys
-
 import numpy
 
 sys.path.append("./pcrasterModules/") # from PCRasterModules - still needed for other scripts to work?
@@ -54,8 +53,8 @@ if cfg.fixedStates:
     fixedStatesReg = spatial(scalar(float(sys.argv[1])))
     fixedStatesBio = spatial(scalar(float(sys.argv[2])))
 
-timeStepsWithStatsCalculated = range(cfg.intervalForStatsCalculated,
-                                     cfg.numberOfTimeSteps, cfg.intervalForStatsCalculated)
+# timeStepsWithStatsCalculated = range(cfg.intervalForStatsCalculated,
+#                                      cfg.numberOfTimeSteps, cfg.intervalForStatsCalculated)
 
 
 def calculateGapFractionAndMaxIntStoreFromLAI(leafAreaIndex):
@@ -92,6 +91,10 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # locations where values are reported as a numpy array to disk
         self.mlocs = nominal("inputs_weekly/mlocs")  # multiple report locations, read from 'mlocs.map'
         self.aLocation = self.mlocs
+
+        # alt locations where values are reported as a numpy array to disk
+        self.all_locs = nominal("inputs_weekly/clone.map")
+        self.all_locations = self.all_locs
 
         # zone reported at each report location
         if cfg.fixedStates:
@@ -342,7 +345,10 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.reportComponentsDynamic()
         # self.printComponentsDynamic()
 
-        calculateStats = (self.currentTimeStep() % cfg.intervalForStatsCalculated) == 0
+        # calculateStats = (self.currentTimeStep() % cfg.intervalForStatsCalculated) == 0
+        save_maps = (self.currentTimeStep() % cfg.interval_map_snapshots) == 0 and cfg.map_data == True
+        save_np_spatial_snapshots = (self.currentTimeStep() % cfg.interval_np_spatial_snapshots) == 0 and cfg.numpy_data == True
+        save_np_temporal_mean = (self.currentTimeStep() % cfg.interval_np_temporal_mean_calc) == 0 and cfg.numpy_data == True
 
         ############
         # statistics
@@ -363,7 +369,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfSoilMoistureFraction)
 
-        if calculateStats:
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'sfM', self.currentSampleNumber(), self.currentTimeStep())
+
             if cfg.variances:
                 # temporal
                 dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
@@ -385,8 +393,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'sfA',
             #                                                     self.currentSampleNumber(), self.currentTimeStep())
 
-            generalfunctions_test01.report_as_map(variable, 'sfM', self.currentSampleNumber(), self.currentTimeStep())
-
         # BIOMASS
         variable = self.d_biomassModifiedMay.biomass
         variableSampled = ifthen(self.someLocs, variable)
@@ -396,7 +402,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                                           self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfBiomass)
 
-        if calculateStats:
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'bioM', self.currentSampleNumber(), self.currentTimeStep())
+
             if cfg.variances:
                 # Test case
                 # bins, gamma = generalfunctions_test01.variogramValuesKoen(stackOfMapsAsListVariable, boundVector)
@@ -432,16 +440,13 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                 #               numpy.array(lag1Variable))
                 # END OF ADDITION ###
 
-            # # mean
-            # # meanVariable=maptotal(variable)/self.numberOfCellsOnMap
-            # meanVariable = areaaverage(variable, self.zoneMap)
-            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'bioA',
-            #                                                     self.currentSampleNumber(), self.currentTimeStep())
-            #
-            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, variable, 'bioM',
-            #                                                     self.currentSampleNumber(), self.currentTimeStep())
+            # mean
+            meanVariable = areaaverage(variable, self.zoneMap)
+            generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'bioA',
+                                                                self.currentSampleNumber(), self.currentTimeStep())
 
-            generalfunctions_test01.report_as_map(variable, 'bioM', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, variable, 'bioF',
+                                                                self.currentSampleNumber(), self.currentTimeStep())
 
         # REGOLITH THICKNESS
         variable = self.d_regolithdemandbedrock.regolithThickness
@@ -452,7 +457,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                                                     self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfRegolithThickness)
 
-        if calculateStats:
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'regM', self.currentSampleNumber(), self.currentTimeStep())
+
             if cfg.variances:
                 # temporal
                 dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
@@ -474,8 +481,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'regA',
             #                                                     self.currentSampleNumber(), self.currentTimeStep())
 
-            generalfunctions_test01.report_as_map(variable, 'regM', self.currentSampleNumber(), self.currentTimeStep())
-
         # DEM
         variable = self.d_regolithdemandbedrock.dem
         variableSampled = ifthen(self.someLocs, variable)
@@ -485,7 +490,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                                       self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfDem)
 
-        if calculateStats:
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'demM', self.currentSampleNumber(), self.currentTimeStep())
+
             if cfg.variances:
                 # temporal
                 dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
@@ -507,8 +514,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             # generalfunctions_test01.reportLocationsAsNumpyArray(
             #     self.aLocation, meanVariable, 'demA', self.currentSampleNumber(), self.currentTimeStep())
 
-            generalfunctions_test01.report_as_map(variable, 'demM', self.currentSampleNumber(), self.currentTimeStep())
-
         # discharge
         downstreamEdge = generalfunctions_test01.edge(self.clone, 2, 0)
         pits = pcrne(pit(self.d_runoffAccuthreshold.ldd), 0)
@@ -525,7 +530,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                                        self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfTotQ)
 
-        if calculateStats:
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'qM', self.currentSampleNumber(), self.currentTimeStep())
+
             if cfg.variances:
                 # temporal
                 dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
@@ -536,65 +543,92 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, totQ, 'qA', self.currentSampleNumber(),
             #                                                     self.currentTimeStep())
 
-            generalfunctions_test01.report_as_map(variable, 'qM', self.currentSampleNumber(), self.currentTimeStep())
-
         # grazing rate
-        if calculateStats:
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'gM', self.currentSampleNumber(), self.currentTimeStep())
+
             # generalfunctions_test01.reportLocationsAsNumpyArray(
             #     self.aLocation, spatial(scalar(self.grazingRate)), 'gA', self.currentSampleNumber(),
             #     self.currentTimeStep())
 
-            generalfunctions_test01.report_as_map(variable, 'gM', self.currentSampleNumber(), self.currentTimeStep())
-
         # some extra outputs
-        if calculateStats:
-
+        if save_maps: # TODO - remove aLocation/zoneMap from equation
             # growth part
-            meanVariable = areaaverage(self.d_biomassModifiedMay.growthPart, self.zoneMap)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.aLocation, meanVariable, 'gpA', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(self.d_biomassModifiedMay.growthPart, 'gpM', self.currentSampleNumber(), self.currentTimeStep())
 
             # grazing part
-            meanVariable = 0.0 - areaaverage(spatial(self.d_biomassModifiedMay.grazing), self.zoneMap)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.aLocation, meanVariable, 'grA', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(0.0 - self.d_biomassModifiedMay.grazing, 'grM', self.currentSampleNumber(), self.currentTimeStep())
 
             # net growth
-            meanVariable = areaaverage(self.d_biomassModifiedMay.netGrowth, self.zoneMap)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.aLocation, meanVariable, 'grNA', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(self.d_biomassModifiedMay.netGrowth, 'grNM', self.currentSampleNumber(), self.currentTimeStep())
 
             # net deposition
-            # meanVariable=areaaverage(netDepositionMetre,self.zoneMap)
-            meanVariable = areaaverage(actualDepositionFlux, self.zoneMap)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.aLocation, meanVariable, 'depA', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(actualDepositionFlux, 'depM', self.currentSampleNumber(), self.currentTimeStep())
 
             # net weathering
-            meanVariable = areaaverage(self.d_bedrockweathering.weatheringMetrePerYear, self.zoneMap)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.aLocation, meanVariable, 'weaA', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(self.d_bedrockweathering.weatheringMetrePerYear, 'weaM', self.currentSampleNumber(), self.currentTimeStep())
 
             # net creep deposition
-            meanVariable = areaaverage(self.creepDeposition, self.zoneMap)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.aLocation, meanVariable, 'creA', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(self.creepDeposition, 'creM', self.currentSampleNumber(), self.currentTimeStep())
 
+        if save_np_temporal_mean:
+            # growth part
+            meanVariable = areaaverage(self.d_biomassModifiedMay.growthPart, self.all_locations)
+            generalfunctions_test01.reportLocationsAsNumpyArray(
+                self.all_locations, meanVariable, 'gpA', self.currentSampleNumber(), self.currentTimeStep())
+
+            # grazing part
+            meanVariable = 0.0 - areaaverage(spatial(self.d_biomassModifiedMay.grazing), self.all_locations)
+            generalfunctions_test01.reportLocationsAsNumpyArray(
+                self.all_locations, meanVariable, 'grA', self.currentSampleNumber(), self.currentTimeStep())
+
+            # net growth
+            meanVariable = areaaverage(self.d_biomassModifiedMay.netGrowth, self.all_locations)
+            generalfunctions_test01.reportLocationsAsNumpyArray(
+                self.all_locations, meanVariable, 'grNA', self.currentSampleNumber(), self.currentTimeStep())
+
+            # net deposition
+            meanVariable = areaaverage(actualDepositionFlux, self.all_locations)
+            generalfunctions_test01.reportLocationsAsNumpyArray(
+                self.all_locations, meanVariable, 'depA', self.currentSampleNumber(), self.currentTimeStep())
+
+            # net weathering
+            meanVariable = areaaverage(self.d_bedrockweathering.weatheringMetrePerYear, self.all_locations)
+            generalfunctions_test01.reportLocationsAsNumpyArray(
+                self.all_locations, meanVariable, 'weaA', self.currentSampleNumber(), self.currentTimeStep())
+
+            # net creep deposition
+            meanVariable = areaaverage(self.creepDeposition, self.all_locations)
+            generalfunctions_test01.reportLocationsAsNumpyArray(
+                self.all_locations, meanVariable, 'creA', self.currentSampleNumber(), self.currentTimeStep())
+
+        # # net weathering # - Testcase
+        # variable = self.d_bedrockweathering.weatheringMetrePerYear
+        # if save_np_temporal_mean == True:
+        #     generalfunctions_test01.report_locations_as_mean_np(
+        #         variable, 'weaA', self.currentSampleNumber(), self.currentTimeStep())
+        # if save_np_spatial_snapshots == True:
+        #     generalfunctions_test01.report_locations_as_np_arr(
+        #         variable, 'weaN', self.currentSampleNumber(), self.currentTimeStep())
+        # if save_maps == True:
+        #     generalfunctions_test01.report_as_map(
+        #         variable, 'weaM', self.currentSampleNumber(), self.currentTimeStep())
 
         if self.currentTimeStep() == cfg.numberOfTimeSteps:
             name = generateNameS('grazing', self.currentSampleNumber())
-            numpy.save(name, self.grazingPressureArray)
+            numpy.savetxt(name + 'numpy.txt', self.grazingPressureArray)
 
         # t = 0 # Not sure why this is here - KL
 
 
     def postmcloop(self):
         # import generalfunctions # not sure why this needs to be imported again
-        names = [] # ['gA', 'bioA', 'bioM', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA', 'creA']
-        for name in names:
-            aVariable = generalfunctions_test01.openSamplesAndTimestepsAsNumpyArraysAsNumpyArray(
-                name, range(1, cfg.nrOfSamples + 1), timeStepsWithStatsCalculated)
-            numpy.save(name, aVariable)
+        # names = [] # ['gA', 'bioA', 'bioM', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA', 'creA']
+        # for name in names:
+        #     aVariable = generalfunctions_test01.openSamplesAndTimestepsAsNumpyArraysAsNumpyArray(
+        #         name, range(1, cfg.nrOfSamples + 1), timeStepsWithStatsCalculated)
+        #     numpy.save(name, aVariable)
+        pass
 
     def createInstancesPremcloop(self):
         pass
