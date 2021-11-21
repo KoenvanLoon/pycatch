@@ -440,13 +440,13 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                 #               numpy.array(lag1Variable))
                 # END OF ADDITION ###
 
-            # mean
-            meanVariable = areaaverage(variable, self.zoneMap)
-            generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'bioA',
-                                                                self.currentSampleNumber(), self.currentTimeStep())
-
-            generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, variable, 'bioF',
-                                                                self.currentSampleNumber(), self.currentTimeStep())
+            # # mean
+            # meanVariable = areaaverage(variable, self.zoneMap)
+            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'bioA',
+            #                                                     self.currentSampleNumber(), self.currentTimeStep())
+            #
+            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, variable, 'bioF',
+            #                                                     self.currentSampleNumber(), self.currentTimeStep())
 
         # REGOLITH THICKNESS
         variable = self.d_regolithdemandbedrock.regolithThickness
@@ -530,18 +530,20 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                                        self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfTotQ)
 
-        if save_maps:
-            generalfunctions_test01.report_as_map(variable, 'qM', self.currentSampleNumber(), self.currentTimeStep())
-
-            if cfg.variances:
-                # temporal
-                dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
-                                                                                        list(boundVector))
-                numpy.savetxt(generateNameST('qT', self.currentSampleNumber(), self.currentTimeStep()),
-                              numpy.array(gamma))
-            # mean
-            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, totQ, 'qA', self.currentSampleNumber(),
-            #                                                     self.currentTimeStep())
+        ### Notice that the variable equals the total outflow of the complete map, and we only need to save a single value
+        # if save_maps:
+        #     generalfunctions_test01.report_as_map(variable, 'qM', self.currentSampleNumber(), self.currentTimeStep())
+        #
+        #     if cfg.variances:
+        #         # temporal
+        #         dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
+        #                                                                                 list(boundVector))
+        #         numpy.savetxt(generateNameST('qT', self.currentSampleNumber(), self.currentTimeStep()),
+        #                       numpy.array(gamma))
+        # mean
+        if save_maps or save_np_temporal_mean:
+            generalfunctions_test01.reportLocationsAsNumpyArray(self.all_locations, totQ, 'qA', self.currentSampleNumber(),
+                                                                self.currentTimeStep())
 
         # grazing rate
         if save_maps:
@@ -552,7 +554,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             #     self.currentTimeStep())
 
         # some extra outputs
-        if save_maps: # TODO - remove aLocation/zoneMap from equation
+        if save_maps:
             # growth part
             generalfunctions_test01.report_as_map(self.d_biomassModifiedMay.growthPart, 'gpM', self.currentSampleNumber(), self.currentTimeStep())
 
@@ -636,7 +638,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
     def createInstancesInitial(self):
         # import generalfunctions # not sure why this needs to be imported again
 
-        timeStepsToReportAll = range(100, cfg.numberOfTimeSteps + 1, 100)
+        # timeStepsToReportAll = range(100, cfg.numberOfTimeSteps + 1, 100)
+        timeStepsToReportAll = range(1, cfg.numberOfTimeSteps +1, 1)
         timeStepsToReportSome = range(3000, cfg.numberOfTimeSteps + 1, 100)
 
         # class for exchange variables in initial and dynamic

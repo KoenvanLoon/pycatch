@@ -15,14 +15,15 @@ sfM = ews.StateVariable("sfM")
 bioM = ews.StateVariable("bioM")
 regM = ews.StateVariable("regM")
 demM = ews.StateVariable("demM")
-qM = ews.StateVariable("qM", meanmax="max") # TODO - meanmax; max point of outflow? --> fixed point?
+qA = ews.StateVariable("qA", spatial=False, datatype='numpy')
 gM = ews.StateVariable("gM")
+Pf = ews.StateVariable("Pf")
 
-weaA = ews.StateVariable("weaA", datatype='numpy', spatial=False)
-weaN = ews.StateVariable("weaN", datatype='numpy', temporal=False)
-weaM = ews.StateVariable("weaM")
+# weaA = ews.StateVariable("weaA", datatype='numpy', spatial=False)
+# weaN = ews.StateVariable("weaN", datatype='numpy', temporal=False)
+# weaM = ews.StateVariable("weaM")
 
-variables = [weaA, weaN, weaM]
+variables = [sfM, bioM, qA, Pf]
 
 ### End of user input ###
 
@@ -108,7 +109,7 @@ for realization in range(1, realizations + 1):
     for variable in variables:
         data_stack = file_loader(variable.name, path=f'./{realization}/', datatype=variable.datatype, timer_on=True)
         run = ews_calculations(data_stack, window_size=variable.window_size, snapshot_interval=variable.snapshot_interval,
-                               time_series=variable.meanmax, timer_on=False, spatial_ews=variable.spatial,
+                               time_series=variable.meanmax, timer_on=True, spatial_ews=variable.spatial,
                                temporal_ews=variable.temporal)
 
 # inputs = ['clone.map', 'demini.map', 'mlocs.map', 'zonsc.map']

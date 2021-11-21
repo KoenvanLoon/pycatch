@@ -77,7 +77,7 @@ Patchiness*:
 """
 #####################################
 
-def time_series2snapshots(numpy_matrix, interval):
+def time_series2snapshots(numpy_matrix, interval=100):
     # return numpy_matrix[::interval]
     return np.array([numpy_matrix[i] for i in range(len(numpy_matrix)) if i % interval == 0])
 
@@ -267,7 +267,7 @@ Rising variability & flickering:
 """
 #########################################
 
-def time_series2time_windows(time_series, window_size=10):
+def time_series2time_windows(time_series, window_size=100):
     # return time_series[::window_size]
     return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size)])
 
