@@ -29,7 +29,6 @@ import configuration_weekly as cfg
 from pcraster.framework import *
 
 # R package loader ### ADDED - KL
-
 import rpy2
 import rpy2.robjects.packages as rpackages
 from rpy2.robjects.vectors import StrVector
@@ -45,7 +44,6 @@ names_to_install = [x for x in packageNamesR if not rpackages.isinstalled(x)]
 if len(names_to_install) > 0:
     print(f"Installing the following R packages: {names_to_install}")
     utils.install_packages(StrVector(names_to_install))
-
 ### END OF ADDITIONS ###
 
 if cfg.fixedStates:
@@ -55,7 +53,6 @@ if cfg.fixedStates:
 
 # timeStepsWithStatsCalculated = range(cfg.intervalForStatsCalculated,
 #                                      cfg.numberOfTimeSteps, cfg.intervalForStatsCalculated)
-
 
 def calculateGapFractionAndMaxIntStoreFromLAI(leafAreaIndex):
     maximumInterceptionCapacityPerLAI = scalar(0.001)

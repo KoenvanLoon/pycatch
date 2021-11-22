@@ -5,8 +5,8 @@ filtering=False
 ### END ADDITIONS ###
 
 # use for other runs
-#numberOfTimeSteps=5200   # test run
-numberOfTimeSteps = 104000 # Y2K long run
+numberOfTimeSteps=5200   # test run
+#numberOfTimeSteps = 104000 # Y2K long run
 
 # option to fix both the regolith and the vegetation, not typically used
 # in normal simulations
