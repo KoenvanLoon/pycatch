@@ -33,10 +33,35 @@ def mean_time_series(stack_of_maps_as_list):
         mean_time_series[k] += np.nanmean(map)
     return mean_time_series
 
+# def timesteps(start_shift, end_shift, steps_in_shift=10, steps_ba_shift=10):
+#     before_shift = np.linspace(start=cfg.interval_map_snapshots, stop=start_shift, num=steps_ba_shift, endpoint=False, dtype=int)
+#     during_shift = np.linspace(start=start_shift, stop=end_shift, num=steps_in_shift, endpoint=False, dtype=int)
+#     after_shift = np.linspace(start=end_shift, stop=cfg.numberOfTimeSteps, num=steps_ba_shift, dtype=int)
+#     timesteps = np.concatenate((before_shift, during_shift, after_shift))
+#     return timesteps
+
 def timesteps(start_shift, end_shift, steps_in_shift=10, steps_ba_shift=10):
-    before_shift = np.linspace(start=0, stop=start_shift, num=steps_ba_shift, endpoint=False, dtype=int)
-    during_shift = np.linspace(start=start_shift, stop=end_shift, num=steps_in_shift, endpoint=False, dtype=int)
-    after_shift = np.linspace(start=end_shift, stop=cfg.numberOfTimeSteps, num=steps_ba_shift, dtype=int)
+    first_state_duration = (start_shift/cfg.interval_map_snapshots) - 1
+    shift_duration = (end_shift/cfg.interval_map_snapshots) - (start_shift/cfg.interval_map_snapshots)
+    second_state_duration = (end_shift/cfg.interval_map_snapshots) - (cfg.numberOfTimeSteps/cfg.interval_map_snapshots)
+
+    num1, num2, num3 = steps_ba_shift, steps_in_shift, steps_ba_shift
+    if first_state_duration < num1:
+        num1 = math.floor(first_state_duration)
+    if shift_duration < num2:
+        num2 = math.ceil(shift_duration)
+    if second_state_duration < num3:
+        num3 = math.floor(second_state_duration)
+
+    before_shift = np.linspace(1,
+                               math.floor(start_shift/cfg.interval_map_snapshots) - 1,
+                               num1, dtype='int') * cfg.interval_map_snapshots
+    during_shift = np.linspace(math.floor(start_shift/cfg.interval_map_snapshots),
+                               math.ceil(end_shift/cfg.interval_map_snapshots),
+                               num2, dtype='int') * cfg.interval_map_snapshots
+    after_shift = np.linspace(math.ceil(end_shift/cfg.interval_map_snapshots) + 1,
+                               cfg.numberOfTimeSteps/cfg.interval_map_snapshots,
+                               num3, dtype='int') * cfg.interval_map_snapshots
     timesteps = np.concatenate((before_shift, during_shift, after_shift))
     return timesteps
 
@@ -57,7 +82,7 @@ def timestep_str(timesteps):
 
 ### INPUTS & CALCULATIONS ###
 
-variables = ["bioM"]
+variables = ["bioM", "dem"]
 
 # Load bio mass and soil thickness timeseries
 timeseries_bioM = file_loader("bioM", path="./1/", datatype="map")

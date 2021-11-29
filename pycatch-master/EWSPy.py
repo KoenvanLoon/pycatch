@@ -138,6 +138,9 @@ def spatial_corr(numpy_matrix): # Moran's I
     is_not_nan = ~ is_nan
     is_not_nan_as_nr = is_not_nan.astype(float)
 
+    numpy_matrix_var = np.copy(is_not_nan_as_nr)
+    numpy_matrix_var *= var
+
     numpy_matrix_copy = np.copy(numpy_matrix)
     numpy_matrix_copy[is_nan] = 0
 
@@ -149,8 +152,9 @@ def spatial_corr(numpy_matrix): # Moran's I
     # n_neighbours_times_avg = np.array([convolve2d(is_not_nan_as_nr[i], rook_neighborhood * mean[i], mode='same') for i in range(len(is_not_nan_as_nr))])
     n_neighbours_times_avg[is_nan] = 0
 
-    P1 = np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg), axis=(1,2))
-    P2 = (4 * var * is_not_nan_as_nr.sum(axis=(1, 2)))
+    P1 = np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg), axis=(1, 2))
+    #P2 = (4 * var * is_not_nan_as_nr.sum(axis=(1, 2))) # still asumes 4 neighbours!
+    P2 = np.nansum(sum_neighbours * numpy_matrix_var, axis=(1, 2))
     return P1 / P2
 
 # def spatial_corr_2D_inside(numpy_matrix): # not fit for numpy matrices that contain np.NaN, use spatial_corr instead!

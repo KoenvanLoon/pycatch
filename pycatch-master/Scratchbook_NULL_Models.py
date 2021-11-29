@@ -72,6 +72,7 @@ fft_sym = fft_mag * (np.cos(fft_phases_new) + 1j * np.sin(fft_phases_new))
 
 # Invert the DFT
 ifft_ = fft.ifft(fft_sym)
+print(ifft_)
 
 ## ADDITION - might not be needed
 # if not np.allclose(ifft_.imag, np.zeros(ifft_.shape)):
@@ -108,4 +109,4 @@ ax3.plot(ifft_)
 ax4.plot(data_)
 ax4.plot(z)
 
-plt.show()
+#plt.show()

@@ -594,6 +594,9 @@ class CatchmentModel(pcrfw.DynamicModel, pcrfw.MonteCarloModel):
     for filename in glob.glob(str(self.currentSampleNumber()) + '/stateVar/*/*'):
       os.remove(filename)
 
+# TODO for step in timesteps: # where timesteps ('0.100', '0.200'...)
+# cfg.dem --> dem = str(pathlib.Path(inputFolder, "dem"+"step")) # where inputFolder--> ./weekly/1/
+# and step --> 0.100
 if cfg.filtering:
   import generalfunctions
   myModel = CatchmentModel()

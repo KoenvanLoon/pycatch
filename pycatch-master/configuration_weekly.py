@@ -25,7 +25,7 @@ nrOfSamples = 1
 ### - Saves all values of the state variables of the complete map
 ### - Preferred option for variable intervals & data-usage
 map_data = True
-interval_map_snapshots = 1
+interval_map_snapshots = 100
 
 ### Saving numpy.txt files for spatial and temporal EWS seperately
 ### - Snapshots save all values, mean saves average value of the state variables

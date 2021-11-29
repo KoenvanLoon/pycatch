@@ -350,8 +350,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         ############
         # statistics
         ############
-        # this needs GSTAT to run (rpy2) but cannot get it working # got it working with some R magic - KL
-        # SciKit Gstat (another tool may be useful as well) # this would be the better solution imo - KL
 
         boundVector = (30.5, 40.5)
 
@@ -366,29 +364,10 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfSoilMoistureFraction)
 
+        # TODO - sfM --> moiM?
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'sfM', self.currentSampleNumber(), self.currentTimeStep())
 
-            if cfg.variances:
-                # temporal
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 0, 1,
-                                                                                  'test', 2.0)
-                #dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
-                #                                                                        list(boundVector))
-                numpy.savetxt(generateNameST('sfT', self.currentSampleNumber(), self.currentTimeStep()),
-                              numpy.array(gamma))
-                # spatial
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 1, 1,
-                                                                                  'test', 2.0)
-                numpy.savetxt(generateNameST('sfS', self.currentSampleNumber(), self.currentTimeStep()),
-                              numpy.array(gamma))
-            # mean
-            # meanVariable=maptotal(variable)/self.numberOfCellsOnMap
-            # meanVariable = areaaverage(variable, self.zoneMap)
-            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'sfA',
-            #                                                     self.currentSampleNumber(), self.currentTimeStep())
 
         # BIOMASS
         variable = self.d_biomassModifiedMay.biomass
@@ -402,40 +381,40 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'bioM', self.currentSampleNumber(), self.currentTimeStep())
 
-            if cfg.variances:
-                # Test case
-                # bins, gamma = generalfunctions_test01.variogramValuesKoen(stackOfMapsAsListVariable, boundVector)
-                # numpy.savetxt(generateNameST('biTS', self.currentSampleNumber(), self.currentTimeStep()),
-                #               numpy.array(gamma))
-
-                # temporal
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 0, 1,
-                                                                                  'test', 2.0)
-                #dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
-                #                                                                        list(boundVector))
-                numpy.savetxt(generateNameST('bioT', self.currentSampleNumber(), self.currentTimeStep()),
-                              # Added + '.numpy.txt'
-                              numpy.array(gamma))
-
-                # spatial
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 1, 1,
-                                                                                  'test', 2.0)
-                numpy.savetxt(generateNameST('bioS', self.currentSampleNumber(), self.currentTimeStep()),
-                              # Added + '.numpy.txt'
-                              numpy.array(gamma))
-
-                # mean and var ### ADDITION - KL ###
-                # MeanVarVariable = generalfunctions_test01.descriptiveStatistics(stackOfMapsAsListVariable)
-                # numpy.savetxt(generateNameST('biMV', self.currentSampleNumber(), self.currentTimeStep()),
-                #               numpy.array(MeanVarVariable))
-                #
-                # # lag-1 autocorrelation
-                # lag1Variable = generalfunctions_test01.autocor1(stackOfMapsAsListVariable)
-                # numpy.savetxt(generateNameST('biLO', self.currentSampleNumber(), self.currentTimeStep()),
-                #               numpy.array(lag1Variable))
-                # END OF ADDITION ###
+            # if cfg.variances:
+            #     # Test case
+            #     # bins, gamma = generalfunctions_test01.variogramValuesKoen(stackOfMapsAsListVariable, boundVector)
+            #     # numpy.savetxt(generateNameST('biTS', self.currentSampleNumber(), self.currentTimeStep()),
+            #     #               numpy.array(gamma))
+            #
+            #     # temporal
+            #     # dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
+            #                                                                       boundVector, 0, 1,
+            #                                                                       'test', 2.0)
+            #     #dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
+            #     #                                                                        list(boundVector))
+            #     numpy.savetxt(generateNameST('bioT', self.currentSampleNumber(), self.currentTimeStep()),
+            #                   # Added + '.numpy.txt'
+            #                   numpy.array(gamma))
+            #
+            #     # spatial
+            #     dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
+            #                                                                       boundVector, 1, 1,
+            #                                                                       'test', 2.0)
+            #     numpy.savetxt(generateNameST('bioS', self.currentSampleNumber(), self.currentTimeStep()),
+            #                   # Added + '.numpy.txt'
+            #                   numpy.array(gamma))
+            #
+            #     # mean and var ### ADDITION - KL ###
+            #     # MeanVarVariable = generalfunctions_test01.descriptiveStatistics(stackOfMapsAsListVariable)
+            #     # numpy.savetxt(generateNameST('biMV', self.currentSampleNumber(), self.currentTimeStep()),
+            #     #               numpy.array(MeanVarVariable))
+            #     #
+            #     # # lag-1 autocorrelation
+            #     # lag1Variable = generalfunctions_test01.autocor1(stackOfMapsAsListVariable)
+            #     # numpy.savetxt(generateNameST('biLO', self.currentSampleNumber(), self.currentTimeStep()),
+            #     #               numpy.array(lag1Variable))
+            #     # END OF ADDITION ###
 
             # # mean
             # meanVariable = areaaverage(variable, self.zoneMap)
@@ -457,27 +436,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'regM', self.currentSampleNumber(), self.currentTimeStep())
 
-            if cfg.variances:
-                # temporal
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 0, 1,
-                                                                                  'test', 2.0)
-                #dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
-                #                                                                        list(boundVector))
-                numpy.savetxt(generateNameST('regT', self.currentSampleNumber(), self.currentTimeStep()),
-                              numpy.array(gamma))
-                # spatial
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 1, 1,
-                                                                                  'test', 2.0)
-                numpy.savetxt(generateNameST('regS', self.currentSampleNumber(), self.currentTimeStep()),
-                              numpy.array(gamma))
-            # # mean
-            # # meanVariable=maptotal(variable)/self.numberOfCellsOnMap
-            # meanVariable = areaaverage(variable, self.zoneMap)
-            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'regA',
-            #                                                     self.currentSampleNumber(), self.currentTimeStep())
-
         # DEM
         variable = self.d_regolithdemandbedrock.dem
         variableSampled = ifthen(self.someLocs, variable)
@@ -489,27 +447,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'demM', self.currentSampleNumber(), self.currentTimeStep())
-
-            if cfg.variances:
-                # temporal
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 0, 1,
-                                                                                  'test', 2.0)
-                #dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
-                #                                                                        list(boundVector))
-                numpy.savetxt(generateNameST('demT', self.currentSampleNumber(), self.currentTimeStep()),
-                              numpy.array(gamma))
-                # spatial
-                dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-                                                                                  boundVector, 1, 1,
-                                                                                  'test', 2.0)
-                numpy.savetxt(generateNameST('demS', self.currentSampleNumber(), self.currentTimeStep()),
-                              numpy.array(gamma))
-            # mean
-            # meanVariable=maptotal(variable)/self.numberOfCellsOnMap
-            # meanVariable = areaaverage(variable, self.zoneMap)
-            # generalfunctions_test01.reportLocationsAsNumpyArray(
-            #     self.aLocation, meanVariable, 'demA', self.currentSampleNumber(), self.currentTimeStep())
 
         # discharge
         downstreamEdge = generalfunctions_test01.edge(self.clone, 2, 0)
@@ -527,17 +464,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                                        self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfTotQ)
 
-        ### Notice that the variable equals the total outflow of the complete map, and we only need to save a single value
-        # if save_maps:
-        #     generalfunctions_test01.report_as_map(variable, 'qM', self.currentSampleNumber(), self.currentTimeStep())
-        #
-        #     if cfg.variances:
-        #         # temporal
-        #         dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
-        #                                                                                 list(boundVector))
-        #         numpy.savetxt(generateNameST('qT', self.currentSampleNumber(), self.currentTimeStep()),
-        #                       numpy.array(gamma))
-        # mean
         if save_maps or save_np_temporal_mean:
             generalfunctions_test01.reportLocationsAsNumpyArray(self.all_locations, totQ, 'qA', self.currentSampleNumber(),
                                                                 self.currentTimeStep())
@@ -545,10 +471,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # grazing rate
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'gM', self.currentSampleNumber(), self.currentTimeStep())
-
-            # generalfunctions_test01.reportLocationsAsNumpyArray(
-            #     self.aLocation, spatial(scalar(self.grazingRate)), 'gA', self.currentSampleNumber(),
-            #     self.currentTimeStep())
 
         # some extra outputs
         if save_maps:
