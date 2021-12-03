@@ -364,9 +364,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             self.durationHistory)
         stackOfMapsAsListVariable = list(self.historyOfSoilMoistureFraction)
 
-        # TODO - sfM --> moiM?
         if save_maps:
-            generalfunctions_test01.report_as_map(variable, 'sfM', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(variable, 'moiM', self.currentSampleNumber(), self.currentTimeStep())
 
 
         # BIOMASS
@@ -557,8 +556,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
     def createInstancesInitial(self):
         # import generalfunctions # not sure why this needs to be imported again
 
-        # timeStepsToReportAll = range(100, cfg.numberOfTimeSteps + 1, 100)
-        timeStepsToReportAll = range(1, cfg.numberOfTimeSteps +1, 1)
+        # TODO - this information should come from cfg
+        timeStepsToReportAll = range(100, cfg.numberOfTimeSteps + 1, 100)
+        # timeStepsToReportAll = range(1, cfg.numberOfTimeSteps +1, 1)
         timeStepsToReportSome = range(3000, cfg.numberOfTimeSteps + 1, 100)
 
         # class for exchange variables in initial and dynamic

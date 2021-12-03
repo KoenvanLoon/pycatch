@@ -41,29 +41,3 @@ ifft2_ = fft.ifft2(fft2_sym)
 ## Third method ##
 
 
-####
-
-start = 0
-end = 5200
-step = 100
-
-start_shift, end_shift = 750, 901
-num = 10
-
-s_s = start_shift/step
-e_s = end_shift/step
-d_ss_es = e_s - s_s
-print(d_ss_es)
-
-if d_ss_es < num:
-    num = math.ceil(d_ss_es)
-
-print(num)
-
-arange = np.arange(start, end+1, step)
-linspace1 = np.linspace(start_shift, end_shift, num, dtype='int')
-linspace2 = np.linspace(math.floor(start_shift/step), math.ceil(end_shift/step), num, dtype='int') * 100
-
-print(arange)
-print(linspace1)
-print(linspace2)

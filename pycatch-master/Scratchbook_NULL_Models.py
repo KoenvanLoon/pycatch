@@ -72,7 +72,6 @@ fft_sym = fft_mag * (np.cos(fft_phases_new) + 1j * np.sin(fft_phases_new))
 
 # Invert the DFT
 ifft_ = fft.ifft(fft_sym)
-print(ifft_)
 
 ## ADDITION - might not be needed
 # if not np.allclose(ifft_.imag, np.zeros(ifft_.shape)):
@@ -90,6 +89,8 @@ e = np.random.normal(loc=0.0, scale=1.0, size=len(data_))
 z = np.zeros(len(data_))
 for i in range(len(data_)):
     z[i] = alpha1[1] * z[i-1] + alpha0 + np.sqrt(sig2) * e[i]
+
+print(alpha1)
 
 ## Plots ##
 fig, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2,2, figsize=(10, 10))
