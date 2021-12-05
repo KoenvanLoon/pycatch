@@ -81,6 +81,8 @@ def time_series2snapshots(numpy_matrix, interval=100):
     # return numpy_matrix[::interval]
     return np.array([numpy_matrix[i] for i in range(len(numpy_matrix)) if i % interval == 0])
 
+#####################################
+
 def spatial_mean(numpy_matrix):
     # return np.array([np.nanmean(array) for array in numpy_matrix])
     return np.nanmean(numpy_matrix, axis=(1,2))
@@ -108,22 +110,6 @@ queen_neighborhood = np.array([
     [1, 1, 1],
     [1, 0, 1],
     [1, 1, 1]
-])
-
-rook_neighborhood_2 = np.array([
-    [0, 0, 1, 0, 0],
-    [0, 1, 1, 1, 0],
-    [1, 1, 0, 1, 1],
-    [0, 1, 1, 1, 0],
-    [0, 0, 1, 0, 0]
-])
-
-queen_neighborhood_2 = np.array([
-    [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1],
-    [1, 1, 0, 1, 1],
-    [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1]
 ])
 
 def spatial_corr(numpy_matrix): # Moran's I
@@ -275,17 +261,17 @@ def time_series2time_windows(time_series, window_size=100):
     # return time_series[::window_size]
     return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size)])
 
-def mean_time_series(stack_of_maps_as_list): # needs testing, improvements
-    mean_time_series = [0.0] * len(stack_of_maps_as_list)
-    for k, map in enumerate(stack_of_maps_as_list):
-        mean_time_series[k] += np.nanmean(map)
-    return mean_time_series
-
-def max_time_series(stack_of_maps_as_list): # needs testing, improvements
-    max_time_series = [0.0] * len(stack_of_maps_as_list)
-    for k, map in enumerate(stack_of_maps_as_list):
-        max_time_series[k] += np.nanmax(map)
-    return max_time_series
+# def mean_time_series(stack_of_maps_as_list): # needs testing, improvements
+#     mean_time_series = [0.0] * len(stack_of_maps_as_list)
+#     for k, map in enumerate(stack_of_maps_as_list):
+#         mean_time_series[k] += np.nanmean(map)
+#     return mean_time_series
+#
+# def max_time_series(stack_of_maps_as_list): # needs testing, improvements
+#     max_time_series = [0.0] * len(stack_of_maps_as_list)
+#     for k, map in enumerate(stack_of_maps_as_list):
+#         max_time_series[k] += np.nanmax(map)
+#     return max_time_series
 
 #########################################
 

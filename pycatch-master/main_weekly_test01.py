@@ -2,7 +2,7 @@
 import datetime
 from collections import deque
 import sys
-import numpy
+import numpy as np
 
 sys.path.append("./pcrasterModules/") # from PCRasterModules - still needed for other scripts to work?
 
@@ -27,24 +27,6 @@ import configuration_weekly as cfg
 
 # PCRaster itself
 from pcraster.framework import *
-
-# R package loader ### ADDED - KL
-import rpy2
-import rpy2.robjects.packages as rpackages
-from rpy2.robjects.vectors import StrVector
-utils = rpackages.importr('utils')
-utils.chooseCRANmirror(ind=1)   # select the first mirror in the list for R packages
-packageNamesR = ('gstat', 'automap', 'e1071', 'tseries')
-
-# check rpy2 version and R packages for variogram calculations
-if rpy2.__version__ != '2.9.4':
-    print("Tested for rpy2 version 2.9.4, current version is", rpy2.__version__)
-    print("Please make sure you use the correct version.")
-names_to_install = [x for x in packageNamesR if not rpackages.isinstalled(x)]
-if len(names_to_install) > 0:
-    print(f"Installing the following R packages: {names_to_install}")
-    utils.install_packages(StrVector(names_to_install))
-### END OF ADDITIONS ###
 
 if cfg.fixedStates:
     cfg.numberOfTimeSteps = 52 * 50
@@ -108,7 +90,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         self.createInstancesPremcloop()
 
-        self.durationHistory = 207
+        self.durationHistory = cfg.numberOfTimeSteps
 
         # time step duration in hours, typically (and only tested) one week, i.e. 7.0*24.0
         self.timeStepDuration = 7.0 * 24.0
@@ -133,6 +115,14 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.historyOfRegolithThickness = deque([])
         self.historyOfDem = deque([])
         self.historyOfTotQ = deque([])
+        self.history_of_grazing_rate = deque([])
+        self.history_of_growth_part = deque([])
+        self.history_of_grazing_part = deque([])
+        self.history_of_net_growth = deque([])
+        self.history_of_net_deposition = deque([])
+        self.history_of_net_weathering = deque([])
+        self.history_of_net_creep_deposition = deque([])
+
         nrSampleLocs = 100
         fractionShortDistance = 0.4
         separationDistance = 3
@@ -344,108 +334,68 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         # calculateStats = (self.currentTimeStep() % cfg.intervalForStatsCalculated) == 0
         save_maps = (self.currentTimeStep() % cfg.interval_map_snapshots) == 0 and cfg.map_data == True
-        save_np_spatial_snapshots = (self.currentTimeStep() % cfg.interval_np_spatial_snapshots) == 0 and cfg.numpy_data == True
-        save_np_temporal_mean = (self.currentTimeStep() % cfg.interval_np_temporal_mean_calc) == 0 and cfg.numpy_data == True
+        save_mean_timeseries = self.currentTimeStep() == cfg.numberOfTimeSteps and cfg.mean_timeseries_data == True
 
         ############
         # statistics
         ############
 
-        boundVector = (30.5, 40.5)
-
         # SOIL MOISTURE
         self.d_subsurfaceWaterOneLayer.calculateSoilMoistureFraction()
         variable = self.d_subsurfaceWaterOneLayer.soilMoistureFraction
-        variableSampled = ifthen(self.someLocs, variable)
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
         self.historyOfSoilMoistureFraction = generalfunctions_test01.keepHistoryOfMaps(
-            self.historyOfSoilMoistureFraction,
-            variableSampled,
-            self.durationHistory)
-        stackOfMapsAsListVariable = list(self.historyOfSoilMoistureFraction)
+            self.historyOfSoilMoistureFraction, variable_mean, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'moiM', self.currentSampleNumber(), self.currentTimeStep())
-
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.historyOfSoilMoistureFraction)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'moiA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
         # BIOMASS
         variable = self.d_biomassModifiedMay.biomass
-        variableSampled = ifthen(self.someLocs, variable)
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
-        self.historyOfBiomass = generalfunctions_test01.keepHistoryOfMaps(self.historyOfBiomass,
-                                                                          variableSampled,
-                                                                          self.durationHistory)
-        stackOfMapsAsListVariable = list(self.historyOfBiomass)
+        self.historyOfBiomass = generalfunctions_test01.keepHistoryOfMaps(self.historyOfBiomass, variable_mean,
+            self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'bioM', self.currentSampleNumber(), self.currentTimeStep())
-
-            # if cfg.variances:
-            #     # Test case
-            #     # bins, gamma = generalfunctions_test01.variogramValuesKoen(stackOfMapsAsListVariable, boundVector)
-            #     # numpy.savetxt(generateNameST('biTS', self.currentSampleNumber(), self.currentTimeStep()),
-            #     #               numpy.array(gamma))
-            #
-            #     # temporal
-            #     # dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-            #                                                                       boundVector, 0, 1,
-            #                                                                       'test', 2.0)
-            #     #dist, gamma = generalfunctions_test01.experimentalVariogramValuesInTime(stackOfMapsAsListVariable,
-            #     #                                                                        list(boundVector))
-            #     numpy.savetxt(generateNameST('bioT', self.currentSampleNumber(), self.currentTimeStep()),
-            #                   # Added + '.numpy.txt'
-            #                   numpy.array(gamma))
-            #
-            #     # spatial
-            #     dist, gamma = generalfunctions_test01.experimentalVariogramValues(stackOfMapsAsListVariable,
-            #                                                                       boundVector, 1, 1,
-            #                                                                       'test', 2.0)
-            #     numpy.savetxt(generateNameST('bioS', self.currentSampleNumber(), self.currentTimeStep()),
-            #                   # Added + '.numpy.txt'
-            #                   numpy.array(gamma))
-            #
-            #     # mean and var ### ADDITION - KL ###
-            #     # MeanVarVariable = generalfunctions_test01.descriptiveStatistics(stackOfMapsAsListVariable)
-            #     # numpy.savetxt(generateNameST('biMV', self.currentSampleNumber(), self.currentTimeStep()),
-            #     #               numpy.array(MeanVarVariable))
-            #     #
-            #     # # lag-1 autocorrelation
-            #     # lag1Variable = generalfunctions_test01.autocor1(stackOfMapsAsListVariable)
-            #     # numpy.savetxt(generateNameST('biLO', self.currentSampleNumber(), self.currentTimeStep()),
-            #     #               numpy.array(lag1Variable))
-            #     # END OF ADDITION ###
-
-            # # mean
-            # meanVariable = areaaverage(variable, self.zoneMap)
-            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, meanVariable, 'bioA',
-            #                                                     self.currentSampleNumber(), self.currentTimeStep())
-            #
-            # generalfunctions_test01.reportLocationsAsNumpyArray(self.aLocation, variable, 'bioF',
-            #                                                     self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.historyOfBiomass)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'bioA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
         # REGOLITH THICKNESS
         variable = self.d_regolithdemandbedrock.regolithThickness
-        variableSampled = ifthen(self.someLocs, variable)
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
         self.historyOfRegolithThickness = generalfunctions_test01.keepHistoryOfMaps(self.historyOfRegolithThickness,
-                                                                                    variableSampled,
-                                                                                    self.durationHistory)
-        stackOfMapsAsListVariable = list(self.historyOfRegolithThickness)
+            variable_mean, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'regM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.historyOfRegolithThickness)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'regA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
         # DEM
         variable = self.d_regolithdemandbedrock.dem
-        variableSampled = ifthen(self.someLocs, variable)
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
-        self.historyOfDem = generalfunctions_test01.keepHistoryOfMaps(self.historyOfDem,
-                                                                      variableSampled,
+        self.historyOfDem = generalfunctions_test01.keepHistoryOfMaps(self.historyOfDem, variable_mean,
                                                                       self.durationHistory)
-        stackOfMapsAsListVariable = list(self.historyOfDem)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'demM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.historyOfDem)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'demA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
         # discharge
         downstreamEdge = generalfunctions_test01.edge(self.clone, 2, 0)
@@ -456,98 +406,125 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                           ifthenelse(outflowPoints, self.d_runoffAccuthreshold.RunoffCubicMetrePerHour, scalar(0))))
 
         variable = totQ
-        variableSampled = ifthen(self.someLocs, variable)
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
-        self.historyOfTotQ = generalfunctions_test01.keepHistoryOfMaps(self.historyOfTotQ,
-                                                                       variableSampled,
+        self.historyOfTotQ = generalfunctions_test01.keepHistoryOfMaps(self.historyOfTotQ, variable_mean,
                                                                        self.durationHistory)
-        stackOfMapsAsListVariable = list(self.historyOfTotQ)
 
-        if save_maps or save_np_temporal_mean:
-            generalfunctions_test01.reportLocationsAsNumpyArray(self.all_locations, totQ, 'qA', self.currentSampleNumber(),
-                                                                self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.historyOfTotQ)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'qA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
         # grazing rate
+        variable = spatial(scalar(self.grazingRate))
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+
+        self.history_of_grazing_rate = generalfunctions_test01.keepHistoryOfMaps(self.history_of_grazing_rate,
+                                                                                 variable_mean,
+                                                                                 self.durationHistory)
+
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'gM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_grazing_rate)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'gA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
-        # some extra outputs
+        ## some extra outputs - TODO: Check if saving maps is necessary
+
+        # growth part
+        variable = self.d_biomassModifiedMay.growthPart
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+
+        self.history_of_growth_part = generalfunctions_test01.keepHistoryOfMaps(self.history_of_growth_part,
+                                                                                variable_mean,
+                                                                                self.durationHistory)
+
         if save_maps:
-            # growth part
-            generalfunctions_test01.report_as_map(self.d_biomassModifiedMay.growthPart, 'gpM', self.currentSampleNumber(), self.currentTimeStep())
+            generalfunctions_test01.report_as_map(variable, 'gpM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_growth_part)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'gpA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
-            # grazing part
-            generalfunctions_test01.report_as_map(0.0 - self.d_biomassModifiedMay.grazing, 'grM', self.currentSampleNumber(), self.currentTimeStep())
+        # grazing part
+        variable = 0.0 - self.d_biomassModifiedMay.grazing
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
-            # net growth
-            generalfunctions_test01.report_as_map(self.d_biomassModifiedMay.netGrowth, 'grNM', self.currentSampleNumber(), self.currentTimeStep())
+        self.history_of_grazing_part = generalfunctions_test01.keepHistoryOfMaps(self.history_of_grazing_part,
+                                                                                 variable_mean, self.durationHistory)
 
-            # net deposition
-            generalfunctions_test01.report_as_map(actualDepositionFlux, 'depM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'grM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_grazing_part)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'grA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
-            # net weathering
-            generalfunctions_test01.report_as_map(self.d_bedrockweathering.weatheringMetrePerYear, 'weaM', self.currentSampleNumber(), self.currentTimeStep())
+        # net growth
+        variable = self.d_biomassModifiedMay.netGrowth
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
-            # net creep deposition
-            generalfunctions_test01.report_as_map(self.creepDeposition, 'creM', self.currentSampleNumber(), self.currentTimeStep())
+        self.history_of_net_growth = generalfunctions_test01.keepHistoryOfMaps(self.history_of_net_growth,
+                                                                               variable_mean, self.durationHistory)
 
-        if save_np_temporal_mean:
-            # growth part
-            meanVariable = areaaverage(self.d_biomassModifiedMay.growthPart, self.all_locations)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.all_locations, meanVariable, 'gpA', self.currentSampleNumber(), self.currentTimeStep())
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'grNM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_net_growth)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'grNA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
-            # grazing part
-            meanVariable = 0.0 - areaaverage(spatial(self.d_biomassModifiedMay.grazing), self.all_locations)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.all_locations, meanVariable, 'grA', self.currentSampleNumber(), self.currentTimeStep())
+        # net deposition
+        variable = actualDepositionFlux
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
-            # net growth
-            meanVariable = areaaverage(self.d_biomassModifiedMay.netGrowth, self.all_locations)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.all_locations, meanVariable, 'grNA', self.currentSampleNumber(), self.currentTimeStep())
+        self.history_of_net_deposition = generalfunctions_test01.keepHistoryOfMaps(self.history_of_net_deposition,
+                                                                                   variable_mean, self.durationHistory)
 
-            # net deposition
-            meanVariable = areaaverage(actualDepositionFlux, self.all_locations)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.all_locations, meanVariable, 'depA', self.currentSampleNumber(), self.currentTimeStep())
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'depM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_net_deposition)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'depA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
-            # net weathering
-            meanVariable = areaaverage(self.d_bedrockweathering.weatheringMetrePerYear, self.all_locations)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.all_locations, meanVariable, 'weaA', self.currentSampleNumber(), self.currentTimeStep())
+        # net weathering
+        variable = self.d_bedrockweathering.weatheringMetrePerYear
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
-            # net creep deposition
-            meanVariable = areaaverage(self.creepDeposition, self.all_locations)
-            generalfunctions_test01.reportLocationsAsNumpyArray(
-                self.all_locations, meanVariable, 'creA', self.currentSampleNumber(), self.currentTimeStep())
+        self.history_of_net_weathering = generalfunctions_test01.keepHistoryOfMaps(self.history_of_net_weathering,
+                                                                                   variable_mean, self.durationHistory)
 
-        # # net weathering # - Testcase
-        # variable = self.d_bedrockweathering.weatheringMetrePerYear
-        # if save_np_temporal_mean == True:
-        #     generalfunctions_test01.report_locations_as_mean_np(
-        #         variable, 'weaA', self.currentSampleNumber(), self.currentTimeStep())
-        # if save_np_spatial_snapshots == True:
-        #     generalfunctions_test01.report_locations_as_np_arr(
-        #         variable, 'weaN', self.currentSampleNumber(), self.currentTimeStep())
-        # if save_maps == True:
-        #     generalfunctions_test01.report_as_map(
-        #         variable, 'weaM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'weaM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_net_weathering)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'weaA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
-        if self.currentTimeStep() == cfg.numberOfTimeSteps:
+        # net creep deposition
+        variable = self.creepDeposition
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+
+        self.history_of_net_creep_deposition = generalfunctions_test01.keepHistoryOfMaps(
+            self.history_of_net_creep_deposition, variable_mean, self.durationHistory)
+
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'creM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_net_creep_deposition)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'creA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+
+        # Grazing pressure array
+        if save_mean_timeseries:
             name = generateNameS('grazing', self.currentSampleNumber())
-            numpy.savetxt(name + 'numpy.txt', self.grazingPressureArray)
-
-        # t = 0 # Not sure why this is here - KL
+            numpy.savetxt(name + '.numpy.txt', self.grazingPressureArray)
 
 
     def postmcloop(self):
-        # import generalfunctions # not sure why this needs to be imported again
-        # names = [] # ['gA', 'bioA', 'bioM', 'demA', 'regA', 'sfA', 'qA', 'gpA', 'grA', 'grNA', 'depA', 'weaA', 'creA']
-        # for name in names:
-        #     aVariable = generalfunctions_test01.openSamplesAndTimestepsAsNumpyArraysAsNumpyArray(
-        #         name, range(1, cfg.nrOfSamples + 1), timeStepsWithStatsCalculated)
-        #     numpy.save(name, aVariable)
         pass
 
     def createInstancesPremcloop(self):
@@ -623,7 +600,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         alpha = 0.4  # grazing
         dispersion = 0.01 / (365.0 * 24)
-        runoff = 0.0  # niet gebruikt ! (?) kan dus weg
+        runoff = 0.0
         sdOfNoise = 0.000000000001
         LAIPerBiomass = 2.5
         self.d_biomassModifiedMay = biomassmodifiedmay.BiomassModifiedMay(

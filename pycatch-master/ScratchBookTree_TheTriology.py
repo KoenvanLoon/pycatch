@@ -54,13 +54,13 @@ def ews_calculations(data_stack, window_size=100, snapshot_interval=100, time_se
         if timer_on == True:
             start_time = time.time()
 
-        input_time_series = []
-        if time_series == 'mean':
-            input_time_series = ews.mean_time_series(data_stack)
-        if time_series == 'max':
-            input_time_series = ews.max_time_series(data_stack)
+        # input_time_series = []
+        # if time_series == 'mean':
+        #     input_time_series = ews.mean_time_series(data_stack)
+        # if time_series == 'max':
+        #     input_time_series = ews.max_time_series(data_stack)
 
-        stack_of_windows = ews.time_series2time_windows(input_time_series, window_size)
+        stack_of_windows = ews.time_series2time_windows(data_stack, window_size)
 
         print(
             " temporal mean", ews.temporal_mean(stack_of_windows),'\n',

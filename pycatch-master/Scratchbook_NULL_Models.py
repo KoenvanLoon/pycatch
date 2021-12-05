@@ -90,8 +90,6 @@ z = np.zeros(len(data_))
 for i in range(len(data_)):
     z[i] = alpha1[1] * z[i-1] + alpha0 + np.sqrt(sig2) * e[i]
 
-print(alpha1)
-
 ## Plots ##
 fig, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2,2, figsize=(10, 10))
 
@@ -110,4 +108,6 @@ ax3.plot(ifft_)
 ax4.plot(data_)
 ax4.plot(z)
 
-#plt.show()
+plt.show()
+
+print(var_, np.var(z))

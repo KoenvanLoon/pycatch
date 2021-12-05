@@ -53,6 +53,10 @@ def report_as_map(values, basename, sample_number, time_step):
     file_name = pcrfw.generateNameST(basename, sample_number, time_step)
     pcrfw.report(values, file_name)
 
+def report_as_array(mean_array, basename, sample_number, time_step):
+    file_name = pcrfw.generateNameST(basename, sample_number, time_step)
+    numpy.savetxt(file_name + '.numpy.txt', mean_array)
+
 ### END OF ADD. FUNCTIONS ###
 
 
