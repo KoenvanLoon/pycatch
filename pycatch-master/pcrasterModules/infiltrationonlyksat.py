@@ -42,7 +42,8 @@ class InfiltrationOnlyKsat(component.Component):
     self.output_mapping = {
                            'Ii': self.actualInfiltrationFlux,
                            'Is': self.store,
-                           'Iks': self.saturatedConductivityFlux
+                           'Iks': self.saturatedConductivityFlux,
+                           #'KsA': self.saturatedConductivityFlux
                           }
     self.variablesToReport = self.rasters_to_report(self.setOfVariablesToReport)
     self.reportMaps(sample, timestep)

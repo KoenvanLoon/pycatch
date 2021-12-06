@@ -1,7 +1,6 @@
 import numpy as np
-import random
 import matplotlib.pyplot as plt
-from scipy import interpolate, ndimage, fft
+from scipy import ndimage, fft
 import statsmodels.api
 
 time_step = 0.02

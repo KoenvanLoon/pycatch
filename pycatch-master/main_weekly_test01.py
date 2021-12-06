@@ -122,6 +122,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.history_of_net_deposition = deque([])
         self.history_of_net_weathering = deque([])
         self.history_of_net_creep_deposition = deque([])
+        self.history_of_max_int = deque([])
+        self.history_of_LAI = deque([])
 
         nrSampleLocs = 100
         fractionShortDistance = 0.4
@@ -339,6 +341,34 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         ############
         # statistics
         ############
+
+        # MAXIMUM INTERCEPTION STORE
+        variable = maxIntStore
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+
+        self.history_of_max_int = generalfunctions_test01.keepHistoryOfMaps(self.history_of_max_int, variable_mean,
+                                                                            self.durationHistory)
+
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'micM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_max_int)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'micA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+
+        # LAI
+        variable = self.LAI
+        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+
+        self.history_of_LAI = generalfunctions_test01.keepHistoryOfMaps(self.history_of_LAI, variable_mean,
+                                                                        self.durationHistory)
+
+        if save_maps:
+            generalfunctions_test01.report_as_map(variable, 'laiM', self.currentSampleNumber(), self.currentTimeStep())
+        if save_mean_timeseries:
+            variable_mean_array = np.array(self.history_of_LAI)
+            generalfunctions_test01.report_as_array(variable_mean_array, 'laiA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
 
         # SOIL MOISTURE
         self.d_subsurfaceWaterOneLayer.calculateSoilMoistureFraction()

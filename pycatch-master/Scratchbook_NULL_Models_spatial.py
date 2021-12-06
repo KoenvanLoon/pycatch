@@ -1,16 +1,6 @@
 import numpy as np
 from scipy import ndimage, fft
-
-def spatial_corr_2D_inside(numpy_matrix): # not fit for numpy matrices that contain np.NaN, use spatial_corr instead!
-    mean = np.nanmean(numpy_matrix)
-    var = np.nanvar(numpy_matrix)
-    storage = 0.0
-    for m in range(1, numpy_matrix.shape[0]-1):
-        for n in range(1, numpy_matrix.shape[1]-1):
-            storage += (numpy_matrix[m, n] - mean) * ((numpy_matrix[m, n-1] + numpy_matrix[m, n+1] + numpy_matrix[m-1, n]
-                                                      + numpy_matrix[m+1, n]) - (4 * mean))
-    spatial_corr = (storage) / (4 * var * ((numpy_matrix.shape[0]-2) * (numpy_matrix.shape[1]-2)))
-    return spatial_corr
+import EWSPy as ews
 
 data_ = np.random.random((100, 100))
 
@@ -46,8 +36,13 @@ fft2_sym = fft2_mag * (np.cos(fft2_phases_new) + 1j * np.sin(fft2_phases_new))
 ifft2_ = fft.ifft2(fft2_sym)
 
 ## Third method ##
+"""
+Combination of Jon Yearsley (2021). Generate AR1 spatial data (https://www.mathworks.com/matlabcentral/fileexchange/5099-generate-ar1-spatial-data), MATLAB Central File Exchange. Retrieved November 30, 2021.
+and Dakos et al. 10.1073/pnas.0802430105
+"""
+
 data_ = np.random.random((100, 100)) * 10
-I = spatial_corr_2D_inside(data_) # Variable controlling autocorr (Moran's I)
+I = 0 #ews.spatial_corr(data_) # Variable controlling autocorr (Moran's I)
 e_stdev = 1. # Variance of the normally distributed error (usually 1.0)
 
 #
@@ -71,6 +66,6 @@ x = np.linalg.solve(M, e).reshape(dim) # + np.mean(data_) # analog to Jon Yearsl
 
 x_test1 = np.dot(inv_M, e * np.sqrt(sig2)).reshape(dim) + alpha0
 
-print("Mean, var, and I from data:", np.mean(data_), np.var(data_), I)
-print("Mean, var, and I from Yearsley (2021):", np.mean(x), np.var(x), spatial_corr_2D_inside(x))
-print("Mean, var, and I from this research:", np.mean(x_test1), np.var(x_test1), spatial_corr_2D_inside(x_test1))
+print("Mean, var, and I from data:", np.mean(data_), np.var(data_)) #, I)
+print("Mean, var, and I from Yearsley (2021):", np.mean(x), np.var(x)) #, ews.spatial_corr(x))
+print("Mean, var, and I from this research:", np.mean(x_test1), np.var(x_test1)) #, ews.spatial_corr(x_test1))

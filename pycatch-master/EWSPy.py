@@ -1,32 +1,13 @@
-import pcraster as pcr
-from pcraster import pcr2numpy
-from pcraster._pcraster import readmap
-import pcraster.framework as pcrfw
+import numpy as np
+
 import scipy.stats
-from scipy import sparse
-from scipy.spatial.distance import pdist
+from scipy import fft
+from scipy.signal import convolve
 
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.stats.diagnostic import het_arch
 
-import numpy as np
-import skgstat
-import gstools
-import os
-import operator
-import glob
-import subprocess
-import math
-import rpy2
-from libpysal.weights import Queen, lat2W, KNN, lat2SW
-from esda.moran import Moran, Moran_Local
-from scipy.signal import convolve, convolve2d
-from scipy import signal
-from scipy.spatial.distance import pdist, squareform
-from scipy import fftpack
-from scipy import fft
-import pylab as py
-import matplotlib.pyplot as plt
+import configuration_weekly as cfg
 
 import sys
 sys.path.append("./pcrasterModules/")
