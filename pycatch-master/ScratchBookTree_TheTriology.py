@@ -46,7 +46,7 @@ def file_loader(variable, path='./1/', timer_on=False, datatype='map'):
 
 ### EWS  calculations ###
 
-def ews_calculations(data_stack, window_size=100, snapshot_interval=100, time_series='mean', timer_on=False,
+def ews_calculations(data_stack, window_size=100, snapshot_interval=cfg.interval_map_snapshots, time_series='mean', timer_on=False,
                      temporal_ews=True, spatial_ews=True, save_img=False):
     ### Temporal EWS ###
     if temporal_ews == True:

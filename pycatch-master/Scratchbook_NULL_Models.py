@@ -6,6 +6,55 @@ import statsmodels.api
 from statsmodels.nonparametric.kernel_regression import KernelReg
 import EWSPy as ews
 
+####
+
+# Method 1
+def method1_(data, replace=False):
+    return np.random.choice(data, len(data), replace=replace)
+
+# Method 2
+def method2_(data, replace=False):
+    fft_ = fft.fft(data_)
+    fft_mag = np.abs(fft_)
+    fft_phases = np.angle(fft_)
+
+    fft_phases_new = fft_phases.copy()
+    if len(data_) % 2 == 0:
+        i = int(len(fft_phases_new) / 2)
+        fft_phases_left_half = fft_phases[1:i]
+        fft_shuffled_phases_lh = np.random.choice(fft_phases_left_half, len(fft_phases_left_half), replace=replace)
+        fft_shuffled_phases_rh = - fft_shuffled_phases_lh[::-1]
+        fft_phases_new = np.concatenate((np.array((fft_[0],)), fft_shuffled_phases_lh, np.array((fft_phases[i],)),
+                                         fft_shuffled_phases_rh))
+    else:
+        i = int(len(fft_phases_new) / 2 + 1)
+        fft_phases_left_half = fft_phases[1:i]
+        fft_shuffled_phases_lh = np.random.choice(fft_phases_left_half, len(fft_phases_left_half), replace=replace)
+        fft_shuffled_phases_rh = - fft_shuffled_phases_lh[::-1]
+        fft_phases_new = np.concatenate((np.array((fft_[0],)), fft_shuffled_phases_lh,
+                                         fft_shuffled_phases_rh))
+
+    fft_sym = fft_mag * (np.cos(fft_phases_new) + 1j * np.sin(fft_phases_new))
+
+    ifftm_ = fft.ifft(fft_sym)
+
+    return ifft_m
+
+# Method 3
+def method3_(data):
+    alpha1 = statsmodels.api.tsa.acf(data, nlags=1)
+    sig2 = np.nanvar(data) * (1 - alpha1[1] ** 2)
+    alpha0 = np.nanmean(data) * (1 - alpha1[1])
+    e = np.random.normal(loc=0.0, scale=1.0, size=len(data))
+
+    AR1m = np.zeros(len(data))
+    for i in range(len(data)):
+        AR1m[i] = alpha1[1] * AR1m[i - 1] + alpha0 + np.sqrt(sig2) * e[i]
+
+    return AR1m
+
+####
+
 time_step = 0.02
 period = 5.
 time_vec = np.arange(0, 20, time_step)
@@ -30,6 +79,7 @@ data_ = data_ - data_g1d
 
 mean_ = np.mean(data_) # actual mean
 var_ = np.var(data_) # actual variance
+
 
 ### Null models (Dakos et al. 2008) ###
 

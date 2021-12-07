@@ -21,14 +21,27 @@ import random
 ################################################
 
 class StateVariable:
-    def __init__(self, name, meanmax='mean', window_size=100, snapshot_interval=100, spatial=True, temporal=True, datatype='map'):
+    def __init__(self, name, spatial=False, temporal=False, snapshot_interval=100, window_size=100, window_overlap=0,
+                 datatype='map'):
         self.name = name
-        self.meanmax = meanmax
-        self.window_size = window_size
-        self.snapshot_interval = snapshot_interval
         self.spatial = spatial
         self.temporal = temporal
+        self.snapshot_interval = snapshot_interval
+        self.window_size = window_size
+        self.window_overlap = window_overlap
         self.datatype = datatype
+
+def file_name_str(name, timestep):
+    file_name_str = ["0"]*11
+    name_list = list(name)
+    timestep_list = reversed(str(timestep))
+    for k, letter in enumerate(name_list):
+        file_name_str[k] = letter
+    for k, number in enumerate(timestep_list):
+        file_name_str[-(k+1)] = number
+    file_name_str.insert(-3, '.')
+    file_name_str = [''.join(file_name_str)]
+    return file_name_str[0]
 
 #####################################
 ### Spatial early-warning signals ###
@@ -58,9 +71,9 @@ Patchiness*:
 """
 #####################################
 
-def time_series2snapshots(numpy_matrix, interval=100):
-    # return numpy_matrix[::interval]
-    return np.array([numpy_matrix[i] for i in range(len(numpy_matrix)) if i % interval == 0])
+# def time_series2snapshots(numpy_matrix, interval=100):
+#     # return numpy_matrix[::interval]
+#     return np.array([numpy_matrix[i] for i in range(len(numpy_matrix)) if i % interval == 0])
 
 #####################################
 
