@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import ndimage, fft
+import scipy.stats
 import statsmodels.api
+from statsmodels.nonparametric.kernel_regression import KernelReg
+import EWSPy as ews
 
 time_step = 0.02
 period = 5.
@@ -9,6 +12,19 @@ time_vec = np.arange(0, 20, time_step)
 sig = (np.sin(2 * np.pi / period * time_vec)
        + 0.5 * np.random.randn(time_vec.size))
 data_ = sig
+
+data_ = np.loadtxt('./1/bioA0005.200.numpy.txt')
+data_org = np.copy(data_)
+
+# kde = KernelReg(endog=data_, exog=np.arange(data_.shape[0]), var_type='c')
+# estimator = kde.fit(np.arange(data_.shape[0]))
+# estimator = np.reshape(estimator[0], data_.shape[0])
+#
+# data_ = data_ - estimator
+
+sigma = 30
+data_g1d = ndimage.gaussian_filter1d(data_, sigma)
+data_ = data_ - data_g1d
 
 #data_ = np.random.normal(loc=0, size=1000)
 
@@ -20,9 +36,9 @@ var_ = np.var(data_) # actual variance
 ## First method ##
 "Similar probability distribution (mean and var)"
 # Detrending & residual time series
-sigma = 1 # Estimate on data? TODO how2optimize, detrending of the original timeseries even necessary?
-data_g1d = ndimage.gaussian_filter1d(data_, sigma)
-data_resid = data_ - data_g1d
+# sigma = 1 # Estimate on data? TODO how2optimize, detrending of the original timeseries even necessary?
+# data_g1d = ndimage.gaussian_filter1d(data_, sigma)
+data_resid = data_ #- data_g1d
 
 # Shuffle the (detrended) original time series
 data_g1d_shuffled = np.random.choice(data_resid, len(data_resid), replace=False)
@@ -92,21 +108,38 @@ for i in range(len(data_)):
 ## Plots ##
 fig, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2,2, figsize=(10, 10))
 
+#ax1.plot(data_ + data_g1d)
 ax1.plot(data_)
 #ax1.plot(data_g1d)
+#ax1.plot(data_ + estimator)
+#ax1.plot(data_g1d)
 
-ax2.plot(data_)
+#ax2.plot(data_)
 ax2.plot(data_g1d_shuffled)
-#ax2.plot(data_g1d_shuffled_replace)
+#ax2.plot(data_g1d_shuffled + data_g1d)
+#ax2.plot(data_g1d_shuffled + estimator)
 
-ax3.plot(data_)
+#ax3.plot(data_)
 ax3.plot(ifft_)
+#ax3.plot(ifft_ + data_g1d)
+#ax3.plot(ifft_ + estimator)
 
 # ax4.plot(fft.fft(data_))
 # ax4.plot(fft.ifft(fft.fft(data_))) # ! ifft(fft(a)) == a to within numerical accuracy
-ax4.plot(data_)
+#ax4.plot(data_)
 ax4.plot(z)
+#ax4.plot(z + data_g1d)
+#ax4.plot(z + estimator)
 
 plt.show()
 
-print(var_, np.var(z))
+a = ews.time_series2time_windows(data_)
+a = ews.temporal_var(a)
+print(a)
+
+b = ews.time_series2time_windows(data_g1d_shuffled)
+b = ews.temporal_var(b)
+print(b)
+
+kendall_tau_shuffle = scipy.stats.kendalltau(a, b, nan_policy='omit')
+print(kendall_tau_shuffle)

@@ -17,7 +17,7 @@ fixedStates=False
 changeGeomorphology=True
 
 # number of realizations
-nrOfSamples = 1
+nrOfSamples = 2
 
 # Saving map files which can be used for spatial EWS
 map_data = True

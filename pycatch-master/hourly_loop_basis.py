@@ -74,9 +74,29 @@ def file_name_str(name, timestep):
     file_name_str = [''.join(file_name_str)]
     return file_name_str
 
+def file_name_str_expn(name, snapshot_number, timestep):
+    file_name_str = ["0"]*11
+    name_list = list(name + snapshot_number)
+    timestep_list = reversed(str(timestep))
+    for k, letter in enumerate(name_list):
+        file_name_str[k] = letter
+    for k, number in enumerate(timestep_list):
+        file_name_str[-(k+1)] = number
+    file_name_str.insert(-3, '.')
+    file_name_str = [''.join(file_name_str)]
+    return file_name_str
+
+for k, step in enumerate(np.arange(100, 5300, 100)):
+    snapshot_number = str(k).zfill(2)
+    #print(snapshot_number, type(snapshot_number), step)
+
+print(file_name_str_expn("demM", str(1).zfill(2), 100))
+
+
 timesteps1748_4249 = timesteps(1748,4249)
 for step in timesteps1748_4249:
-    print(file_name_str("demM", step))
+    a = file_name_str("demM", step)
+    #print(a)
 
 ### INPUTS & CALCULATIONS ###
 
