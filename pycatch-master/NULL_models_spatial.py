@@ -155,21 +155,3 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
             #np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)
 
-
-## TESTING ##
-# data = np.random.random((100, 100)) * 10
-#
-# #print(data)
-# print(np.nanmean(data), np.nanvar(data), spatial_corr(data))
-#
-# bata = method1_(data)[0]
-# #print(bata)
-# print(np.nanmean(bata), np.nanvar(bata), spatial_corr(bata))
-#
-# bata = method2_(data)[0]
-# #print(bata
-# print(np.nanmean(bata), np.nanvar(bata), spatial_corr(bata))
-#
-# bata = method3_(data)[0]
-# #print(bata)
-# print(np.nanmean(bata), np.nanvar(bata), spatial_corr(bata))
