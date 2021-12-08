@@ -20,10 +20,10 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
     steps = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
-    for k, realization in enumerate(range(realizations)):
-        for data in dataset:
-            data_new = data.copy()
-            data_1d = data_new.ravel()
+    for k, data in enumerate(dataset):
+        data_new = data.copy()
+        data_1d = data_new.ravel()
+        for realization in range(realizations):
             generated_dataset_numpy = np.random.choice(data_1d, len(data_1d), replace=replace).reshape(data_shape)
             generated_dataset = numpy2pcr(Scalar, generated_dataset_numpy, np.NaN)
 
@@ -47,15 +47,15 @@ def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
     steps = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
-    for k, realization in enumerate(range(realizations)):
-        for data in dataset:
-            fft2_ = fft.fft2(data)
-            fft2_mag = np.abs(fft2_)
-            fft2_phases = np.angle(fft2_)
-            fft2_phases_shape = fft2_phases.shape
+    for k, data in enumerate(dataset):
+        fft2_ = fft.fft2(data)
+        fft2_mag = np.abs(fft2_)
+        fft2_phases = np.angle(fft2_)
+        fft2_phases_shape = fft2_phases.shape
 
-            fft2_phases_new = fft2_phases.copy()
-            fft2_phases_1d = fft2_phases_new.ravel()
+        fft2_phases_new = fft2_phases.copy()
+        fft2_phases_1d = fft2_phases_new.ravel()
+        for realization in range(realizations):
             fft2_phases_new = np.random.choice(fft2_phases_1d, len(fft2_phases_1d), replace=replace).reshape(fft2_phases_shape)
 
             fft2_sym = fft2_mag * (np.cos(fft2_phases_new) + 1j * np.sin(fft2_phases_new))
@@ -120,22 +120,22 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
     steps = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
-    for k, realization in enumerate(range(realizations)):
-        for data in dataset:
-            Morans_I = spatial_corr(data)
-            alpha0 = np.nanmean(data) * (1 - Morans_I)
-            sig2 = np.nanvar(data) * (1 - Morans_I**2)
+    for k, data in enumerate(dataset):
+        Morans_I = spatial_corr(data)
+        alpha0 = np.nanmean(data) * (1 - Morans_I)
+        sig2 = np.nanvar(data) * (1 - Morans_I**2)
 
-            dim = data.shape
-            N = np.prod(dim)
+        dim = data.shape
+        N = np.prod(dim)
 
-            W = np.zeros((N, N))
-            np.fill_diagonal(W[1:], Morans_I/4)
-            np.fill_diagonal(W[:, 1:], Morans_I/4)
+        W = np.zeros((N, N))
+        np.fill_diagonal(W[1:], Morans_I/4)
+        np.fill_diagonal(W[:, 1:], Morans_I/4)
 
-            M = np.identity(N) - W
-            inv_M = np.linalg.inv(M)
+        M = np.identity(N) - W
+        inv_M = np.linalg.inv(M)
 
+        for realization in range(realizations):
             random_error = np.random.normal(loc=0.0, scale=stdev_error, size=N)
             generated_dataset_numpy = np.dot(inv_M, random_error * np.sqrt(sig2)).reshape(dim) + alpha0
             generated_dataset = numpy2pcr(Scalar, generated_dataset_numpy, np.NaN)
