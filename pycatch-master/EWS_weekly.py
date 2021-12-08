@@ -25,12 +25,12 @@ gM = ews.StateVariable("gM", spatial=True)
 moiA = ews.StateVariable('moiA', temporal=True, datatype='numpy')
 moiM = ews.StateVariable('moiM', spatial=True)
 
-#variables = [sfM, bioM, regM, demM, qA, gM]
-variables = [bioA, bioM, moiA, moiM]
+# variables = [bioA, bioM, moiA, moiM]
+variables = [bioA, bioM]
 
 generate_dummy_datasets = True
 method_1 = True
-method_2 = False
+method_2 = True
 method_3 = True
 nr_generated_datasets = 1
 

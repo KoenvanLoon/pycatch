@@ -60,6 +60,9 @@ def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
 
             fft2_sym = fft2_mag * (np.cos(fft2_phases_new) + 1j * np.sin(fft2_phases_new))
             generated_dataset_numpy = fft.ifft2(fft2_sym)
+
+            generated_dataset_numpy = np.absolute(generated_dataset_numpy) # TODO - Check if this is correct
+
             generated_dataset = numpy2pcr(Scalar, generated_dataset_numpy, np.NaN)
 
             generated_number_string = 'm2g' + str(realization).zfill(generated_number_length)

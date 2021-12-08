@@ -57,6 +57,8 @@ def method2_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         fft_sym = fft_mag * (np.cos(fft_phases_new) + 1j * np.sin(fft_phases_new))
         generated_dataset = fft.ifft(fft_sym)
 
+        generated_dataset =np.absolute(generated_dataset) # TODO - Check if this is correct
+
         generated_number_string = 'm2g' + str(realization).zfill(generated_number_length)
         dir_name = os.path.join(path + generated_number_string)
 
