@@ -137,9 +137,13 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
 
         for realization in range(realizations):
             random_error = np.random.normal(loc=0.0, scale=stdev_error, size=N)
-            generated_dataset_numpy = np.dot(inv_M, random_error * np.sqrt(sig2)).reshape(dim) + alpha0
-            generated_dataset = numpy2pcr(Scalar, generated_dataset_numpy, np.NaN)
 
+            if np.isnan(np.sqrt(sig2)):
+                generated_dataset_numpy = np.dot(inv_M, random_error * 0.0).reshape(dim) + alpha0
+            else:
+                generated_dataset_numpy = np.dot(inv_M, random_error * np.sqrt(sig2)).reshape(dim) + alpha0
+
+            generated_dataset = numpy2pcr(Scalar, generated_dataset_numpy, np.NaN)
             generated_number_string = 'm3g' + str(realization).zfill(generated_number_length)
             dir_name = os.path.join(path + generated_number_string)
 

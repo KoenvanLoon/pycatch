@@ -79,13 +79,13 @@ Patchiness*:
 
 def spatial_mean(numpy_matrix):
     # return np.array([np.nanmean(array) for array in numpy_matrix])
-    return np.nanmean(numpy_matrix, axis=(1,2))
+    return np.nanmean(numpy_matrix, axis=(1, 2))
 
 def spatial_std(numpy_matrix):
-    return np.nanstd(numpy_matrix, axis=(1,2))
+    return np.nanstd(numpy_matrix, axis=(1, 2))
 
 def spatial_var(numpy_matrix):
-    return np.nanvar(numpy_matrix, axis=(1,2))
+    return np.nanvar(numpy_matrix, axis=(1, 2))
 
 def spatial_skw(numpy_matrix):
     return [scipy.stats.skew(np.nditer(array), nan_policy='omit') for array in numpy_matrix]
@@ -119,7 +119,7 @@ def spatial_corr(numpy_matrix): # Moran's I
     is_not_nan_as_nr = is_not_nan.astype(float)
 
     numpy_matrix_var = np.copy(is_not_nan_as_nr)
-    numpy_matrix_var *= var
+    numpy_matrix_var *= var[:, None, None]
 
     numpy_matrix_copy = np.copy(numpy_matrix)
     numpy_matrix_copy[is_nan] = 0
@@ -137,43 +137,10 @@ def spatial_corr(numpy_matrix): # Moran's I
     P2 = np.nansum(sum_neighbours * numpy_matrix_var, axis=(1, 2))
     return P1 / P2
 
-# def spatial_corr_2D_inside(numpy_matrix): # not fit for numpy matrices that contain np.NaN, use spatial_corr instead!
-#     mean = np.nanmean(numpy_matrix)
-#     var = np.nanvar(numpy_matrix)
-#     storage = 0.0
-#     for m in range(1, numpy_matrix.shape[0]-1):
-#         for n in range(1, numpy_matrix.shape[1]-1):
-#             storage += (numpy_matrix[m, n] - mean) * ((numpy_matrix[m, n-1] + numpy_matrix[m, n+1] + numpy_matrix[m-1, n]
-#                                                       + numpy_matrix[m+1, n]) - (4 * mean))
-#     spatial_corr = (storage) / (4 * var * ((numpy_matrix.shape[0]-2) * (numpy_matrix.shape[1]-2)))
-#     return spatial_corr
-#
-# def spatial_corr_2D(numpy_matrix):
-#     mean = np.nanmean(numpy_matrix)
-#
-#     var = np.nanvar(numpy_matrix)
-#
-#     numpy_matrix_mmean = np.copy(numpy_matrix)
-#     numpy_matrix_mmean -= mean
-#
-#     is_nan = np.isnan(numpy_matrix_mmean) # missing values in map are assumed to be np.NaN
-#     is_not_nan = ~ is_nan
-#     is_not_nan_as_nr = is_not_nan.astype(float)
-#
-#     numpy_matrix_copy = numpy_matrix.copy()
-#     numpy_matrix_copy[is_nan] = 0
-#
-#     sum_neighbours = convolve2d(numpy_matrix_copy, rook_neighborhood, mode='same')
-#
-#     n_neighbours_times_avg = convolve2d(is_not_nan_as_nr, rook_neighborhood * mean, mode='same')
-#     n_neighbours_times_avg[is_nan] = 0
-#
-#     P1 = np.nansum(np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg)))
-#     P2 = (4 * var * np.count_nonzero(is_not_nan_as_nr))
-#     return P1 / P2
 
 def spatial_DFT(numpy_matrix):
     return fft.fft2(numpy_matrix, axes=(-2,))
+
 
 def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power spectrum as function of wave number (P(k))
     n = numpy_matrix.shape[0]
@@ -194,6 +161,7 @@ def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power sp
     Abins *= np.pi * (kbins[1:]**2 - kbins[:-1]**2) # total power --> multiply by area in each bin (eq5)
 
     return fourier_image, kvals, Abins
+
 
 # def spatial_spec(numpy_matrix):
     # nr = numpy_matrix.shape[0]
@@ -255,18 +223,6 @@ def time_series2time_windows(time_series, window_size=100):
     # return time_series[::window_size]
     return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size)])
 
-# def mean_time_series(stack_of_maps_as_list): # needs testing, improvements
-#     mean_time_series = [0.0] * len(stack_of_maps_as_list)
-#     for k, map in enumerate(stack_of_maps_as_list):
-#         mean_time_series[k] += np.nanmean(map)
-#     return mean_time_series
-#
-# def max_time_series(stack_of_maps_as_list): # needs testing, improvements
-#     max_time_series = [0.0] * len(stack_of_maps_as_list)
-#     for k, map in enumerate(stack_of_maps_as_list):
-#         max_time_series[k] += np.nanmax(map)
-#     return max_time_series
-
 #########################################
 
 def temporal_AR1(stack_of_windows):
@@ -281,9 +237,11 @@ def temporal_AR1(stack_of_windows):
         AR1_params = np.append(AR1_params, mod.params)
     return AR1_params
 
+
 def temporal_returnrate(stack_of_windows):
     # returns inf when division by zero; NaN is used for division by zero
     return np.reciprocal(temporal_AR1(stack_of_windows))
+
 
 def temporal_cond_het(stack_of_windows, n_lags=4, ddof=1):
     mean = temporal_mean(stack_of_windows)
@@ -297,6 +255,7 @@ def temporal_cond_het(stack_of_windows, n_lags=4, ddof=1):
         cond_het[k] = np.array(het_arch(residuals, nlags=n_lags, ddof=ddof))
     return cond_het
 
+
 # def autocovariance(numpy_array, lag=1):
 #     number = len(numpy_array)
 #     mean = sum(numpy_array) / number
@@ -306,6 +265,7 @@ def temporal_cond_het(stack_of_windows, n_lags=4, ddof=1):
 #np.seterr(invalid='ignore') # would like to do without this
 def temporal_autocorrelation(numpy_array, lag=1):
     return np.true_divide(temporal_autocovariance(numpy_array, lag=lag), temporal_var(numpy_array))
+
 
 def temporal_autocovariance(numpy_array, lag=1):
     auto_cov = [0.0] * len(numpy_array)
@@ -321,6 +281,7 @@ def temporal_autocovariance(numpy_array, lag=1):
         auto_cov[k] = np.sum(start_padded_series * end_padded_series) / N
     return auto_cov
 
+
 # def temporal_spectrum(numpy_array):
 #     freqs, times, spectrogram = signal.spectrogram(numpy_array)
 #     return spectrogram
@@ -331,24 +292,31 @@ def temporal_autocovariance(numpy_array, lag=1):
 #     # return freqs, psd
 #     return None
 
+
 def temporal_mean(numpy_array):
     return np.nanmean(numpy_array, axis=1) # return np.array([np.nanmean(array) for array in numpy_array])
+
 
 def temporal_std(numpy_array):
     return np.nanstd(numpy_array, axis=1)
 
+
 def temporal_var(numpy_array):
     return np.nanvar(numpy_array, axis=1)
+
 
 np.seterr(invalid='ignore') # would like to do without this
 def temporal_cv(numpy_array):
     return np.true_divide(temporal_std(numpy_array), temporal_mean(numpy_array))
 
+
 def temporal_skw(numpy_array):
     return scipy.stats.skew(numpy_array, axis=1, nan_policy='omit')
 
+
 def temporal_krt(numpy_array):
     return scipy.stats.kurtosis(numpy_array, axis=1, nan_policy='omit')
+
 
 def calc_rms(numpy_array, scale): # windowed Root Mean Square with linear detrending
     # Making of an array with data divided into segments
@@ -367,6 +335,7 @@ def calc_rms(numpy_array, scale): # windowed Root Mean Square with linear detren
         # Detrending & computing RMS of each window
         rms[i] = np.sqrt(np.nanmean((segment - xfit)**2))
     return rms
+
 
 def temporal_dfa(stack_of_windows, scales=np.array([10])):
     # TODO - Works for a single time_window --> needs to be working *nicely* for array of time_windows
@@ -390,5 +359,6 @@ def temporal_dfa(stack_of_windows, scales=np.array([10])):
     fluct = np.array_split(fluct, len(scales))
 
     return scales, fluct, coeff
+
 
 #########################################
