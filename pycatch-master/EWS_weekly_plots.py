@@ -8,24 +8,12 @@ import configuration_weekly as cfg
 import NULL_models_timeseries as temp_NULL
 import NULL_models_spatial as spat_NULL
 import EWSPy as ews
+import EWS_StateVariables as ews_sv
 
 import matplotlib.pyplot as plt
 
 ## State variables for EWS ##
-"ews.StateVariable(file name, spatial ews, temporal ews, snapshot interval, window size, window overlap, datatype 'map'/'numpy'(.txt))"
-
-sfM = ews.StateVariable("sfM", spatial=True)
-bioM = ews.StateVariable("bioM", spatial=True)
-bioA = ews.StateVariable("bioA", temporal=True)
-regM = ews.StateVariable("regM", spatial=True)
-demM = ews.StateVariable("demM", spatial=True)
-qA = ews.StateVariable("qA", temporal=True)
-gM = ews.StateVariable("gM", spatial=True)
-
-moiA = ews.StateVariable('moiA', temporal=True, datatype='numpy')
-moiM = ews.StateVariable('moiM', spatial=True)
-
-variables = [bioA, bioM]
+variables = ews_sv.variables # State variables present in EWS_StateVariables can be added through configuration_weekly
 
 ## Statistical EWS ##
 ews_temporal_signals = ['t.mn', 't.std', 't.var', 't.cv', 't.skw', 't.krt', 't.dfa', 't.acr', 't.rr', 't.coh']
@@ -67,4 +55,5 @@ def plot(variable, variable_signal1, variable_signal2='None', path='./1/', save=
     if show:
         plt.show()
 
-plot(moiM, 's.mn', variable_signal2='s.mI', save=True, show=True)
+for variable in variables:
+    plot(variable, 't.var', save=False, show=True)

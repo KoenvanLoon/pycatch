@@ -7,29 +7,10 @@ from scipy.signal import convolve
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.stats.diagnostic import het_arch
 
-import configuration_weekly as cfg
-
 import sys
 sys.path.append("./pcrasterModules/")
 
-from collections import deque
-# from PCRaster.NumPy import *
-import random
-
-################################################
-### Class StateVariable for Variable objects ###
-################################################
-
-class StateVariable:
-    def __init__(self, name, spatial=False, temporal=False, snapshot_interval=100, window_size=100, window_overlap=0,
-                 datatype='map'):
-        self.name = name
-        self.spatial = spatial
-        self.temporal = temporal
-        self.snapshot_interval = snapshot_interval
-        self.window_size = window_size
-        self.window_overlap = window_overlap
-        self.datatype = datatype
+# File name as string function #
 
 def file_name_str(name, timestep):
     file_name_str = ["0"]*11

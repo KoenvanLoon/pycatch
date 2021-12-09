@@ -8,27 +8,15 @@ from scipy import ndimage
 import configuration_weekly as cfg
 import NULL_models_timeseries as temp_NULL
 import NULL_models_spatial as spat_NULL
+import EWS_StateVariables as ews_sv
 
 ### User input ###
 
 ## State variables for EWS ##
-"ews.StateVariable(file name, spatial ews, temporal ews, snapshot interval, window size, window overlap, datatype 'map'/'numpy'(.txt))"
+variables = ews_sv.variables # State variables present in EWS_StateVariables can be added through configuration_weekly
 
-sfM = ews.StateVariable("sfM", spatial=True)
-bioM = ews.StateVariable("bioM", spatial=True)
-bioA = ews.StateVariable("bioA", temporal=True, datatype='numpy')
-regM = ews.StateVariable("regM", spatial=True)
-demM = ews.StateVariable("demM", spatial=True)
-qA = ews.StateVariable("qA", temporal=True, datatype='numpy')
-gM = ews.StateVariable("gM", spatial=True)
-
-moiA = ews.StateVariable('moiA', temporal=True, datatype='numpy')
-moiM = ews.StateVariable('moiM', spatial=True)
-
-# variables = [bioA, bioM, moiA, moiM]
-variables = [bioA, bioM]
-
-generate_dummy_datasets = True
+## Generate dummy datasets for Kendall tau? ##
+generate_dummy_datasets = False
 method_1 = True
 method_2 = True
 method_3 = True

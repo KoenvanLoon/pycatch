@@ -5,8 +5,8 @@ filtering=False
 ### END ADDITIONS ###
 
 # use for other runs
-numberOfTimeSteps=5200   # test run
-#numberOfTimeSteps = 104000 # Y2K long run
+#numberOfTimeSteps=5200   # test run
+numberOfTimeSteps = 104000 # Y2K long run
 
 # option to fix both the regolith and the vegetation, not typically used
 # in normal simulations
@@ -34,6 +34,9 @@ theDurationOfRainstorm=2.0
 # these are defined in the modules, it is typically either 'full' or 'filtering'
 #setOfVariablesToReport = 'filtering'
 setOfVariablesToReport = 'full'
+
+# state_variables_for_ews = 'full'
+state_variables_for_ews = ['bioM', 'bioA', 'moiM', 'moiA']
 
 # calculate upstream totals (with accuflux) in subsurfacewateronelayer module
 # and interceptionuptomaxstore module
