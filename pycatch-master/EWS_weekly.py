@@ -13,7 +13,7 @@ import EWS_StateVariables as ews_sv
 ### User input ###
 
 ## State variables for EWS ##
-variables = ews_sv.variables # State variables present in EWS_StateVariables can be added through configuration_weekly
+variables = ews_sv.variables  # State variables present in EWS_StateVariables can be added through configuration_weekly
 
 ## Generate dummy datasets for Kendall tau? ##
 generate_dummy_datasets = False
@@ -37,6 +37,7 @@ spatial_ews_interval = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSte
 temporal_ews_present = cfg.mean_timeseries_data
 temporal_ews_interval = cfg.numberOfTimeSteps
 
+
 ### Functions ###
 
 def time_series2time_windows(time_series, window_size=100, window_overlap=0):
@@ -45,7 +46,6 @@ def time_series2time_windows(time_series, window_size=100, window_overlap=0):
 
 def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp='None', sigma=50,
                       method1=False, method2=False, method3=False):
-
     if variable.temporal:
         ## Load data ##
         state_variable_timeseries = []
@@ -58,8 +58,9 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
         ## Detrending: 'None', 'Gaussian' ##
         if detrending_temp == 'None':
             state_variable_timeseries = state_variable_timeseries
-        if detrending_temp == 'Gaussian': # TODO - Multiple sigmas?
-            state_variable_timeseries = state_variable_timeseries - ndimage.gaussian_filter1d(state_variable_timeseries, sigma)
+        if detrending_temp == 'Gaussian':  # TODO - Multiple sigmas?
+            state_variable_timeseries = state_variable_timeseries - ndimage.gaussian_filter1d(state_variable_timeseries,
+                                                                                              sigma)
 
         ## Generate dummy datasets ##
         if method1:
@@ -195,7 +196,8 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                 print("Elapsed time for temporal EWS calculations equals:", end_time - start_time, '\n')
 
         elif temporal_ews_present == False:
-            print(f"Mean timeseries data == False in configuration_weekly.py, could not calculate EWS for {variable.name}.")
+            print(
+                f"Mean timeseries data == False in configuration_weekly.py, could not calculate EWS for {variable.name}.")
 
     ## Temporal EWS calculations ##
     if variable.spatial:
@@ -260,12 +262,12 @@ def ews_calculations(variable, path='./1/', timer_on=False):
 
 ### Running the functions for given variables ###
 
-for realization in range(1, realizations +1):
+for realization in range(1, realizations + 1):
     for variable in variables:
         ews_calculations(variable, path=f'./{realization}/', timer_on=True)
         if generate_dummy_datasets:
             generate_datasets(variable, path=f'./{realization}/', nr_realizations=nr_generated_datasets,
                               detrending_temp='Gaussian', method1=method_1, method2=method_2, method3=method_3)
-            ews_calculations_generated_datasets(variable, path=f'./{realization}/', nr_realizations=nr_generated_datasets,
+            ews_calculations_generated_datasets(variable, path=f'./{realization}/',
+                                                nr_realizations=nr_generated_datasets,
                                                 timer_on=True, method1=method_1, method2=method_2, method3=method_3)
-

@@ -1,5 +1,7 @@
 import configuration_weekly as cfg
+
 variables = []
+
 
 # Class StateVariable for Variable objects #
 

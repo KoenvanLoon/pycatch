@@ -5,6 +5,7 @@ import os
 import EWSPy as ews
 import configuration_weekly as cfg
 
+
 ### Null models timeseries (Dakos et al. 2008) ###
 
 # TODO - method 2 did not return the right mean - check solution -, other values are A-OK
@@ -59,7 +60,7 @@ def method2_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         fft_sym = fft_mag * (np.cos(fft_phases_new) + 1j * np.sin(fft_phases_new))
         generated_dataset = fft.ifft(fft_sym)
 
-        generated_dataset =np.absolute(generated_dataset) # TODO - Check if this is correct
+        generated_dataset = np.absolute(generated_dataset)  # TODO - Check if this is correct
 
         generated_number_string = 'm2g' + str(realization).zfill(generated_number_length)
         dir_name = os.path.join(path + generated_number_string)
@@ -98,4 +99,3 @@ def method3_(data, realizations=1, path='./1/', file_name='xxx', stdev_error=1):
         fname = ews.file_name_str(file_name, cfg.numberOfTimeSteps)
         fpath = os.path.join(dir_name, fname)
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
-

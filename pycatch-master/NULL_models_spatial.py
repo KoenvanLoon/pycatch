@@ -6,6 +6,7 @@ import EWSPy as ews
 import configuration_weekly as cfg
 from pcraster import numpy2pcr, report, Scalar
 
+
 ### Null models adapted from (Dakos et al. 2008) ###
 
 # TODO - method 2 did not return the right mean - check solution -, other values are A-OK
@@ -35,8 +36,9 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
 
             fname = ews.file_name_str(file_name, steps[k])
             fpath = os.path.join(dir_name, fname)
-            #np.savetxt(fpath + '.numpy.txt', generated_dataset)
+            # np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)
+
 
 ## Second method ##
 def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
@@ -56,12 +58,13 @@ def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
         fft2_phases_new = fft2_phases.copy()
         fft2_phases_1d = fft2_phases_new.ravel()
         for realization in range(realizations):
-            fft2_phases_new = np.random.choice(fft2_phases_1d, len(fft2_phases_1d), replace=replace).reshape(fft2_phases_shape)
+            fft2_phases_new = np.random.choice(fft2_phases_1d, len(fft2_phases_1d), replace=replace).reshape(
+                fft2_phases_shape)
 
             fft2_sym = fft2_mag * (np.cos(fft2_phases_new) + 1j * np.sin(fft2_phases_new))
             generated_dataset_numpy = fft.ifft2(fft2_sym)
 
-            generated_dataset_numpy = np.absolute(generated_dataset_numpy) # TODO - Check if this is correct
+            generated_dataset_numpy = np.absolute(generated_dataset_numpy)  # TODO - Check if this is correct
 
             generated_dataset = numpy2pcr(Scalar, generated_dataset_numpy, np.NaN)
 
@@ -73,7 +76,7 @@ def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
 
             fname = ews.file_name_str(file_name, steps[k])
             fpath = os.path.join(dir_name, fname)
-            #np.savetxt(fpath + '.numpy.txt', generated_dataset)
+            # np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)
 
 
@@ -89,7 +92,8 @@ rook_neighborhood = np.array([
     [0, 1, 0]
 ])
 
-def spatial_corr(numpy_matrix): # Moran's I, same method as used in EWSPy
+
+def spatial_corr(numpy_matrix):  # Moran's I, same method as used in EWSPy
     mean = np.nanmean(numpy_matrix)
     var = np.nanvar(numpy_matrix)
 
@@ -115,6 +119,7 @@ def spatial_corr(numpy_matrix): # Moran's I, same method as used in EWSPy
     P2 = np.nansum(sum_neighbours * numpy_matrix_var)
     return P1 / P2
 
+
 def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=1.0):
     generated_number_length = 4
     if len(str(realizations)) > 4:
@@ -126,14 +131,14 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
     for k, data in enumerate(dataset):
         Morans_I = spatial_corr(data)
         alpha0 = np.nanmean(data) * (1 - Morans_I)
-        sig2 = np.nanvar(data) * (1 - Morans_I**2)
+        sig2 = np.nanvar(data) * (1 - Morans_I ** 2)
 
         dim = data.shape
         N = np.prod(dim)
 
         W = np.zeros((N, N))
-        np.fill_diagonal(W[1:], Morans_I/4)
-        np.fill_diagonal(W[:, 1:], Morans_I/4)
+        np.fill_diagonal(W[1:], Morans_I / 4)
+        np.fill_diagonal(W[:, 1:], Morans_I / 4)
 
         M = np.identity(N) - W
         inv_M = np.linalg.inv(M)
@@ -155,6 +160,5 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
 
             fname = ews.file_name_str(file_name, steps[k])
             fpath = os.path.join(dir_name, fname)
-            #np.savetxt(fpath + '.numpy.txt', generated_dataset)
+            # np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)
-

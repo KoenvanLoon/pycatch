@@ -8,7 +8,7 @@ import EWS_StateVariables as ews_sv
 import matplotlib.pyplot as plt
 
 ## State variables for EWS ##
-variables = ews_sv.variables # State variables present in EWS_StateVariables can be added through configuration_weekly
+variables = ews_sv.variables  # State variables present in EWS_StateVariables can be added through configuration_weekly
 names = []
 for variable in variables:
     names.append([f'{variable.full_name} as {variable.name}'])
@@ -147,6 +147,7 @@ def user_plotmaker(path='./1/'):
     plot2(variable1=variable1, signal1=signal1_input, variable2=variable2, signal2=signal2_input, path=path,
           save=save, show=show)
 
+
 def user_plotmaker_looper(path='./1/'):
     user_plotmaker(path=path)
     print("Would you like to make another plot? [Y/n]")
@@ -156,15 +157,5 @@ def user_plotmaker_looper(path='./1/'):
     if answer == 'N' or answer == 'n':
         print("Terminated plotmaker.")
 
+
 user_plotmaker_looper(path='./1/')
-
-#user_plotmaker(path='./1/')
-
-# def script():
-#     # program code here...
-#     restart = raw_input("Would you like to restart this program?")
-#     if restart == "yes" or restart == "y":
-#         script()
-#     if restart == "n" or restart == "no":
-#         print "Script terminating. Goodbye."
-# script()
