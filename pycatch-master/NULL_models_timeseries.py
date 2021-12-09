@@ -7,6 +7,8 @@ import configuration_weekly as cfg
 
 ### Null models timeseries (Dakos et al. 2008) ###
 
+# TODO - method 2 did not return the right mean - check solution -, other values are A-OK
+
 ## Method 1 ##
 def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
     generated_number_length = 4
@@ -27,7 +29,7 @@ def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
 
 
-## Method 2 ## TODO - Still returns real and imag number
+## Method 2 ##
 def method2_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
     generated_number_length = 4
     if len(str(realizations)) > 4:

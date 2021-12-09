@@ -8,7 +8,7 @@ from pcraster import numpy2pcr, report, Scalar
 
 ### Null models adapted from (Dakos et al. 2008) ###
 
-# TODO - method 2 does not return the right mean, other values are A-OK
+# TODO - method 2 did not return the right mean - check solution -, other values are A-OK
 
 ## First method ##
 def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
@@ -38,7 +38,7 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
             #np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)
 
-## Second method ## TODO - Still returns real and imag number
+## Second method ##
 def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
     generated_number_length = 4
     if len(str(realizations)) > 4:

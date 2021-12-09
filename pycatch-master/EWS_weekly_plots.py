@@ -1,12 +1,7 @@
-from pcraster import *
 import numpy as np
 import os
-import time
-from scipy import ndimage
 
 import configuration_weekly as cfg
-import NULL_models_timeseries as temp_NULL
-import NULL_models_spatial as spat_NULL
 import EWSPy as ews
 import EWS_StateVariables as ews_sv
 
@@ -14,46 +9,162 @@ import matplotlib.pyplot as plt
 
 ## State variables for EWS ##
 variables = ews_sv.variables # State variables present in EWS_StateVariables can be added through configuration_weekly
+names = []
+for variable in variables:
+    names.append([f'{variable.full_name} as {variable.name}'])
 
 ## Statistical EWS ##
-ews_temporal_signals = ['t.mn', 't.std', 't.var', 't.cv', 't.skw', 't.krt', 't.dfa', 't.acr', 't.rr', 't.coh']
-ews_spatial_signals = ['s.mn', 's.std', 's.var', 's.skw', 's.krt', 's.mI']
+ews_temporal_signals = {'t.mn': "mean", 't.std': "standard deviation", 't.var': "variance",
+                        't.cv': "coefficient of variation", 't.skw': "skewness", 't.krt': "kurtosis",
+                        't.dfa': "detrended fluctuation analysis", 't.acr': "autocorrelation", 't.rr': "return rate",
+                        't.coh': "conditional heteroskedasticity", 'timeseries': "timeseries"}
+ews_spatial_signals = {'s.mn': "mean", 's.std': "standard deviation", 's.var': "variance", 's.skw': "skewness",
+                       's.krt': "kurtosis", 's.mI': "Moran's I"}
 
-## Functions ## - TODO: Maybe plot for 2 variables? (e.g. bioA timeseries & bioM var)
-def plot(variable, variable_signal1, variable_signal2='None', path='./1/', save=False, show=False):
-    if variable.spatial:
-        x_axis = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
-                           cfg.interval_map_snapshots)
-    if variable.temporal:
-        x_axis = np.arange(0, cfg.numberOfTimeSteps, variable.window_size - variable.window_overlap)
 
-    fpath = os.path.join(path + variable.name + '.' + variable_signal1)
-    variable_signal1_array = np.loadtxt(fpath + '.numpy.txt')
-    plt.plot(x_axis, variable_signal1_array, label=f'{variable.name} {variable_signal1}')
+def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1/', save=False, show=False):
+    if variable1.spatial:
+        x_axis1 = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+                            cfg.interval_map_snapshots)
+    if variable1.temporal:
+        x_axis1 = np.arange(0, cfg.numberOfTimeSteps, variable1.window_size - variable1.window_overlap)
 
-    if variable_signal2 == 'timeseries':
-        fname = ews.file_name_str(variable.name, cfg.numberOfTimeSteps)
+    if signal1 == 'timeseries':
+        fname = ews.file_name_str(variable1.name, cfg.numberOfTimeSteps)
         fpath = os.path.join(path + fname)
-        variable_signal2 = np.loadtxt(fpath + '.numpy.txt')
+        timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
         timeseries_x_axis = np.arange(0, cfg.numberOfTimeSteps, 1)
-        plt.plot(timeseries_x_axis, variable_signal2, label=f'Continues measurement of {variable.name}')
-    elif variable_signal2 != 'None':
-        fpath = os.path.join(path + variable.name + '.' + variable_signal2)
-        variable_signal2_array = np.loadtxt(fpath + '.numpy.txt')
-        plt.plot(x_axis, variable_signal2_array, label=f'{variable.name} {variable_signal2}')
+        plt.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable1.full_name}')
+    elif signal1 != 'None':
+        fpath = os.path.join(path + variable1.name + '.' + signal1)
+        signal1_array = np.loadtxt(fpath + '.numpy.txt')
+        if variable1.spatial:
+            plt.plot(x_axis1, signal1_array, label=f'{variable1.full_name} {ews_spatial_signals[signal1]}')
+        if variable1.temporal:
+            plt.plot(x_axis1, signal1_array, label=f'{variable1.full_name} {ews_temporal_signals[signal1]}')
 
-    plt.xlabel('x - axis')
-    plt.ylabel('y - axis')
-    plt.title('Title')
+    if variable2 != 'None':
+        if variable2.spatial:
+            x_axis2 = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+                                cfg.interval_map_snapshots)
+        if variable2.temporal:
+            x_axis2 = np.arange(0, cfg.numberOfTimeSteps, variable2.window_size - variable2.window_overlap)
+
+        if signal2 == 'timeseries':
+            fname = ews.file_name_str(variable2.name, cfg.numberOfTimeSteps)
+            fpath = os.path.join(path + fname)
+            timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
+            timeseries_x_axis = np.arange(0, cfg.numberOfTimeSteps, 1)
+            plt.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable2.full_name}')
+        elif signal2 != 'None':
+            fpath = os.path.join(path + variable2.name + '.' + signal2)
+            signal2_array = np.loadtxt(fpath + '.numpy.txt')
+            if variable2.spatial:
+                plt.plot(x_axis2, signal2_array, label=f'{variable2.full_name} {ews_spatial_signals[signal2]}')
+            if variable2.temporal:
+                plt.plot(x_axis2, signal2_array, label=f'{variable2.full_name} {ews_temporal_signals[signal2]}')
+
+    if variable2 != 'None':
+        plt.xlabel('x - axis')
+        plt.ylabel('y - axis')
+        if variable1.temporal:
+            if variable2.temporal:
+                plt.title(f"{variable1.full_name} {ews_temporal_signals[signal1]} and {variable2.full_name} "
+                          f"{ews_temporal_signals[signal2]}")
+            if variable2.spatial:
+                plt.title(f"{variable1.full_name} {ews_temporal_signals[signal1]} and {variable2.full_name} "
+                          f"{ews_spatial_signals[signal2]}")
+        if variable1.spatial:
+            if variable2.temporal:
+                plt.title(f"{variable1.full_name} {ews_spatial_signals[signal1]} and {variable2.full_name} "
+                          f"{ews_temporal_signals[signal2]}")
+            if variable2.spatial:
+                plt.title(f"{variable1.full_name} {ews_spatial_signals[signal1]} and {variable2.full_name} "
+                          f"{ews_spatial_signals[signal2]}")
+
+    else:
+        plt.xlabel('x - axis')
+        plt.ylabel('y - axis')
+        if variable1.spatial:
+            plt.title(f"{variable1.full_name} {ews_spatial_signals[signal1]}")
+        if variable1.temporal:
+            plt.title(f"{variable1.full_name} {ews_temporal_signals[signal1]}")
     plt.legend()
 
     if save:
-        if variable_signal2 != 'None':
-            plt.savefig(path + f"{variable.name}_{variable_signal1}_{variable_signal2}.pdf", format="pdf")
+        if variable2 != 'None':
+            plt.savefig(path + f"{variable1.name}_{signal1}_and_{variable2.name}_{signal2}.pdf", format="pdf")
         else:
-            plt.savefig(path + f"{variable.name}_{variable_signal1}.pdf", format="pdf")
+            plt.savefig(path + f"{variable1.name}_{signal1}.pdf", format="pdf")
     if show:
         plt.show()
 
-for variable in variables:
-    plot(variable, 't.var', save=False, show=True)
+
+def user_plotmaker(path='./1/'):
+    print("Variables present in the current run are:", names)
+    print("Enter the short name for variable 1:")
+    variable1_input = input()
+    variable1 = [variable for variable in variables if variable.name == variable1_input][0]
+    if variable1.temporal:
+        print("EW signals present are:", ews_temporal_signals)
+    if variable1.spatial:
+        print("EW signals present are:", ews_spatial_signals)
+    print("Enter the signal for variable 1:")
+    signal1_input = input()
+
+    print("Include a second variable? [Y/n]")
+    second_variable_input = input()
+    if second_variable_input == 'Y' or second_variable_input == 'y':
+        print("Enter the short name for variable 2:")
+        variable2_input = input()
+
+        variable2 = [variable for variable in variables if variable.name == variable2_input][0]
+        if variable2.temporal:
+            print("EW signals present are:", ews_temporal_signals)
+        if variable2.spatial:
+            print("EW signals present are:", ews_spatial_signals)
+        print("Enter the signal for variable 1:")
+        signal2_input = input()
+    else:
+        variable2 = 'None'
+        signal2_input = 'None'
+
+    print("Save the plot as a .pdf? [Y/n]")
+    save_plot = input()
+    if save_plot == 'Y' or save_plot == 'y':
+        save = True
+    else:
+        save = False
+
+    print("Show the plot when finished? [Y/n]")
+    print("Note that the program is still running if the plot stays open.")
+    show_plot = input()
+    if show_plot == 'Y' or show_plot == 'y':
+        show = True
+    else:
+        show = False
+
+    plot2(variable1=variable1, signal1=signal1_input, variable2=variable2, signal2=signal2_input, path=path,
+          save=save, show=show)
+
+def user_plotmaker_looper(path='./1/'):
+    user_plotmaker(path=path)
+    print("Would you like to make another plot? [Y/n]")
+    answer = input()
+    if answer == 'Y' or answer == 'y':
+        user_plotmaker_looper(path=path)
+    if answer == 'N' or answer == 'n':
+        print("Terminated plotmaker.")
+
+user_plotmaker_looper(path='./1/')
+
+#user_plotmaker(path='./1/')
+
+# def script():
+#     # program code here...
+#     restart = raw_input("Would you like to restart this program?")
+#     if restart == "yes" or restart == "y":
+#         script()
+#     if restart == "n" or restart == "no":
+#         print "Script terminating. Goodbye."
+# script()
