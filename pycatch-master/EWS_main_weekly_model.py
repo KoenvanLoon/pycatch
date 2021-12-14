@@ -1,10 +1,10 @@
-# general
 import datetime
 from collections import deque
 import sys
 import numpy as np
+import EWS_main_configuration as cfg
 
-sys.path.append("./pcrasterModules/") # from PCRasterModules - still needed for other scripts to work?
+sys.path.append("./pcrasterModules/")
 
 from pcrasterModules import generalfunctions_test01
 from pcrasterModules import datetimePCRasterPython
@@ -23,18 +23,12 @@ from pcrasterModules import biomassmodifiedmay
 from pcrasterModules import baselevel
 from pcrasterModules import creep
 
-import EWS_main_configuration as cfg
-
-# PCRaster itself
 from pcraster.framework import *
 
 if cfg.fixedStates:
-    cfg.numberOfTimeSteps = 52 * 50
     fixedStatesReg = spatial(scalar(float(sys.argv[1])))
     fixedStatesBio = spatial(scalar(float(sys.argv[2])))
 
-# timeStepsWithStatsCalculated = range(cfg.intervalForStatsCalculated,
-#                                      cfg.numberOfTimeSteps, cfg.intervalForStatsCalculated)
 
 def calculateGapFractionAndMaxIntStoreFromLAI(leafAreaIndex):
     maximumInterceptionCapacityPerLAI = scalar(0.001)
@@ -50,7 +44,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         MonteCarloModel.__init__(self)
         setclone('inputs_weekly/clone.map')
 
-        # fix the seed for random functions
+        # fix the seed for random functions (pcraster)
         setrandomseed(101)
 
         if cfg.filtering:
@@ -61,35 +55,15 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.clone = boolean("inputs_weekly/clone.map")
         self.numberOfCellsOnMap = maptotal(ifthenelse(self.clone, scalar(1), scalar(1)))
 
-        # not essential this code
-        # used for fixedStatesLoop.py
-        # edgesMap=generalfunctions.edgeZone(self.clone,2.1)
-        # self.mlocs=uniqueid(~ edgesMap)
-        # self.report(self.mlocs,'testMap')
-
-        # locations where values are reported as a numpy array to disk
-        self.mlocs = nominal("inputs_weekly/mlocs")  # multiple report locations, read from 'mlocs.map'
-        self.aLocation = self.mlocs
-
-        # alt locations where values are reported as a numpy array to disk
+        # Locations where values are reported as a numpy array to disk.
+        # In this model iteration, all locations are reported. Hence, zoning and sample locations are also omitted.
         self.all_locs = nominal("inputs_weekly/clone.map")
         self.all_locations = self.all_locs
 
-        # zone reported at each report location
-        if cfg.fixedStates:
-            # option 2 used for fixedStatesLoop.py
-            # one big zone, resulting in the same value for each report
-            # location
-            edgesMap = generalfunctions_test01.edgeZone(self.clone, 2.1)
-            self.zoneMap = ifthen(~ edgesMap, boolean(1))
-            self.report(self.zoneMap, 'testMap')
-        else:
-            # option 1 for normal runs, zones across the hillslope for each
-            # location on mlocs
-            self.zoneMap = nominal("inputs_weekly/zonsc.map")
-
         self.createInstancesPremcloop()
 
+        # Duration history is used to store the data of previous timesteps, in this model iteration the number of
+        # timesteps reported in the final timeseries is also dependant on this duration history.
         self.durationHistory = cfg.number_of_timesteps_weekly
 
         # time step duration in hours, typically (and only tested) one week, i.e. 7.0*24.0
@@ -97,7 +71,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
     def initial(self):
 
-        # TIME BEING DIVIDE BY 100 TO AVOID IT RUNS TOO LONG -  DK 210519 not clear what this comment is
         self.initializeTime(2001, 2, 26, self.timeStepDuration)
 
         self.createInstancesInitial()
@@ -125,18 +98,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.history_of_max_int = deque([])
         self.history_of_LAI = deque([])
 
-        nrSampleLocs = 100
-        fractionShortDistance = 0.4
-        separationDistance = 3
-        # import generalfunctions  # not sure why this needs to be imported again
-        self.samples = generalfunctions_test01.samplingScheme(self.clone, nrSampleLocs, fractionShortDistance,
-                                                              separationDistance, 0, 0)
-        self.report(self.samples, 'samples')
-        self.someLocs = pcrne(self.samples, 0)
-
-        # initial setting for saving grazing pressure
-        self.grazingPressureArray = numpy.empty([0])
-
         # budgets
         self.d_exchangevariables.cumulativePrecipitation = scalar(0)
 
@@ -145,32 +106,32 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.runoffMetreWaterDepthPerHour = scalar(0.0)
         self.creepDeposition = spatial(scalar(0.0))
 
-
     def dynamic(self):
-
-        # import generalfunctions  # not sure why this needs to be imported again
-
-        # option to print time info
-        # print self.currentTimeStep()
-        # time
-        # self.d_dateTimePCRasterPython.update()
-        # timeDatetimeFormat=self.d_dateTimePCRasterPython.getTimeDatetimeFormat()
-
-        ## biomass
+        # biomass
         if cfg.fixedStates:
             self.d_regolithdemandbedrock.setNewRegolith(spatial(scalar(fixedStatesReg)))
             self.d_biomassModifiedMay.setNewBiomass(spatial(scalar(fixedStatesBio)))
 
         # grazing pressure driver
-        # this below increases grazing pressure and then reduces it again
-        grazingRateIncreaseTotal = 0.0003
-        grazingRateIncrease = grazingRateIncreaseTotal / (cfg.number_of_timesteps_weekly / 2.0)
-        if self.currentTimeStep() < (cfg.number_of_timesteps_weekly / 2.0):
-            self.grazingRate = self.grazingRate + grazingRateIncrease
-        else:
-            self.grazingRate = self.grazingRate - grazingRateIncrease
+        # Static at first to set a baseline for the first state, increase and decrease afterwards (same timespan)
+        relative_start_of_grazing = cfg.rel_start_grazing
+        grazingRateIncreaseTotal = cfg.tot_increase_grazing
+        grazingRateIncrease = \
+            grazingRateIncreaseTotal / ((cfg.number_of_timesteps_weekly * (1 - relative_start_of_grazing)) / 2)
 
-        self.grazingPressureArray = numpy.append(self.grazingPressureArray, self.grazingRate)
+        if cfg.return_ini_grazing:
+            if self.currentTimeStep() < (cfg.number_of_timesteps_weekly * relative_start_of_grazing):
+                self.grazingRate = self.grazingRate  # Equal to the initial grazing rate (see above)
+            elif self.currentTimeStep() < (cfg.number_of_timesteps_weekly / ((1 - relative_start_of_grazing) / 2)):
+                self.grazingRate = self.grazingRate + grazingRateIncrease
+            else:
+                self.grazingRate = self.grazingRate - grazingRateIncrease
+
+        if not cfg.return_ini_grazing:
+            if self.currentTimeStep() < (cfg.number_of_timesteps_weekly * relative_start_of_grazing):
+                self.grazingRate = self.grazingRate  # Equal to the initial grazing rate (see above)
+            else:
+                self.grazingRate = self.grazingRate + (grazingRateIncrease / 2)
 
         runoffMetreWaterDepthPerWeek = self.runoffMetreWaterDepthPerHour * cfg.theDurationOfRainstorm
         self.biomass, self.LAI = self.d_biomassModifiedMay.update(self.actualAbstractionFluxFromSubsurface,
@@ -198,8 +159,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             throughfallFlux = rainfallFlux - actualAdditionFluxToInterceptionStore
 
             # surface store
-            # time being no upward seepage
-            # totalToSurfaceFlux=throughfallFlux+self.d_exchangevariables.upwardSeepageFlux
+            # Currently no upward seepage
+            # totalToSurfaceFlux = throughfallFlux + self.d_exchangevariables.upwardSeepageFlux
             totalToSurfaceFlux = throughfallFlux
             potentialToSurfaceStoreFlux = self.d_surfaceStore.potentialToFlux()
 
@@ -227,29 +188,31 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             surfaceStoreChange = actualAbstractionFromSurfaceWaterFlux - actualInfiltrationFlux
             self.d_surfaceStore.update(surfaceStoreChange)
             actualAdditionFlux = self.d_subsurfaceWaterOneLayer.addWater(actualInfiltrationFlux)
-            # empty it again
+            # empty surface store again
             self.d_surfaceStore.emptyIt()
 
             # surface wash
             self.runoffMetreWaterDepthPerHour = runoffCubicMetrePerHour / cellarea()
             netDeposition, netDepositionMetre, lateralFluxKg, totalDetachKgPerCell, transportCapacityKgPerCell = \
-                self.d_soilwashMMF.calculateWash(
-                    self.runoffMetreWaterDepthPerHour, rainfallFlux, throughfallFlux)
+                self.d_soilwashMMF.calculateWash(self.runoffMetreWaterDepthPerHour, rainfallFlux, throughfallFlux)
+
+            # TODO - Work out the statement below:
             # LET OP: dit is metre flux, maar dat zou het zijn als er slechts 1 regenbui is per jaar
             # het is dus de ene week uitgemiddeld over een jaar
             # om echt iets te krijgen met een eenheid m/jaar (dwz wat 'zou' de depositie zijn
             # als dit event elke week zou optreden), moet dit keer 52 weken
             # hetzelfde geldt voor actual deposition flux hieronder
             netDepositionMetreFlux = netDepositionMetre / self.timeStepDurationRegolithInYears
-            ##LDD, surface##
+
+            # LDD, surface
             if cfg.changeGeomorphology:
                 actualDepositionFlux = self.d_regolithdemandbedrock.updateWithDeposition(netDepositionMetreFlux)
-                regolithThickness, demOfBedrock, dem, bedrockLdd, surfaceLdd = self.d_regolithdemandbedrock.getRegolithProperties()
-                amountOfMoistureThickNetAdded = self.d_subsurfaceWaterOneLayer.updateRegolithThickness(
-                    regolithThickness)
+                regolithThickness, demOfBedrock, dem, bedrockLdd, surfaceLdd = \
+                    self.d_regolithdemandbedrock.getRegolithProperties()
+                amountOfMoistureThickNetAdded = \
+                    self.d_subsurfaceWaterOneLayer.updateRegolithThickness(regolithThickness)
                 self.d_soilwashMMF.setSurfaceProperties(surfaceLdd, dem)
                 self.d_runoffAccuthreshold.setSurfaceProperties(surfaceLdd)
-
 
         else:
             # surface wash
@@ -261,7 +224,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         if cfg.changeGeomorphology:
             # random noise
             netDepositionMetreNoiseFlux = normal(1) / 5000
-            ##LDD, surface##
+            # LDD, surface
             actualDepositionNoiseFlux = self.d_regolithdemandbedrock.updateWithDeposition(netDepositionMetreNoiseFlux)
             regolithThickness, demOfBedrock, dem, bedrockLdd, surfaceLdd = self.d_regolithdemandbedrock.getRegolithProperties()
 
@@ -269,7 +232,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         fWaterPotential = self.d_subsurfaceWaterOneLayer.getFWaterPotential()
         potentialEvapotranspirationFlux = self.d_evapotranspirationSimple.potentialEvapotranspiration(fWaterPotential,
                                                                                                       self.biomass)
-
         # evapotranspirate first from interception store
         # assume this does not depend on vegetation, and does not influence transpiration
         # assume it immediately empties (ie, within a week)
@@ -284,21 +246,21 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.actualAbstractionFluxFromSubsurface = \
             self.d_subsurfaceWaterOneLayer.abstractWater(potentialEvapotranspirationFluxFromSubsurface)
 
-        # lateral flow in subsurface and upward seepage from subsurfacestore
+        # lateral flow in subsurface and upward seepage from subsurface storage
         # typically switched off and never tested
-        ##self.d_exchangevariables.upwardSeepageFlux=self.d_subsurfaceWaterOneLayer.lateralFlow()
+        # # self.d_exchangevariables.upwardSeepageFlux=self.d_subsurfaceWaterOneLayer.lateralFlow()
 
         # self.checkBudgets(self.currentSampleNumber(), self.currentTimeStep())
         # self.printMemberVariables()
 
-        ####
-        # geomorpology
-        ####
+        ###############
+        # geomorphology
+        ###############
         if cfg.changeGeomorphology and (self.currentTimeStep() % 52 == 0):
             # bedrock weathering
             regolithThickness, demOfBedrock, dem, bedrockLdd, surfaceLdd = self.d_regolithdemandbedrock.getRegolithProperties()
             bedrockWeatheringFlux = self.d_bedrockweathering.weatheringRate(regolithThickness)
-            ###LDD, bedrock###
+            # LDD, bedrock
             self.d_regolithdemandbedrock.updateWithBedrockWeathering(bedrockWeatheringFlux)
 
             # creep
@@ -307,12 +269,12 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                 self.d_creep.diffuse(regolithThickness, dem, 1)
             self.creepDeposition = newRegolithThickness - regolithThickness
 
-            ###LDD, surface###
+            # LDD, surface
             self.d_regolithdemandbedrock.setNewRegolith(newRegolithThickness)
 
             # update bedrock with baselevel change
             baselevel = self.d_baselevel.getBaselevel(self.currentTimeStep())
-            ###LDD, surface, bedrock###
+            # LDD, surface, bedrock
             self.d_regolithdemandbedrock.setBaselevel(baselevel)
 
             # update subsurface store with new regolith thickness
@@ -325,22 +287,14 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             self.d_soilwashMMF.setSurfaceProperties(surfaceLdd, dem)
             self.d_runoffAccuthreshold.setSurfaceProperties(surfaceLdd)
 
-        # option to do a test run with a very thin regolith
-        # print 'test with thin regolith'
-        # if self.currentTimeStep() == 6000:
-        #  self.d_regolithdemandbedrock.setNewRegolith(spatial(scalar(0.001)))
-
         # reports
         self.reportComponentsDynamic()
-        # self.printComponentsDynamic()
+        save_maps = (self.currentTimeStep() % cfg.interval_map_snapshots) == 0 and cfg.map_data is True
+        save_mean_timeseries = self.currentTimeStep() == cfg.number_of_timesteps_weekly and cfg.mean_timeseries_data is True
 
-        # calculateStats = (self.currentTimeStep() % cfg.intervalForStatsCalculated) == 0
-        save_maps = (self.currentTimeStep() % cfg.interval_map_snapshots) == 0 and cfg.map_data == True
-        save_mean_timeseries = self.currentTimeStep() == cfg.number_of_timesteps_weekly and cfg.mean_timeseries_data == True
-
-        ############
-        # statistics
-        ############
+        ###########
+        # Variables
+        ###########
 
         # MAXIMUM INTERCEPTION STORE
         variable = maxIntStore
@@ -390,7 +344,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
         self.historyOfBiomass = generalfunctions_test01.keepHistoryOfMaps(self.historyOfBiomass, variable_mean,
-            self.durationHistory)
+                                                                          self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'bioM', self.currentSampleNumber(), self.currentTimeStep())
@@ -404,7 +358,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
 
         self.historyOfRegolithThickness = generalfunctions_test01.keepHistoryOfMaps(self.historyOfRegolithThickness,
-            variable_mean, self.durationHistory)
+                                                                                    variable_mean, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'regM', self.currentSampleNumber(), self.currentTimeStep())
@@ -427,7 +381,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             generalfunctions_test01.report_as_array(variable_mean_array, 'demA', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
-        # discharge
+        # Discharge
         downstreamEdge = generalfunctions_test01.edge(self.clone, 2, 0)
         pits = pcrne(pit(self.d_runoffAccuthreshold.ldd), 0)
         outflowPoints = pcrand(downstreamEdge, pits)
@@ -447,21 +401,24 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                     self.currentTimeStep())
 
         # grazing rate
-        variable = spatial(scalar(self.grazingRate))
-        variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable = self.grazingRate
 
         self.history_of_grazing_rate = generalfunctions_test01.keepHistoryOfMaps(self.history_of_grazing_rate,
-                                                                                 variable_mean,
+                                                                                 variable,
                                                                                  self.durationHistory)
 
-        if save_maps:
-            generalfunctions_test01.report_as_map(variable, 'gM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
             variable_mean_array = np.array(self.history_of_grazing_rate)
             generalfunctions_test01.report_as_array(variable_mean_array, 'gA', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
-        ## some extra outputs - TODO: Check if saving maps is necessary
+        # some extra outputs - TODO: Check if saving maps is necessary (see below):
+        # for growth part: Small variations, -0.00013576 -0.0001353
+        # for grazing part: Small variations, 0.0001137  0.00011369
+        # for net growth: Small variations, -0.00022432 -0.0002257
+        # for net deposition: 0 for short run (5200 weeks), small variations for longer runs
+        # for net weathering: Small variations, 9.95988594e-05 1.00064834e-04
+        # for net creep deposition: Small variations, 1.51124597e-03  1.48558617e-03
 
         # growth part
         variable = self.d_biomassModifiedMay.growthPart
@@ -548,12 +505,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             generalfunctions_test01.report_as_array(variable_mean_array, 'creA', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
-        # Grazing pressure array
-        if save_mean_timeseries:
-            name = generateNameS('grazing', self.currentSampleNumber())
-            numpy.savetxt(name + '.numpy.txt', self.grazingPressureArray)
-
-
     def postmcloop(self):
         pass
 
@@ -561,27 +512,15 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         pass
 
     def createInstancesInitial(self):
-        # import generalfunctions # not sure why this needs to be imported again
-
-        # TODO - this information should come from cfg
         timeStepsToReportAll = cfg.timesteps_to_report_all_weekly
-        # timeStepsToReportAll = range(100, cfg.number_of_timesteps_weekly + 1, 100)
-        # timeStepsToReportAll = range(1, cfg.numberOfTimeSteps +1, 1)
         timeStepsToReportSome = cfg.timesteps_to_report_some_weekly
-        # timeStepsToReportSome = range(3000, cfg.number_of_timesteps_weekly + 1, 100)
 
-        # class for exchange variables in initial and dynamic
-        # introduced to make filtering possible
-
-        self.d_exchangevariables = exchangevariables_weekly.ExchangeVariables(
-            timeStepsToReportSome,
-            cfg.exchange_report_rasters
-        )
+        # Class for exchange variables in initial and dynamic, introduced to make filtering possible
+        self.d_exchangevariables = exchangevariables_weekly.ExchangeVariables(timeStepsToReportSome,
+                                                                              cfg.exchange_report_rasters)
 
         # base level
-        # deterministicDem=(ycoordinate(1)*0.4)
         deterministicDem = scalar('inputs_weekly/demini.map')
-        # dem=deterministicDem+uniform(1)/2
         dem = deterministicDem
         baselevelRise = -0.0001
         self.d_baselevel = baselevel.Baselevel(
@@ -614,7 +553,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             cfg.regolith_report_rasters)
 
         regolithThickness, demOfBedrock, dem, bedrockLdd, surfaceLdd = self.d_regolithdemandbedrock.getRegolithProperties()
-        report(regolithThickness, 'regIni.map')
+        self.report(regolithThickness, 'regIni')  # Added self., removed .map
 
         # biomass
         initialBiomass = 2.0
@@ -623,11 +562,11 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         # original
         gamma = 0.004  # runoff
-        ## gamma zero
+        # # gamma zero
         # gamma=0.0001 # runoff
-        ## gamma low
+        # # gamma low
         # gamma=0.001 # runoff
-        ## gamma medium
+        # # gamma medium
         # gamma=0.002 # runoff
 
         alpha = 0.4  # grazing
@@ -742,7 +681,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             cfg.infiltration_report_rasters_weekly)
 
         # subsurface water
-        # loam values from Niko Wanders, see mac disk articles/crittransGeom table
+        # loam values from Niko Wanders, see mac disk articles/crittransGeom table # TODO - Make this scientific
         # initialSoilMoistureFraction=scalar(0.03)
         initialSoilMoistureFraction = scalar(0.43)
 
@@ -777,9 +716,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             beta,
             maximumEvapotranspirationFlux,
             timeStepsToReportAll,
-            cfg.evapotranspirationsimple_report_rasters) \
- \
-            # runoff
+            cfg.evapotranspirationsimple_report_rasters)
+
+        # runoff
         self.d_runoffAccuthreshold = runoffaccuthreshold.RunoffAccuthreshold(
             surfaceLdd,
             durationOfRainstorm,
@@ -796,7 +735,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         detachabilityOfSoilRaindrops = 1.6  # 'original'  (used for all scenarios)
         detachabilityOfSoilRunoff = 6.4  # 'original'
 
-        ## more erosion scenario
+        # # more erosion scenario
         # detachabilityOfSoilRaindrops=16
         # detachabilityOfSoilRunoff=64
 
@@ -845,7 +784,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             component.reportAsMaps(self.currentSampleNumber(), self.currentTimeStep())
 
     def printMemberVariables(self):
-        # import generalfunctions # not sure why this needs to be imported again
         components = [
             self.d_exchangevariables,
             self.d_interceptionuptomaxstore,
@@ -865,8 +803,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         startTime = datetime.datetime(year=startTimeYear, month=startTimeMonth, day=startTimeDay)
         self.timeStepDurationHours = timeStepDurationHours
         self.timeStepDatetimeFormat = datetime.timedelta(hours=self.timeStepDurationHours)
-        self.d_dateTimePCRasterPython = datetimePCRasterPython.DatetimePCRasterPython \
-            (startTime, self.timeStepDatetimeFormat)
+        self.d_dateTimePCRasterPython = datetimePCRasterPython.DatetimePCRasterPython(startTime,
+                                                                                      self.timeStepDatetimeFormat)
 
     def checkBudgets(self, currentSampleNumber, currentTimeStep):
 
@@ -895,8 +833,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                   increaseInSubSurfaceWaterStore]
         for store in stores:
             increaseInStoreCubicMetresInUpstreamArea = catchmenttotal(store, self.ldd) * cellarea()
-            totalIncreaseInStoresCubicMetresInUpstreamArea = totalIncreaseInStoresCubicMetresInUpstreamArea + \
-                                                             increaseInStoreCubicMetresInUpstreamArea
+            totalIncreaseInStoresCubicMetresInUpstreamArea = totalIncreaseInStoresCubicMetresInUpstreamArea \
+                + increaseInStoreCubicMetresInUpstreamArea
 
         report(totalIncreaseInStoresCubicMetresInUpstreamArea,
                generateNameST('inSt', currentSampleNumber, currentTimeStep))
@@ -906,10 +844,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                generateNameST('inSe', currentSampleNumber, currentTimeStep))
         # total budget is total increase in stores plus the upward seepage flux for each ts that is passed to the next
         # timestep and thus not taken into account in the current timestep budgets
-        budget = totalIncreaseInStoresCubicMetresInUpstreamArea + increaseInRunoffStoreCubicMetresInUpstreamArea + \
-                 lateralFlowInSubsurfaceStore * cellarea() + catchmenttotal(abstractionFromSubSurfaceWaterStore,
-                                                                            self.ldd) * cellarea() + \
-                 catchmenttotal(self.d_exchangevariables.upwardSeepageFlux, self.ldd) * cellarea()
+        budget = totalIncreaseInStoresCubicMetresInUpstreamArea + increaseInRunoffStoreCubicMetresInUpstreamArea \
+            + lateralFlowInSubsurfaceStore * cellarea() + catchmenttotal(abstractionFromSubSurfaceWaterStore, self.ldd) \
+            * cellarea() + catchmenttotal(self.d_exchangevariables.upwardSeepageFlux, self.ldd) * cellarea()
         report(budget, generateNameST('B-tot', currentSampleNumber, currentTimeStep))
         budgetRel = budget / increaseInRunoffStoreCubicMetresInUpstreamArea
         report(budgetRel, generateNameST('B-rel', currentSampleNumber, currentTimeStep))

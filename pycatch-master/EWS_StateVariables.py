@@ -1,6 +1,13 @@
-import configuration_weekly as cfg
+import EWS_main_configuration as cfg
 
-variables = []
+# State variables used in all other EWS Python scripts are stored in the list below. For each state variable, multiple
+# variables of these state variables, such as snapshot interval, window size and overlap, and datatype, can be defined
+# below as to guarantee the use of the same variables over the different EWS Python scripts.
+# - Note that the 'full' sets of state variables are defined at the end of this file, and if state variables for EWS are
+#   added, they also should be included here.
+
+variables_weekly = []
+variables_hourly = []
 
 
 # Class StateVariable for Variable objects #
@@ -84,13 +91,24 @@ Iks = StateVariable('Iks', spatial=True, full_name='Ksat value spatial')
 
 # Check which variables are present in the configuration and append these to the list of variables #
 
-full_set_of_variables = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, regM, regA, demM, demA, qA, gM, gA, gpM, gpA,
-                         grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA, grazing, Iks]
+full_set_of_variables_weekly = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, regM, regA, demM, demA, qA, gM, gA, gpM,
+                                gpA, grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA, grazing, Iks]
 
-if cfg.state_variables_for_ews == 'full':
-    variables = full_set_of_variables
+full_set_of_variables_hourly = []
+
+
+if cfg.state_variables_for_ews_weekly == 'full':
+    variables_weekly = full_set_of_variables_weekly
 else:
-    for state_variable in cfg.state_variables_for_ews:
-        for variable in full_set_of_variables:
+    for state_variable in cfg.state_variables_for_ews_weekly:
+        for variable in full_set_of_variables_weekly:
             if variable.name == state_variable:
-                variables.append(variable)
+                variables_weekly.append(variable)
+
+if cfg.state_variables_for_ews_hourly == 'full':
+    variables_hourly = full_set_of_variables_hourly
+else:
+    for state_variable in cfg.state_variables_for_ews_hourly:
+        for variable in full_set_of_variables_hourly:
+            if variable.name == state_variable:
+                variables_hourly.append(variable)

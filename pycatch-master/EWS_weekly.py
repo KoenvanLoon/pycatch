@@ -5,18 +5,19 @@ import os
 import time
 from scipy import ndimage
 
-import configuration_weekly as cfg
-import NULL_models_timeseries as temp_NULL
-import NULL_models_spatial as spat_NULL
+import EWS_main_configuration as cfg
+import NULL_models_timeseries_weekly as temp_NULL
+import NULL_models_spatial_weekly as spat_NULL
 import EWS_StateVariables as ews_sv
 
 ### User input ###
 
 ## State variables for EWS ##
-variables = ews_sv.variables  # State variables present in EWS_StateVariables can be added through configuration_weekly
+variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration_weekly
 
 ## Generate dummy datasets for Kendall tau? ##
 generate_dummy_datasets = False
+save_detrended_data = True # Temporal only
 method_1 = True
 method_2 = True
 method_3 = True
@@ -31,11 +32,11 @@ realizations = cfg.nrOfSamples
 
 ## Timesteps, intervals ##
 spatial_ews_present = cfg.map_data
-spatial_ews_interval = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+spatial_ews_interval = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
                                  cfg.interval_map_snapshots)
 
 temporal_ews_present = cfg.mean_timeseries_data
-temporal_ews_interval = cfg.numberOfTimeSteps
+temporal_ews_interval = cfg.number_of_timesteps_weekly  # the interval is defined as t=0 to the last timestep.
 
 
 ### Functions ###
@@ -61,6 +62,15 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
         if detrending_temp == 'Gaussian':  # TODO - Multiple sigmas?
             state_variable_timeseries = state_variable_timeseries - ndimage.gaussian_filter1d(state_variable_timeseries,
                                                                                               sigma)
+            if save_detrended_data:
+                generated_number_length = 4
+                if len(str(realizations)) > 4:
+                    generated_number_length = len(str(realizations))
+                generated_number_string = 'dtr' + str(realization).zfill(generated_number_length)
+                dir_name = os.path.join(path + generated_number_string)
+                fname = ews.file_name_str(variable.name, cfg.number_of_timesteps_weekly)
+                fpath = os.path.join(dir_name, fname)
+                np.savetxt(fpath + '.numpy.txt', state_variable_timeseries)
 
         ## Generate dummy datasets ##
         if method1:

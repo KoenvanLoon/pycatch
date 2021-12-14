@@ -3,13 +3,14 @@ from scipy import fft
 from scipy.signal import convolve
 import os
 import EWSPy as ews
-import configuration_weekly as cfg
+# import configuration_weekly as cfg
+import EWS_main_configuration as cfg
 from pcraster import numpy2pcr, report, Scalar
 
 
 ### Null models adapted from (Dakos et al. 2008) ###
 
-# TODO - method 2 did not return the right mean - check solution -, other values are A-OK
+# TODO - method 2 did not always return the right mean --> check solution -, other values are A-OK
 
 ## First method ##
 def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
@@ -18,7 +19,7 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
         generated_number_length = len(str(realizations))
 
     data_shape = dataset[0].shape
-    steps = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+    steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
     for k, data in enumerate(dataset):
@@ -46,7 +47,7 @@ def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
 
-    steps = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+    steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
     for k, data in enumerate(dataset):
@@ -125,7 +126,7 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
 
-    steps = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+    steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
     for k, data in enumerate(dataset):

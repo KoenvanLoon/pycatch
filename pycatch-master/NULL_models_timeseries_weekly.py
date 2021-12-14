@@ -3,7 +3,8 @@ from scipy import fft
 import statsmodels.api
 import os
 import EWSPy as ews
-import configuration_weekly as cfg
+# import configuration_weekly as cfg
+import EWS_main_configuration as cfg
 
 
 ### Null models timeseries (Dakos et al. 2008) ###
@@ -25,7 +26,7 @@ def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         if os.path.isdir(dir_name) == False:
             os.makedirs(dir_name)
 
-        fname = ews.file_name_str(file_name, cfg.numberOfTimeSteps)
+        fname = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
         fpath = os.path.join(dir_name, fname)
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
 
@@ -68,7 +69,7 @@ def method2_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         if os.path.isdir(dir_name) == False:
             os.makedirs(dir_name)
 
-        fname = ews.file_name_str(file_name, cfg.numberOfTimeSteps)
+        fname = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
         fpath = os.path.join(dir_name, fname)
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
 
@@ -96,6 +97,6 @@ def method3_(data, realizations=1, path='./1/', file_name='xxx', stdev_error=1):
         if os.path.isdir(dir_name) == False:
             os.makedirs(dir_name)
 
-        fname = ews.file_name_str(file_name, cfg.numberOfTimeSteps)
+        fname = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
         fpath = os.path.join(dir_name, fname)
         np.savetxt(fpath + '.numpy.txt', generated_dataset)

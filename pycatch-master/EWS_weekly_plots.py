@@ -1,17 +1,26 @@
 import numpy as np
 import os
 
-import configuration_weekly as cfg
+import EWS_main_configuration as cfg
 import EWSPy as ews
 import EWS_StateVariables as ews_sv
 
 import matplotlib.pyplot as plt
 
 ## State variables for EWS ##
-variables = ews_sv.variables  # State variables present in EWS_StateVariables can be added through configuration_weekly
+# State variables present in EWS_StateVariables can be added through EWS_main_configuration.py
+variables = ews_sv.variables_weekly
+# variables = ews_sv.variables_hourly
+
 names = []
 for variable in variables:
     names.append([f'{variable.full_name} as {variable.name}'])
+
+## Number of timesteps over which EWS can be calculated ##
+# This number can be different for the weekly and hourly model
+number_of_timesteps = cfg.number_of_timesteps_weekly
+# number_of_timesteps = cfg.number_of_timesteps_hourly
+
 
 ## Statistical EWS ##
 ews_temporal_signals = {'t.mn': "mean", 't.std': "standard deviation", 't.var': "variance",
@@ -24,16 +33,16 @@ ews_spatial_signals = {'s.mn': "mean", 's.std': "standard deviation", 's.var': "
 
 def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1/', save=False, show=False):
     if variable1.spatial:
-        x_axis1 = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+        x_axis1 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
                             cfg.interval_map_snapshots)
     if variable1.temporal:
-        x_axis1 = np.arange(0, cfg.numberOfTimeSteps, variable1.window_size - variable1.window_overlap)
+        x_axis1 = np.arange(0, number_of_timesteps, variable1.window_size - variable1.window_overlap)
 
     if signal1 == 'timeseries':
-        fname = ews.file_name_str(variable1.name, cfg.numberOfTimeSteps)
+        fname = ews.file_name_str(variable1.name, number_of_timesteps)
         fpath = os.path.join(path + fname)
         timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
-        timeseries_x_axis = np.arange(0, cfg.numberOfTimeSteps, 1)
+        timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
         plt.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable1.full_name}')
     elif signal1 != 'None':
         fpath = os.path.join(path + variable1.name + '.' + signal1)
@@ -45,16 +54,16 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
 
     if variable2 != 'None':
         if variable2.spatial:
-            x_axis2 = np.arange(cfg.interval_map_snapshots, cfg.numberOfTimeSteps + cfg.interval_map_snapshots,
+            x_axis2 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
                                 cfg.interval_map_snapshots)
         if variable2.temporal:
-            x_axis2 = np.arange(0, cfg.numberOfTimeSteps, variable2.window_size - variable2.window_overlap)
+            x_axis2 = np.arange(0, number_of_timesteps, variable2.window_size - variable2.window_overlap)
 
         if signal2 == 'timeseries':
-            fname = ews.file_name_str(variable2.name, cfg.numberOfTimeSteps)
+            fname = ews.file_name_str(variable2.name, number_of_timesteps)
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
-            timeseries_x_axis = np.arange(0, cfg.numberOfTimeSteps, 1)
+            timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
             plt.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable2.full_name}')
         elif signal2 != 'None':
             fpath = os.path.join(path + variable2.name + '.' + signal2)
@@ -109,7 +118,7 @@ def user_plotmaker(path='./1/'):
         print("EW signals present are:", ews_temporal_signals)
     if variable1.spatial:
         print("EW signals present are:", ews_spatial_signals)
-    print("Enter the signal for variable 1:")
+    print("Enter the short name for the signal for variable 1:")
     signal1_input = input()
 
     print("Include a second variable? [Y/n]")
@@ -123,7 +132,7 @@ def user_plotmaker(path='./1/'):
             print("EW signals present are:", ews_temporal_signals)
         if variable2.spatial:
             print("EW signals present are:", ews_spatial_signals)
-        print("Enter the signal for variable 1:")
+        print("Enter the short name for the signal for variable 1:")
         signal2_input = input()
     else:
         variable2 = 'None'
