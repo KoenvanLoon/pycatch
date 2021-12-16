@@ -111,7 +111,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
 
 def user_plotmaker(path='./1/'):
     print("Variables present in the current run are:", names)
-    print("Enter the short name for variable 1:")
+    print("Enter the short name for state variable 1:")
     variable1_input = input()
     variable1 = [variable for variable in variables if variable.name == variable1_input][0]
     if variable1.temporal:
@@ -124,7 +124,7 @@ def user_plotmaker(path='./1/'):
     print("Include a second variable? [Y/n]")
     second_variable_input = input()
     if second_variable_input == 'Y' or second_variable_input == 'y':
-        print("Enter the short name for variable 2:")
+        print("Enter the short name for state variable 2:")
         variable2_input = input()
 
         variable2 = [variable for variable in variables if variable.name == variable2_input][0]
@@ -164,7 +164,7 @@ def user_plotmaker_looper(path='./1/'):
     if answer == 'Y' or answer == 'y':
         user_plotmaker_looper(path=path)
     if answer == 'N' or answer == 'n':
-        print("Terminated plotmaker.")
+        print("Terminated plotmaker. Goodbye.")
 
 
 user_plotmaker_looper(path='./1/')

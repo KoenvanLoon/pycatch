@@ -28,6 +28,7 @@ class StateVariable:
 
 
 # State variables for EWS #
+
 # Maximum interception store
 micM = StateVariable('micM', spatial=True, full_name='Maximum interception storage spatial')
 micA = StateVariable('micA', temporal=True, datatype='numpy', full_name='Maximum interception storage temporal')
@@ -83,19 +84,15 @@ weaA = StateVariable('weaA', temporal=True, datatype='numpy', full_name='Net wea
 creM = StateVariable('creM', spatial=True, full_name='Net creep deposition spatial')
 creA = StateVariable('creA', temporal=True, datatype='numpy', full_name='Net creep deposition temporal')
 
-# Grazing pressure array
-grazing = StateVariable('grazing', temporal=True, full_name='Grazing pressure temporal')
-
-# Ksat value
-Iks = StateVariable('Iks', spatial=True, full_name='Ksat value spatial')
+# Rq
+Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', window_size=876)
 
 # Check which variables are present in the configuration and append these to the list of variables #
 
 full_set_of_variables_weekly = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, regM, regA, demM, demA, qA, gM, gA, gpM,
-                                gpA, grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA, grazing, Iks]
+                                gpA, grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA, Rq]
 
-full_set_of_variables_hourly = []
-
+full_set_of_variables_hourly = [Rq]
 
 if cfg.state_variables_for_ews_weekly == 'full':
     variables_weekly = full_set_of_variables_weekly

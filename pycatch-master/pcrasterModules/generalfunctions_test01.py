@@ -174,7 +174,7 @@ def reportLocationsAsNumpyArray(locations, values, basename, sampleNumber, timeS
     numpyArrayAsMapWithOneRow = numpyArray.reshape(1, len(numpyArray))
     numpy.savetxt(fileName + '.numpy.txt', numpyArrayAsMapWithOneRow)
 
-def report_locations_as_mean_np(variable_values, basename, sample_number, time_step): # TODO - Save timeseries?
+def report_locations_as_mean_np(variable_values, basename, sample_number, time_step):
     file_name = pcrfw.generateNameST(basename, sample_number, time_step)
     numpy_array = pcr.pcr2numpy(variable_values, numpy.nan)
     mean_np = [numpy.nanmean(numpy_array)]

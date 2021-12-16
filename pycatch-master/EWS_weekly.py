@@ -13,11 +13,11 @@ import EWS_StateVariables as ews_sv
 ### User input ###
 
 ## State variables for EWS ##
-variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration_weekly
+variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
 
 ## Generate dummy datasets for Kendall tau? ##
 generate_dummy_datasets = False
-save_detrended_data = True # Temporal only
+save_detrended_data = True  # Temporal only, and only relevant when detrending != None
 method_1 = True
 method_2 = True
 method_3 = True
@@ -63,14 +63,9 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
             state_variable_timeseries = state_variable_timeseries - ndimage.gaussian_filter1d(state_variable_timeseries,
                                                                                               sigma)
             if save_detrended_data:
-                generated_number_length = 4
-                if len(str(realizations)) > 4:
-                    generated_number_length = len(str(realizations))
-                generated_number_string = 'dtr' + str(realization).zfill(generated_number_length)
-                dir_name = os.path.join(path + generated_number_string)
-                fname = ews.file_name_str(variable.name, cfg.number_of_timesteps_weekly)
-                fpath = os.path.join(dir_name, fname)
-                np.savetxt(fpath + '.numpy.txt', state_variable_timeseries)
+                # Only 1 realization made, as the detrending method parameters do not change.
+                temp_NULL.detrend_(state_variable_timeseries, realizations=nr_realizations, path=path,
+                                   file_name=variable.name)
 
         ## Generate dummy datasets ##
         if method1:
@@ -115,6 +110,11 @@ def ews_calculations_generated_datasets(variable, path='./1/', nr_realizations=1
     generated_number_length = 4
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
+
+    if save_detrended_data and variable.temporal:
+        generated_number_string = 'dtr' + str(0).zfill(generated_number_length) + '/'
+        dir_name = os.path.join(path + generated_number_string)
+        ews_calculations(variable, path=dir_name, timer_on=timer_on)
 
     if method1:
         for realization in range(nr_realizations):
@@ -209,7 +209,7 @@ def ews_calculations(variable, path='./1/', timer_on=False):
             print(
                 f"Mean timeseries data == False in configuration_weekly.py, could not calculate EWS for {variable.name}.")
 
-    ## Temporal EWS calculations ##
+    ## Spatial EWS calculations ##
     if variable.spatial:
         if spatial_ews_present:
             print(f"Started spatial EWS calculations for {variable.name}")
@@ -267,10 +267,10 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                 print("Elapsed time for temporal EWS calculations equals:", end_time - start_time, '\n')
 
         elif spatial_ews_present == False:
-            print(f"Map data == False in configuration_weekly.py, could not calculate EWS for {variable.name}.")
+            print(f"Map data == False in configuration, could not calculate EWS for {variable.name}.")
 
 
-### Running the functions for given variables ###
+### Running the functions for given state variables ###
 
 for realization in range(1, realizations + 1):
     for variable in variables:

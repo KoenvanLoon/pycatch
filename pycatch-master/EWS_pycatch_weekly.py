@@ -82,7 +82,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         self.actualAbstractionFluxFromSubsurface = 0.0
 
-        # functions and settings for calculating statistics
+        # functions and settings for saving timeseries
         self.historyOfSoilMoistureFraction = deque([])
         self.historyOfBiomass = deque([])
         self.historyOfRegolithThickness = deque([])

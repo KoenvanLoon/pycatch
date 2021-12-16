@@ -7,13 +7,13 @@ number_of_timesteps_hourly = 2000  # in hours
 # number_of_timesteps_hourly = 8760 # ~1y in hours
 
 # Define number of weekly time steps to run
-number_of_timesteps_weekly = 104000
+number_of_timesteps_weekly = 8760
 #number_of_timesteps_weekly = 5200  # in weeks
 # number_of_timesteps_weekly = 104000 # ~2000y in weeks
 
 ## Rate of forcing (grazing)
 # Define the fraction of total time at which no grazing occurs at the beginning (baseline for initial state)
-rel_start_grazing = 1/16
+rel_start_grazing = 1/8
 # rel_start_grazing = 0
 # Define the total increase in grazing rate
 tot_increase_grazing = 0.0003
@@ -66,7 +66,7 @@ interval_map_snapshots = 100
 
 # definition for components were all timesteps should be reported
 timesteps_to_report_all_hourly = list(range(1, number_of_timesteps_hourly + 1, 1))
-timesteps_to_report_all_weekly = list(range(interval_map_snapshots, number_of_timesteps_weekly + 1,
+timesteps_to_report_all_weekly = list(range(0, number_of_timesteps_weekly + 1,
                                             interval_map_snapshots))
 # timeStepsToReportAll = list(range(1, number_of_timesteps_hourly + 1, 1))
 
@@ -75,7 +75,7 @@ timeStepsToReportRqs = list(range(20, number_of_timesteps_hourly + 1, 20))
 
 # definition for components were a subset of timesteps should be reported
 timesteps_to_report_some_hourly = list(range(100, number_of_timesteps_hourly + 1, 100))
-timesteps_to_report_some_weekly = list(range(100, number_of_timesteps_weekly + 1, interval_map_snapshots))
+timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, interval_map_snapshots))
 # timeStepsToReportSome = list(range(100, number_of_timesteps_hourly + 1, 100))
 
 
@@ -84,7 +84,7 @@ timesteps_to_report_some_weekly = list(range(100, number_of_timesteps_weekly + 1
 # - TODO check the 'full' list in EWS_StateVariables.py
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'
-state_variables_for_ews_weekly = ['bioM', 'bioA', 'moiM', 'moiA']
+state_variables_for_ews_weekly = ['Rq']
 # state_variables_for_ews_weekly = 'full'
 
 ## Reporting for the model components (both hourly and weekly)
