@@ -15,7 +15,7 @@ variables_hourly = []
 
 class StateVariable:
     def __init__(self, name, spatial=False, temporal=False, snapshot_interval=cfg.interval_map_snapshots,
-                 window_size=100, window_overlap=0, datatype='map', full_name='', unit='unit'):
+                 window_size=1000, window_overlap=0, datatype='map', full_name='', unit='unit'):
         self.name = name
         self.spatial = spatial
         self.temporal = temporal
@@ -57,7 +57,7 @@ demA = StateVariable('demA', temporal=True, datatype='numpy', full_name='DEM tem
 qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal')
 
 # Grazing rate
-gM = StateVariable('gM', spatial=True, full_name='Grazing rate spatial')
+# gM = StateVariable('gM', spatial=True, full_name='Grazing rate spatial')
 gA = StateVariable('gA', temporal=True, datatype='numpy', full_name='Grazing rate temporal')
 
 # Growth part
@@ -89,8 +89,8 @@ Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge',
 
 # Check which variables are present in the configuration and append these to the list of variables #
 
-full_set_of_variables_weekly = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, regM, regA, demM, demA, qA, gM, gA, gpM,
-                                gpA, grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA, Rq]
+full_set_of_variables_weekly = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, regM, regA, demM, demA, qA, gA, gpM,
+                                gpA, grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA]
 
 full_set_of_variables_hourly = [Rq]
 

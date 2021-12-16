@@ -21,7 +21,7 @@ save_detrended_data = True  # Temporal only, and only relevant when detrending !
 method_1 = True
 method_2 = True
 method_3 = True
-nr_generated_datasets = 1
+nr_generated_datasets = 100
 
 ### End user input ###
 

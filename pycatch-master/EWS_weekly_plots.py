@@ -1,11 +1,11 @@
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 
 import EWS_main_configuration as cfg
 import EWSPy as ews
 import EWS_StateVariables as ews_sv
 
-import matplotlib.pyplot as plt
 
 ## State variables for EWS ##
 # State variables present in EWS_StateVariables can be added through EWS_main_configuration.py
@@ -99,6 +99,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
         if variable1.temporal:
             plt.title(f"{variable1.full_name} {ews_temporal_signals[signal1]}")
     plt.legend()
+    plt.grid(linestyle='--')
 
     if save:
         if variable2 != 'None':
@@ -110,7 +111,10 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
 
 
 def user_plotmaker(path='./1/'):
-    print("Variables present in the current run are:", names)
+    print("Variables present in the current run are:")
+    for name in names:
+        print(name)
+
     print("Enter the short name for state variable 1:")
     variable1_input = input()
     variable1 = [variable for variable in variables if variable.name == variable1_input][0]
