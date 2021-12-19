@@ -11,7 +11,7 @@ import EWS_main_configuration as cfg
 
 # TODO - method 2 did not return the right mean - check solution -, other values are A-OK
 
-def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
+def detrend_(data, gauss='None', realizations=1, path='./1/', file_name='xxx'):
     generated_number_length = 4
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
@@ -22,9 +22,14 @@ def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
     if os.path.isdir(dir_name) == False:
         os.makedirs(dir_name)
 
-    fname = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
-    fpath = os.path.join(dir_name, fname)
-    np.savetxt(fpath + '.numpy.txt', data)
+    fname1 = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
+    fpath1 = os.path.join(dir_name, fname1)
+    np.savetxt(fpath1 + '.numpy.txt', data)
+
+    if gauss is not 'None':
+        fname2 = ews.file_name_str(file_name + 'g', cfg.number_of_timesteps_weekly)
+        fpath2 = os.path.join(dir_name, fname2)
+        np.savetxt(fpath2 + '.numpy.txt', gauss)
 
 ## Method 1 ##
 def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):

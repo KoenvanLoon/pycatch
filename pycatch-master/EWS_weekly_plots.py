@@ -26,7 +26,7 @@ number_of_timesteps = cfg.number_of_timesteps_weekly
 ews_temporal_signals = {'t.mn': "mean", 't.std': "standard deviation", 't.var': "variance",
                         't.cv': "coefficient of variation", 't.skw': "skewness", 't.krt': "kurtosis",
                         't.dfa': "detrended fluctuation analysis", 't.acr': "autocorrelation", 't.rr': "return rate",
-                        't.coh': "conditional heteroskedasticity", 'timeseries': "timeseries"}
+                        't.coh': "conditional heteroskedasticity", 'timeseries': "timeseries", 'gauss': "gauss"}
 ews_spatial_signals = {'s.mn': "mean", 's.std': "standard deviation", 's.var': "variance", 's.skw': "skewness",
                        's.krt': "kurtosis", 's.mI': "Moran's I"}
 
@@ -44,6 +44,12 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
         timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
         timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
         plt.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable1.full_name}')
+    elif signal1 == 'gauss':
+        fname = ews.file_name_str(variable1.name + 'g', number_of_timesteps)
+        fpath = os.path.join(path + fname)
+        timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
+        timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
+        plt.plot(timeseries_x_axis, timeseries_y_axis, label=f'Gaussian detrending {variable1.full_name}')
     elif signal1 != 'None':
         fpath = os.path.join(path + variable1.name + '.' + signal1)
         signal1_array = np.loadtxt(fpath + '.numpy.txt')
@@ -171,4 +177,5 @@ def user_plotmaker_looper(path='./1/'):
         print("Terminated plotmaker. Goodbye.")
 
 
-user_plotmaker_looper(path='./1/')
+user_plotmaker_looper(path='./1/dtr0000/')
+# user_plotmaker_looper(path='./1/')

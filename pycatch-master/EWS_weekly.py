@@ -16,12 +16,12 @@ import EWS_StateVariables as ews_sv
 variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
 
 ## Generate dummy datasets for Kendall tau? ##
-generate_dummy_datasets = False
+generate_dummy_datasets = True
 save_detrended_data = True  # Temporal only, and only relevant when detrending != None
 method_1 = True
 method_2 = True
 method_3 = True
-nr_generated_datasets = 100
+nr_generated_datasets = 1
 
 ### End user input ###
 
@@ -59,13 +59,15 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
         ## Detrending: 'None', 'Gaussian' ##
         if detrending_temp == 'None':
             state_variable_timeseries = state_variable_timeseries
-        if detrending_temp == 'Gaussian':  # TODO - Multiple sigmas?
-            state_variable_timeseries = state_variable_timeseries - ndimage.gaussian_filter1d(state_variable_timeseries,
-                                                                                              sigma)
+            temp_NULL.detrend_(state_variable_timeseries, realizations=nr_realizations, path=path,
+                               file_name=variable.name)
+        elif detrending_temp == 'Gaussian':  # TODO - Multiple sigmas?
+            gaussian_filter = ndimage.gaussian_filter1d(state_variable_timeseries, sigma)
+            state_variable_timeseries = state_variable_timeseries - gaussian_filter
             if save_detrended_data:
                 # Only 1 realization made, as the detrending method parameters do not change.
-                temp_NULL.detrend_(state_variable_timeseries, realizations=nr_realizations, path=path,
-                                   file_name=variable.name)
+                temp_NULL.detrend_(state_variable_timeseries, gaussian_filter, realizations=nr_realizations,
+                                   path=path, file_name=variable.name)
 
         ## Generate dummy datasets ##
         if method1:
@@ -277,7 +279,7 @@ for realization in range(1, realizations + 1):
         ews_calculations(variable, path=f'./{realization}/', timer_on=True)
         if generate_dummy_datasets:
             generate_datasets(variable, path=f'./{realization}/', nr_realizations=nr_generated_datasets,
-                              detrending_temp='Gaussian', method1=method_1, method2=method_2, method3=method_3)
+                              detrending_temp='None', method1=method_1, method2=method_2, method3=method_3) # sigma=1000
             ews_calculations_generated_datasets(variable, path=f'./{realization}/',
                                                 nr_realizations=nr_generated_datasets,
                                                 timer_on=True, method1=method_1, method2=method_2, method3=method_3)

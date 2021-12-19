@@ -17,9 +17,10 @@ rel_start_grazing = 1/8
 # rel_start_grazing = 0
 # Define the total increase in grazing rate
 tot_increase_grazing = 0.0003
+# tot_increase_grazing = 0.0006
 # Select whether grazing rate returns to the initial value after the halfway point
 # - note that this halfway point occurs on (1 - rel_start) * total time / 2
-return_ini_grazing = True
+return_ini_grazing = False
 
 ## Number of Monte Carlo (MC) runs
 # Define the number of MC samples or particles, results of realizations are written to the folder(s) 1, 2, ...
@@ -84,8 +85,8 @@ timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, 
 # - TODO check the 'full' list in EWS_StateVariables.py
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'
-# state_variables_for_ews_weekly = ['bioM', 'bioA']
-state_variables_for_ews_weekly = 'full'
+state_variables_for_ews_weekly = ['bioM', 'bioA']
+# state_variables_for_ews_weekly = 'full'
 
 ## Reporting for the model components (both hourly and weekly)
 if setOfVariablesToReport == 'full':
@@ -96,6 +97,7 @@ if setOfVariablesToReport == 'full':
     runoff_report_rasters = ["Rq", "Rqs"]
     subsurface_report_rasters = ["Gs", "Go"]
     #   reports of totals (Gxt, Got) only make sense if calculateUpstreamTotals is True
+    shading_report_rasters = ["Mfs", "Msc", "Msh"]
     surfacestore_report_rasters = ["Ss", "Sc"]
     rainfalleventsfromgammadistribution_report_rasters = ["Pf"]
     exchange_report_rasters = ["Xrc"]
@@ -116,6 +118,7 @@ elif setOfVariablesToReport == 'filtering':
     runoff_report_rasters = []
     subsurface_report_rasters = []
     #   reports of totals (Gxt, Got) only make sense if calculateUpstreamTotals is True
+    shading_report_rasters = []
     surfacestore_report_rasters = []
     rainfalleventsfromgammadistribution_report_rasters = []
     exchange_report_rasters = ["Xrc", "Xra"]
@@ -136,6 +139,7 @@ elif setOfVariablesToReport == 'None':
     runoff_report_rasters = []
     subsurface_report_rasters = []
     #   reports of totals (Gxt, Got) only make sense if calculateUpstreamTotals is True
+    shading_report_rasters = []
     surfacestore_report_rasters = []
     rainfalleventsfromgammadistribution_report_rasters = []
     exchange_report_rasters = []
