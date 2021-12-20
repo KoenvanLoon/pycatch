@@ -15,7 +15,7 @@ variables_hourly = []
 
 class StateVariable:
     def __init__(self, name, spatial=False, temporal=False, snapshot_interval=cfg.interval_map_snapshots,
-                 window_size=1000, window_overlap=0, datatype='map', full_name='', unit='unit'):
+                 window_size=200, window_overlap=0, datatype='map', full_name='', unit='unit'):
         self.name = name
         self.spatial = spatial
         self.temporal = temporal

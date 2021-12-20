@@ -7,8 +7,8 @@ number_of_timesteps_hourly = 2000  # in hours
 # number_of_timesteps_hourly = 8760 # ~1y in hours
 
 # Define number of weekly time steps to run
-number_of_timesteps_weekly = 104000
-#number_of_timesteps_weekly = 5200  # in weeks
+# number_of_timesteps_weekly = 104000
+number_of_timesteps_weekly = 5200  # in weeks
 # number_of_timesteps_weekly = 104000 # ~2000y in weeks
 
 ## Rate of forcing (grazing)

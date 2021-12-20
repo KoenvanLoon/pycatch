@@ -25,12 +25,16 @@ import EWS_main_configuration as cfg
 #           "Correlation:", kt_coef, sm_coef, '\n',
 #           "p-value:", kt_p, sm_p)
 
-variable_window_size = 1000
+variable_window_size = 200
 start_index = int(cfg.rel_start_grazing * cfg.number_of_timesteps_weekly / variable_window_size)
-end_index = int(81000 / variable_window_size)
+end_index = int(4000 / variable_window_size)
 
+# Detrended data
 biomass_mean_dtr = np.loadtxt('./1/dtr0000/bioA.t.mn.numpy.txt')
 biomass_var_dtr = np.loadtxt('./1/dtr0000/bioA.t.var.numpy.txt')
+
+# Trended (?) data
+biomass_mean_tr = np.loadtxt('./1/dtr0000/bioA.t.mn.numpy.txt')
 
 # M1G: Data shuffled
 biomass_mean_m1g = np.loadtxt('./1/m1g0000/bioA.t.mn.numpy.txt')
@@ -45,11 +49,13 @@ biomass_mean_m3g = np.loadtxt('./1/m3g0000/bioA.t.mn.numpy.txt')
 biomass_var_m3g = np.loadtxt('./1/m3g0000/bioA.t.var.numpy.txt')
 
 dtr_tau, dtr_p = scipy.stats.kendalltau(biomass_mean_dtr[start_index:end_index], biomass_var_dtr[start_index:end_index])
+# tr_tau, tr_p = scipy.stats.kendalltau(biomass_mean_tr[start_index:end_index], biomass_var_tr[start_index:end_index])
 m1g_tau, m1g_p = scipy.stats.kendalltau(biomass_mean_m1g[start_index:end_index], biomass_var_m1g[start_index:end_index])
 m2g_tau, m2g_p = scipy.stats.kendalltau(biomass_mean_m2g[start_index:end_index], biomass_var_m2g[start_index:end_index])
 m3g_tau, m3g_p = scipy.stats.kendalltau(biomass_mean_m3g[start_index:end_index], biomass_var_m3g[start_index:end_index])
 
-print(dtr_tau, dtr_p)
-print(m1g_tau, m1g_p)
-print(m2g_tau, m2g_p)
-print(m3g_tau, m3g_p)
+print('detrended', dtr_tau, dtr_p)
+# print('trend', tr_tau, tr_p)
+print('m1', m1g_tau, m1g_p)
+print('m2', m2g_tau, m2g_p)
+print('m3', m3g_tau, m3g_p)
