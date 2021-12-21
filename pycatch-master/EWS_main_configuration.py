@@ -7,8 +7,8 @@ number_of_timesteps_hourly = 2000  # in hours
 # number_of_timesteps_hourly = 8760 # ~1y in hours
 
 # Define number of weekly time steps to run
-# number_of_timesteps_weekly = 104000
-number_of_timesteps_weekly = 5200  # in weeks
+number_of_timesteps_weekly = 100000
+# number_of_timesteps_weekly = 5200  # in weeks
 # number_of_timesteps_weekly = 104000 # ~2000y in weeks
 
 ## Rate of forcing (grazing)
@@ -85,8 +85,8 @@ timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, 
 # - TODO check the 'full' list in EWS_StateVariables.py
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'
-state_variables_for_ews_weekly = ['bioM', 'bioA']
-# state_variables_for_ews_weekly = 'full'
+# state_variables_for_ews_weekly = ['bioM', 'bioA']
+state_variables_for_ews_weekly = 'full'
 
 ## Reporting for the model components (both hourly and weekly)
 if setOfVariablesToReport == 'full':

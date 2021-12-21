@@ -95,7 +95,7 @@ def spatial_corr(numpy_matrix): # Moran's I
     numpy_matrix_mmean = np.copy(numpy_matrix)
     numpy_matrix_mmean -= mean[:, None, None]
 
-    is_nan = np.isnan(numpy_matrix_mmean) # missing values in map are assumed to be np.NaN
+    is_nan = np.isnan(numpy_matrix_mmean)  # missing values in map are assumed to be np.NaN
     is_not_nan = ~ is_nan
     is_not_nan_as_nr = is_not_nan.astype(float)
 
@@ -214,7 +214,7 @@ def temporal_AR1(stack_of_windows):
 
     AR1_params = []
     for numpy_array in stack_of_windows_mmean:
-        mod = AutoReg(numpy_array, 1, trend='n').fit()
+        mod = AutoReg(numpy_array, 10, trend='n').fit()
         AR1_params = np.append(AR1_params, mod.params)
     return AR1_params
 

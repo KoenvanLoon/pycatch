@@ -16,7 +16,7 @@ import EWS_StateVariables as ews_sv
 variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
 
 ## Generate dummy datasets for Kendall tau? ##
-generate_dummy_datasets = True
+generate_dummy_datasets = False
 save_detrended_data = True  # Temporal only, and only relevant when detrending != None
 method_1 = True
 method_2 = True
