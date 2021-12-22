@@ -15,7 +15,7 @@ import EWS_StateVariables as ews_sv
 ## State variables for EWS ##
 variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
 
-## Generate dummy datasets for Kendall tau? ##
+## Generate dummy datasets for Kendall tau? ## TODO - move this to cfg
 generate_dummy_datasets = False
 save_detrended_data = True  # Temporal only, and only relevant when detrending != None
 method_1 = True
@@ -58,7 +58,6 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
 
         ## Detrending: 'None', 'Gaussian' ##
         if detrending_temp == 'None':
-            state_variable_timeseries = state_variable_timeseries
             temp_NULL.detrend_(state_variable_timeseries, realizations=nr_realizations, path=path,
                                file_name=variable.name)
         elif detrending_temp == 'Gaussian':  # TODO - Multiple sigmas?
@@ -154,53 +153,97 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                 print(f"Datatype for {variable.name} currently not supported.")
 
             ## Splitting timeseries into (overlapping) windows ##
-            stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
-                                                        variable.window_overlap)
+            # stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
+            #                                             variable.window_overlap)
+
+            if state_variable_timeseries.ndim == 1:
+                stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
+                                                            variable.window_overlap)
+            else:
+                stack_of_windows = [0] * state_variable_timeseries.shape[0]
+                for k, timeseries in enumerate(state_variable_timeseries):
+                    stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size,
+                                                                   variable.window_overlap)
+                stack_x, stack_y, stack_z = np.asarray(stack_of_windows).shape
+                stack_of_windows = np.asarray(stack_of_windows).reshape(-1, stack_z)
 
             ## EWS calculations ###
             # Temporal mean #
             fpath = os.path.join(path + variable.name + '.t.mn')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_mean(stack_of_windows))
+            temporal_statistic = ews.temporal_mean(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal std #
             fpath = os.path.join(path + variable.name + '.t.std')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_std(stack_of_windows))
+            temporal_statistic = ews.temporal_std(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal var #
             fpath = os.path.join(path + variable.name + '.t.var')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_var(stack_of_windows))
+            temporal_statistic = ews.temporal_var(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal cv #
             fpath = os.path.join(path + variable.name + '.t.cv')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_cv(stack_of_windows))
+            temporal_statistic = ews.temporal_cv(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal skw #
             fpath = os.path.join(path + variable.name + '.t.skw')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_skw(stack_of_windows))
+            temporal_statistic = ews.temporal_skw(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal krt #
             fpath = os.path.join(path + variable.name + '.t.krt')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_krt(stack_of_windows))
+            temporal_statistic = ews.temporal_krt(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # # Temporal dfa # TODO - returns 3 values (tuple?)
             # fpath = os.path.join(path + variable.name + '.t.dfa')
-            # np.savetxt(fpath + '.numpy.txt', ews.temporal_dfa(stack_of_windows))
+            # temporal_statistic = ews.temporal_dfa(stack_of_windows)
+            # if state_variable_timeseries.ndim > 1:
+            #     temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            # np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal autocorr. #
             fpath = os.path.join(path + variable.name + '.t.acr')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_autocorrelation(stack_of_windows))
+            temporal_statistic = ews.temporal_autocorrelation(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal AR1 #
             fpath = os.path.join(path + variable.name + '.t.AR1')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_AR1(stack_of_windows))
+            temporal_statistic = ews.temporal_AR1(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal return rate #
             fpath = os.path.join(path + variable.name + '.t.rr')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_returnrate(stack_of_windows))
+            temporal_statistic = ews.temporal_returnrate(stack_of_windows)
+            if state_variable_timeseries.ndim > 1:
+                temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+            np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             # Temporal cond. het. #
             fpath = os.path.join(path + variable.name + '.t.coh')
-            np.savetxt(fpath + '.numpy.txt', ews.temporal_cond_het(stack_of_windows))
+            temporal_statistic = ews.temporal_cond_het(stack_of_windows)
+            if state_variable_timeseries.ndim == 1:
+                # temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+                np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             ## End timer if set to True##
             if timer_on:

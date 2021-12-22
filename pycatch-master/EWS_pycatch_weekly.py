@@ -58,7 +58,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # Locations where values are reported as a numpy array to disk.
         # In this model iteration, all locations are reported. Hence, zoning and sample locations are also omitted.
         self.all_locs = nominal("inputs_weekly/clone.map")
-        self.all_locations = self.all_locs
+        self.locations2report = pcr2numpy(readmap('./inputs_weekly/mlocs.map'), 0).astype(bool)
 
         self.createInstancesPremcloop()
 
@@ -84,7 +84,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         # functions and settings for saving timeseries
         self.historyOfSoilMoistureFraction = deque([])
-        self.historyOfBiomass = deque([])
+        self.historyOfBiomassMean = deque([])
+        self.historyOfBiomassLoc = deque([])
         self.historyOfRegolithThickness = deque([])
         self.historyOfDem = deque([])
         self.historyOfTotQ = deque([])
@@ -289,8 +290,9 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         # reports
         self.reportComponentsDynamic()
-        save_maps = (self.currentTimeStep() % cfg.interval_map_snapshots) == 0 and cfg.map_data is True
-        save_mean_timeseries = self.currentTimeStep() == cfg.number_of_timesteps_weekly and cfg.mean_timeseries_data is True
+        save_maps = (self.currentTimeStep() % cfg.interval_map_snapshots) == 0 and cfg.map_data
+        save_mean_timeseries = self.currentTimeStep() == cfg.number_of_timesteps_weekly and cfg.mean_timeseries_data
+        save_loc_timeseries = self.currentTimeStep() == cfg.number_of_timesteps_weekly and cfg.loc_timeseries_data
 
         ###########
         # Variables
@@ -342,15 +344,22 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # BIOMASS
         variable = self.d_biomassModifiedMay.biomass
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, 0)[self.locations2report]
 
-        self.historyOfBiomass = generalfunctions_test01.keepHistoryOfMaps(self.historyOfBiomass, variable_mean,
+        self.historyOfBiomassMean = generalfunctions_test01.keepHistoryOfMaps(self.historyOfBiomassMean, variable_mean,
+                                                                          self.durationHistory)
+        self.historyOfBiomassLoc = generalfunctions_test01.keepHistoryOfMaps(self.historyOfBiomassLoc, variable_loc,
                                                                           self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'bioM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.historyOfBiomass)
+            variable_mean_array = np.array(self.historyOfBiomassMean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'bioA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.historyOfBiomassLoc)
+            generalfunctions_test01.report_as_array(variable_loc_array.T, 'bioL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # REGOLITH THICKNESS

@@ -44,6 +44,7 @@ moiA = StateVariable('moiA', temporal=True, datatype='numpy', full_name='Soil mo
 # Biomass
 bioM = StateVariable('bioM', spatial=True, full_name='Biomass spatial')
 bioA = StateVariable('bioA', temporal=True, datatype='numpy', full_name='Biomass temporal')
+bioL = StateVariable('bioL', temporal=True, datatype='numpy', full_name='Biomass temporal at location')
 
 # Regolith thickness
 regM = StateVariable('regM', spatial=True, full_name='Regolith thickness spatial')
@@ -89,7 +90,7 @@ Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge',
 
 # Check which variables are present in the configuration and append these to the list of variables #
 
-full_set_of_variables_weekly = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, regM, regA, demM, demA, qA, gA, gpM,
+full_set_of_variables_weekly = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, bioL, regM, regA, demM, demA, qA, gA, gpM,
                                 gpA, grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA]
 
 full_set_of_variables_hourly = [Rq]

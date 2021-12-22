@@ -200,9 +200,9 @@ Rising variability & flickering:
 """
 #########################################
 
-def time_series2time_windows(time_series, window_size=100):
-    # return time_series[::window_size]
-    return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size)])
+# def time_series2time_windows(time_series, window_size=100):
+#     # return time_series[::window_size]
+#     return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size)])
 
 #########################################
 
@@ -214,7 +214,7 @@ def temporal_AR1(stack_of_windows):
 
     AR1_params = []
     for numpy_array in stack_of_windows_mmean:
-        mod = AutoReg(numpy_array, 10, trend='n').fit()
+        mod = AutoReg(numpy_array, 1, trend='n').fit()
         AR1_params = np.append(AR1_params, mod.params)
     return AR1_params
 

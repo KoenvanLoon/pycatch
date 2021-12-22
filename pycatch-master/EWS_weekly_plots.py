@@ -53,6 +53,8 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
     elif signal1 != 'None':
         fpath = os.path.join(path + variable1.name + '.' + signal1)
         signal1_array = np.loadtxt(fpath + '.numpy.txt')
+        if signal1_array.ndim > 1:
+            signal1_array = signal1_array.T
         if variable1.spatial:
             plt.plot(x_axis1, signal1_array, label=f'{variable1.full_name} {ews_spatial_signals[signal1]}')
         if variable1.temporal:
@@ -74,6 +76,8 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
         elif signal2 != 'None':
             fpath = os.path.join(path + variable2.name + '.' + signal2)
             signal2_array = np.loadtxt(fpath + '.numpy.txt')
+            if signal2_array.ndim > 1:
+                signal2_array = signal2_array.T
             if variable2.spatial:
                 plt.plot(x_axis2, signal2_array, label=f'{variable2.full_name} {ews_spatial_signals[signal2]}')
             if variable2.temporal:
