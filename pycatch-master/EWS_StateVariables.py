@@ -32,14 +32,17 @@ class StateVariable:
 # Maximum interception store
 micM = StateVariable('micM', spatial=True, full_name='Maximum interception storage spatial')
 micA = StateVariable('micA', temporal=True, datatype='numpy', full_name='Maximum interception storage temporal')
+micL = StateVariable('micL', temporal=True, datatype='numpy', full_name='Maximum interception storage at location')
 
 # LAI
 laiM = StateVariable('laiM', spatial=True, full_name='LAI spatial')
 laiA = StateVariable('laiA', temporal=True, datatype='numpy', full_name='LAI temporal')
+laiL = StateVariable('laiL', temporal=True, datatype='numpy', full_name='LAI temporal at location')
 
 # Soil moisture
 moiM = StateVariable('moiM', spatial=True, full_name='Soil moisture spatial')
 moiA = StateVariable('moiA', temporal=True, datatype='numpy', full_name='Soil moisture temporal')
+moiL = StateVariable('moiL', temporal=True, datatype='numpy', full_name='Soil moisture temporal at location')
 
 # Biomass
 bioM = StateVariable('bioM', spatial=True, full_name='Biomass spatial')
@@ -49,16 +52,17 @@ bioL = StateVariable('bioL', temporal=True, datatype='numpy', full_name='Biomass
 # Regolith thickness
 regM = StateVariable('regM', spatial=True, full_name='Regolith thickness spatial')
 regA = StateVariable('regA', temporal=True, datatype='numpy', full_name='Regolith thickness temporal')
+regL = StateVariable('regL', temporal=True, datatype='numpy', full_name='Regolith thickness temporal at location')
 
 # DEM
 demM = StateVariable('demM', spatial=True, full_name='DEM spatial')
 demA = StateVariable('demA', temporal=True, datatype='numpy', full_name='DEM temporal')
+demL = StateVariable('demL', temporal=True, datatype='numpy', full_name='DEM temporal at location')
 
 # Discharge
 qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal')
 
 # Grazing rate
-# gM = StateVariable('gM', spatial=True, full_name='Grazing rate spatial')
 gA = StateVariable('gA', temporal=True, datatype='numpy', full_name='Grazing rate temporal')
 
 # Growth part
@@ -76,22 +80,27 @@ grnA = StateVariable('grnA', temporal=True, datatype='numpy', full_name='Net gro
 # Net deposition
 depM = StateVariable('depM', spatial=True, full_name='Net deposition spatial')
 depA = StateVariable('depA', temporal=True, datatype='numpy', full_name='Net deposition temporal')
+depL = StateVariable('depL', temporal=True, datatype='numpy', full_name='Net deposition temporal at location')
 
 # Net weathering
 weaM = StateVariable('weaM', spatial=True, full_name='Net weathering spatial')
 weaA = StateVariable('weaA', temporal=True, datatype='numpy', full_name='Net weathering temporal')
+weaL = StateVariable('weaL', temporal=True, datatype='numpy', full_name='Net weathering temporal at location')
 
 # Net creep deposition
 creM = StateVariable('creM', spatial=True, full_name='Net creep deposition spatial')
 creA = StateVariable('creA', temporal=True, datatype='numpy', full_name='Net creep deposition temporal')
+creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net creep deposition temporal at location')
+
 
 # Rq
 Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', window_size=876)
 
 # Check which variables are present in the configuration and append these to the list of variables #
 
-full_set_of_variables_weekly = [micM, micA, laiM, laiA, moiM, moiA, bioM, bioA, bioL, regM, regA, demM, demA, qA, gA, gpM,
-                                gpA, grM, grA, grnM, grnA, depM, depA, weaM, weaA, creM, creA]
+full_set_of_variables_weekly = [micM, micA, micL, laiM, laiA, laiL, moiM, moiA, moiL, bioM, bioA, bioL, regM, regA,
+                                regL, demM, demA, demL, qA, gA, gpM, gpA, grM, grA, grnM, grnA, depM, depA, depL, weaM,
+                                weaA, weaL, creM, creA, creL]
 
 full_set_of_variables_hourly = [Rq]
 

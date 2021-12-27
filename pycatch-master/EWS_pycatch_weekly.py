@@ -83,21 +83,29 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.actualAbstractionFluxFromSubsurface = 0.0
 
         # functions and settings for saving timeseries
-        self.historyOfSoilMoistureFraction = deque([])
+        self.historyOfSoilMoistureFractionMean = deque([])
+        self.historyOfSoilMoistureFractionLoc = deque([])
         self.historyOfBiomassMean = deque([])
         self.historyOfBiomassLoc = deque([])
-        self.historyOfRegolithThickness = deque([])
-        self.historyOfDem = deque([])
+        self.historyOfRegolithThicknessMean = deque([])
+        self.historyOfRegolithThicknessLoc = deque([])
+        self.historyOfDemMean = deque([])
+        self.historyOfDemLoc = deque([])
         self.historyOfTotQ = deque([])
         self.history_of_grazing_rate = deque([])
         self.history_of_growth_part = deque([])
         self.history_of_grazing_part = deque([])
         self.history_of_net_growth = deque([])
-        self.history_of_net_deposition = deque([])
-        self.history_of_net_weathering = deque([])
-        self.history_of_net_creep_deposition = deque([])
-        self.history_of_max_int = deque([])
-        self.history_of_LAI = deque([])
+        self.history_of_net_deposition_mean = deque([])
+        self.history_of_net_deposition_loc = deque([])
+        self.history_of_net_weathering_mean = deque([])
+        self.history_of_net_weathering_loc = deque([])
+        self.history_of_net_creep_deposition_mean = deque([])
+        self.history_of_net_creep_deposition_loc = deque([])
+        self.history_of_max_int_mean = deque([])
+        self.history_of_max_int_loc = deque([])
+        self.history_of_LAI_mean = deque([])
+        self.history_of_LAI_loc = deque([])
 
         # budgets
         self.d_exchangevariables.cumulativePrecipitation = scalar(0)
@@ -315,36 +323,50 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # LAI
         variable = self.LAI
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.history_of_LAI = generalfunctions_test01.keepHistoryOfMaps(self.history_of_LAI, variable_mean,
-                                                                        self.durationHistory)
+        self.history_of_LAI_mean = generalfunctions_test01.keepHistoryOfMaps(self.history_of_LAI_mean, variable_mean,
+                                                                             self.durationHistory)
+        self.history_of_LAI_loc = generalfunctions_test01.keepHistoryOfMaps(self.history_of_LAI_loc, variable_loc,
+                                                                            self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'laiM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.history_of_LAI)
+            variable_mean_array = np.array(self.history_of_LAI_mean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'laiA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.history_of_LAI_loc)
+            generalfunctions_test01.report_as_array(variable_loc_array, 'laiL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # SOIL MOISTURE
         self.d_subsurfaceWaterOneLayer.calculateSoilMoistureFraction()
         variable = self.d_subsurfaceWaterOneLayer.soilMoistureFraction
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.historyOfSoilMoistureFraction = generalfunctions_test01.keepHistoryOfMaps(
-            self.historyOfSoilMoistureFraction, variable_mean, self.durationHistory)
+        self.historyOfSoilMoistureFractionMean = generalfunctions_test01.keepHistoryOfMaps(
+            self.historyOfSoilMoistureFractionMean, variable_mean, self.durationHistory)
+        self.historyOfSoilMoistureFractionLoc = generalfunctions_test01.keepHistoryOfMaps(
+            self.historyOfSoilMoistureFractionLoc, variable_loc, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'moiM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.historyOfSoilMoistureFraction)
+            variable_mean_array = np.array(self.historyOfSoilMoistureFractionMean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'moiA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.historyOfSoilMoistureFractionLoc)
+            generalfunctions_test01.report_as_array(variable_loc_array.T, 'moiL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # BIOMASS
         variable = self.d_biomassModifiedMay.biomass
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
-        variable_loc = pcr2numpy(variable, 0)[self.locations2report]
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
         self.historyOfBiomassMean = generalfunctions_test01.keepHistoryOfMaps(self.historyOfBiomassMean, variable_mean,
                                                                           self.durationHistory)
