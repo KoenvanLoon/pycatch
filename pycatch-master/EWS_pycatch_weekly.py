@@ -309,15 +309,22 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # MAXIMUM INTERCEPTION STORE
         variable = maxIntStore
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.history_of_max_int = generalfunctions_test01.keepHistoryOfMaps(self.history_of_max_int, variable_mean,
-                                                                            self.durationHistory)
+        self.history_of_max_int_mean = generalfunctions_test01.keepHistoryOfMaps(self.history_of_max_int_mean,
+                                                                                 variable_mean, self.durationHistory)
+        self.history_of_max_int_loc = generalfunctions_test01.keepHistoryOfMaps(self.history_of_max_int_loc,
+                                                                                variable_loc, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'micM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.history_of_max_int)
+            variable_mean_array = np.array(self.history_of_max_int_mean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'micA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.history_of_max_int_loc)
+            generalfunctions_test01.report_as_array(variable_loc_array, 'micL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # LAI
@@ -387,29 +394,43 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # REGOLITH THICKNESS
         variable = self.d_regolithdemandbedrock.regolithThickness
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.historyOfRegolithThickness = generalfunctions_test01.keepHistoryOfMaps(self.historyOfRegolithThickness,
-                                                                                    variable_mean, self.durationHistory)
+        self.historyOfRegolithThicknessMean = generalfunctions_test01.keepHistoryOfMaps(
+            self.historyOfRegolithThicknessMean, variable_mean, self.durationHistory)
+        self.historyOfRegolithThicknessLoc = generalfunctions_test01.keepHistoryOfMaps(
+            self.historyOfRegolithThicknessLoc, variable_loc, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'regM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.historyOfRegolithThickness)
+            variable_mean_array = np.array(self.historyOfRegolithThicknessMean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'regA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.historyOfRegolithThicknessLoc)
+            generalfunctions_test01.report_as_array(variable_loc_array, 'regL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # DEM
         variable = self.d_regolithdemandbedrock.dem
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.historyOfDem = generalfunctions_test01.keepHistoryOfMaps(self.historyOfDem, variable_mean,
-                                                                      self.durationHistory)
+        self.historyOfDemMean = generalfunctions_test01.keepHistoryOfMaps(self.historyOfDemMean, variable_mean,
+                                                                          self.durationHistory)
+        self.historyOfDemLoc = generalfunctions_test01.keepHistoryOfMaps(self.historyOfDemLoc, variable_loc,
+                                                                         self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'demM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.historyOfDem)
+            variable_mean_array = np.array(self.historyOfDemMean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'demA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.historyOfDemLoc)
+            generalfunctions_test01.report_as_array(variable_loc_array, 'demL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # Discharge
@@ -497,43 +518,64 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         # net deposition
         variable = actualDepositionFlux
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.history_of_net_deposition = generalfunctions_test01.keepHistoryOfMaps(self.history_of_net_deposition,
-                                                                                   variable_mean, self.durationHistory)
+        self.history_of_net_deposition_mean = generalfunctions_test01.keepHistoryOfMaps(
+            self.history_of_net_deposition_mean, variable_mean, self.durationHistory)
+        self.history_of_net_deposition_loc = generalfunctions_test01.keepHistoryOfMaps(
+            self.history_of_net_deposition_loc, variable_loc, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'depM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.history_of_net_deposition)
+            variable_mean_array = np.array(self.history_of_net_deposition_mean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'depA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.history_of_net_deposition_loc)
+            generalfunctions_test01.report_as_array(variable_loc_array, 'depL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # net weathering
         variable = self.d_bedrockweathering.weatheringMetrePerYear
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.history_of_net_weathering = generalfunctions_test01.keepHistoryOfMaps(self.history_of_net_weathering,
-                                                                                   variable_mean, self.durationHistory)
+        self.history_of_net_weathering_mean = generalfunctions_test01.keepHistoryOfMaps(
+            self.history_of_net_weathering_mean, variable_mean, self.durationHistory)
+        self.history_of_net_weathering_loc = generalfunctions_test01.keepHistoryOfMaps(
+            self.history_of_net_weathering_loc, variable_loc, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'weaM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.history_of_net_weathering)
+            variable_mean_array = np.array(self.history_of_net_weathering_mean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'weaA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.history_of_net_weathering_loc)
+            generalfunctions_test01.report_as_array(variable_loc_array, 'weaL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # net creep deposition
         variable = self.creepDeposition
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
+        variable_loc = pcr2numpy(variable, np.NaN)[self.locations2report]
 
-        self.history_of_net_creep_deposition = generalfunctions_test01.keepHistoryOfMaps(
-            self.history_of_net_creep_deposition, variable_mean, self.durationHistory)
+        self.history_of_net_creep_deposition_mean = generalfunctions_test01.keepHistoryOfMaps(
+            self.history_of_net_creep_deposition_mean, variable_mean, self.durationHistory)
+        self.history_of_net_creep_deposition_loc = generalfunctions_test01.keepHistoryOfMaps(
+            self.history_of_net_creep_deposition_loc, variable_loc, self.durationHistory)
 
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'creM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
             variable_mean_array = np.array(self.history_of_net_creep_deposition)
             generalfunctions_test01.report_as_array(variable_mean_array, 'creA', self.currentSampleNumber(),
+                                                    self.currentTimeStep())
+        if save_loc_timeseries:
+            variable_loc_array = np.array(self.history_of_net_weathering_loc)
+            generalfunctions_test01.report_as_array(variable_loc_array, 'creL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
     def postmcloop(self):
