@@ -109,13 +109,14 @@ def spatial_corr(numpy_matrix): # Moran's I
     # sum_neighbours = np.array([convolve2d(array, rook_neighborhood, mode='same') for array in numpy_matrix_copy])
     # sum_neighbours = convolve3D???
 
+    n_neighbours = convolve(is_not_nan_as_nr, rook_neighborhood[None, :, :], mode='same')
     n_neighbours_times_avg = convolve(is_not_nan_as_nr * mean[:, None, None], rook_neighborhood[None, :, :], mode='same')
     # n_neighbours_times_avg = np.array([convolve2d(is_not_nan_as_nr[i], rook_neighborhood * mean[i], mode='same') for i in range(len(is_not_nan_as_nr))])
     n_neighbours_times_avg[is_nan] = 0
 
     P1 = np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg), axis=(1, 2))
     #P2 = (4 * var * is_not_nan_as_nr.sum(axis=(1, 2))) # still asumes 4 neighbours!
-    P2 = np.nansum(sum_neighbours * numpy_matrix_var, axis=(1, 2))
+    P2 = np.nansum(n_neighbours * numpy_matrix_var, axis=(1, 2))
     return P1 / P2
 
 

@@ -570,7 +570,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         if save_maps:
             generalfunctions_test01.report_as_map(variable, 'creM', self.currentSampleNumber(), self.currentTimeStep())
         if save_mean_timeseries:
-            variable_mean_array = np.array(self.history_of_net_creep_deposition)
+            variable_mean_array = np.array(self.history_of_net_creep_deposition_mean)
             generalfunctions_test01.report_as_array(variable_mean_array, 'creA', self.currentSampleNumber(),
                                                     self.currentTimeStep())
         if save_loc_timeseries:
