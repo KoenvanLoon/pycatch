@@ -88,3 +88,119 @@ import matplotlib.pyplot as plt
 #
 # plt.plot(x, y.T)
 # plt.show()
+#
+# import numpy as np
+#
+# fpath = 'C:/Users/koenv/Downloads/IndexFund/'
+# index_fund_data = np.genfromtxt(fpath + 'VFINX.csv', delimiter=',')
+# index_fund_closing_value = index_fund_data.T[4][1:10501]
+#
+# np.savetxt(fpath + 'INDF0010.500.numpy.txt', index_fund_closing_value)
+
+
+# import numpy as np
+#
+# def dfa_propagator(alpha, c_guess=0.1):
+#     # 0.91 * (c ** 3) - 0.37 * (c ** 2) + 0.49 * c + c - alpha = 0
+#     # a*x**3 + b*x**2 + c*x + d = 0.
+#
+#     c1 = c_guess
+#     count = 0
+#     while count < 10:
+#
+#         if 0 < c1 <= 0.936:
+#             a = 0.91
+#             b = - 0.37
+#             c = 0.49
+#             d = 0.52 - alpha
+#
+#         elif 0.936 < c1 <= 0.967:
+#             a = 0
+#             b = -12.38
+#             c = 25.14
+#             d = 11.28 - alpha
+#
+#         # elif 0.967 < c1 < 1:
+#         else:
+#             a = 0
+#             b = 0
+#             c = 0.72
+#             d = 0.75 - alpha
+#
+#         q = (3*a*c - b**2) / (9 * a**2)
+#         r = (9*a*b*c - 27*a**2*d - 2*b**3) / (54*a**3)
+#
+#         print("q = ", q)
+#         print("r = ", r)
+#
+#         delta = q**3 + r**2
+#
+#         print("delta = ", delta)
+#
+#         # here delta is less than zero so we use the second set of equations from the article:
+#
+#         rho = (-q**3)**0.5
+#
+#         # For c1 the imaginary part is unimportant since it cancels out
+#         theta = np.arccos(r/rho)
+#         s_real = rho**(1./3.) * np.cos(theta/3)
+#         t_real = rho**(1./3.) * np.cos(-theta/3)
+#
+#         print("s [real] = ", s_real)
+#         print("t [real] = ", t_real)
+#
+#         c1 = s_real + t_real - b / (3. * a)
+#
+#         print("c = ", c1)
+#
+#         print("should be zero: ", a*c1**3+b*c1**2+c*c1+d)
+#
+#         count += 1
+#
+#     return c1
+#
+#
+# dfa_propagator(alpha=1)
+
+import numpy as np
+
+def dfa_propagator(alpha, c_guess=0.5):
+    # 0.91 * (c ** 3) - 0.37 * (c ** 2) + 0.49 * c + c - alpha = 0
+    # a*x**3 + b*x**2 + c*x + d = 0.
+
+    x1 = c_guess
+    count = 0
+    while count < 5:
+
+        if 0 < x1 <= 0.936:
+            a = 0.91
+            b = - 0.37
+            c = 0.49
+            d = 0.52 - alpha
+
+        elif 0.936 < x1 <= 0.967:
+            a = 0
+            b = -12.38
+            c = 25.14
+            d = 11.28 - alpha
+
+        # elif 0.967 < x1 < 1:
+        else:
+            a = 0
+            b = 0
+            c = 0.72
+            d = 0.75 - alpha
+
+        # Constructs the polynomial a*x**3 + b*x**2 + c*x + d
+        poly = np.poly1d([a, b, c, d])
+        roots = np.roots(poly)
+        print(roots)
+        x1 = roots[-1].real
+
+        count += 1
+
+    return x1
+
+
+dfap = dfa_propagator(0.5)
+print(dfap)

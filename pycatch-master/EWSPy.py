@@ -4,13 +4,20 @@ import scipy.stats
 from scipy import fft
 from scipy.signal import convolve
 
+from statsmodels.api import OLS
 from statsmodels.tsa.ar_model import AutoReg
-from statsmodels.stats.diagnostic import het_arch
+
+import warnings
 
 import sys
 sys.path.append("./pcrasterModules/")
 
 # File name as string function #
+"""
+This function is tailored for names coming from EWS_pycatch_weekly.py
+If your inputs are from a different source, you can name the files in the same manner or swap this function out.
+"""
+
 
 def file_name_str(name, timestep):
     file_name_str = ["0"]*11
@@ -136,7 +143,7 @@ def spatial_power_spec(numpy_matrix): # Only works for square matrices! Power sp
     knorm = knorm.flatten()
     fourier_amplitudes = fourier_amplitudes.flatten()
 
-    kbins = np.arange(0.5, n//2+1, 1.) # start & end points of all bins
+    kbins = np.arange(0.5, n//2 + 1, 1.) # start & end points of all bins
     kvals = 0.5 * (kbins[1:] + kbins[:-1]) # corresponding k values
 
     Abins, _, _ = scipy.stats.binned_statistic(knorm, fourier_amplitudes, statistic = "mean", bins = kbins) # average Fourier amplitude (**2) in each bin
@@ -225,17 +232,48 @@ def temporal_returnrate(stack_of_windows):
     return np.reciprocal(temporal_AR1(stack_of_windows))
 
 
-def temporal_cond_het(stack_of_windows, n_lags=4, ddof=1):
-    mean = temporal_mean(stack_of_windows)
+# def temporal_cond_het(stack_of_windows, n_lags=1, ddof=1, test='Langrange'):
+#     mean = temporal_mean(stack_of_windows)
+#
+#     stack_of_windows_mmean = np.copy(stack_of_windows)
+#     stack_of_windows_mmean -= mean[:, None]
+#
+#     Langrange_multiplier_test_statistic = [0.0] * len(stack_of_windows)
+#     p_val_Lm = [0.0] * len(stack_of_windows)
+#     fstatistic_F_test = [0.0] * len(stack_of_windows)
+#     p_val_F = [0.0] * len(stack_of_windows)
+#
+#     for k, numpy_array in enumerate(stack_of_windows_mmean):
+#         residuals = AutoReg(numpy_array, 1, trend='n').fit().resid
+#         Langrange_multiplier_test_statistic[k], p_val_Lm[k], fstatistic_F_test[k], p_val_F = het_arch(residuals, nlags=n_lags, ddof=ddof)
+#
+#     if test == 'Langrange':
+#         return Langrange_multiplier_test_statistic, p_val_Lm
+#     elif test == 'F':
+#         return fstatistic_F_test, p_val_F
 
+def temporal_cond_het(stack_of_windows, method='R-squared', alpha=0.025, log_transform=False):
+    if log_transform:
+        stack_of_windows = np.log10(stack_of_windows)
+
+    mean = temporal_mean(stack_of_windows)
     stack_of_windows_mmean = np.copy(stack_of_windows)
     stack_of_windows_mmean -= mean[:, None]
 
-    cond_het = [0.0] * len(stack_of_windows)
+    test_statistic = []
+    p_val = []
     for k, numpy_array in enumerate(stack_of_windows_mmean):
-        residuals = AutoReg(numpy_array, 1, trend='n').fit().resid
-        cond_het[k] = np.array(het_arch(residuals, nlags=n_lags, ddof=ddof))
-    return cond_het
+        ar_model = AutoReg(numpy_array, 1, trend='n').fit()
+        ar_resid_sq = ar_model.resid**2
+        lin_model = OLS(ar_resid_sq[1:], ar_resid_sq[:len(ar_resid_sq)-1]).fit()  # t+1 is dependent on t
+        # If significant (p-value lower than given value), heteroscedasticity is present.
+        if method == 'F-statistic':
+            test_statistic = np.append(test_statistic, lin_model.fvalue)
+            p_val = np.append(p_val, lin_model.f_pvalue)
+        elif method == 'R-squared':
+            test_statistic = np.append(test_statistic, lin_model.rsquared)
+            p_val = np.append(p_val, scipy.stats.chi2.ppf((1 - alpha), df=1))
+    return test_statistic, p_val
 
 
 # def autocovariance(numpy_array, lag=1):
@@ -287,7 +325,7 @@ def temporal_var(numpy_array):
     return np.nanvar(numpy_array, axis=1)
 
 
-np.seterr(invalid='ignore') # would like to do without this
+# np.seterr(invalid='ignore') # would like to do without this
 def temporal_cv(numpy_array):
     return np.true_divide(temporal_std(numpy_array), temporal_mean(numpy_array))
 
@@ -298,6 +336,20 @@ def temporal_skw(numpy_array):
 
 def temporal_krt(numpy_array):
     return scipy.stats.kurtosis(numpy_array, axis=1, nan_policy='omit')
+
+
+def divisor_generator(lower_limit, upper_limit):
+    list = []
+    for i in range(1, int(np.sqrt(upper_limit) + 1)):
+        if (upper_limit % i == 0):
+            if (upper_limit / i == i):
+                list.append(i)
+            else:
+                list.append(i)
+                list.append(upper_limit // i)
+
+    sorted_list = sorted(list)
+    return np.array([x for x in sorted_list if x >= lower_limit])
 
 
 def calc_rms(numpy_array, scale): # windowed Root Mean Square with linear detrending
@@ -319,10 +371,51 @@ def calc_rms(numpy_array, scale): # windowed Root Mean Square with linear detren
     return rms
 
 
-def temporal_dfa(stack_of_windows, scales=np.array([10])):
+def dfa_propagator(alpha, c_guess=0.5):
+    # 0.91 * (c ** 3) - 0.37 * (c ** 2) + 0.49 * c + c - alpha = 0
+    # a*x**3 + b*x**2 + c*x + d = 0.
+
+    x1 = c_guess
+    count = 0
+    while count < 5:
+
+        # if 0 < x1 <= 0.936:
+        if x1 <= 0.936:
+            a = 0.91
+            b = - 0.37
+            c = 0.49
+            d = 0.52 - alpha
+
+        elif 0.936 < x1 <= 0.967:
+            a = 0
+            b = -12.38
+            c = 25.14
+            d = 11.28 - alpha
+
+        # elif 0.967 < x1 < 1:  # x1 can be greater than 1
+        elif 0.967 < x1:
+            a = 0
+            b = 0
+            c = 0.72
+            d = 0.75 - alpha
+
+        # Constructs the polynomial a*x**3 + b*x**2 + c*x + d
+        poly = np.poly1d([a, b, c, d])
+        roots = np.roots(poly)
+        x1 = roots[-1].real
+
+        count += 1
+
+    return x1
+
+
+warnings.simplefilter('ignore', np.RankWarning)  # Ignore np.RankWarning (== the rank of the coefficient matrix in the least-squares fit is deficient)
+def temporal_dfa(stack_of_windows, return_propagator=False):
     # TODO - Works for a single time_window --> needs to be working *nicely* for array of time_windows
     fluct = []
     coeff = []
+    scales = divisor_generator(10, len(stack_of_windows[0]))
+    propagator = []
 
     for numpy_array in stack_of_windows:
         # Cumulative sum of a single window with subtracted offset
@@ -335,12 +428,23 @@ def temporal_dfa(stack_of_windows, scales=np.array([10])):
 
         coefficients = np.polyfit(np.log2(scales), np.log2(fluctuations), 1)
 
+        # Note that this propagator should be calibrated (polynomial regression) for *every* state variable separately,
+        # which requires an AR(1) generated dataset based on the original dataset (see temporal null models).
+        # Furthermore, this adds all the assumptions of AR(1) as it translates the coefficient to the propagator (which
+        # is assumed to be, but is not necessarily between 0 and 1) and can also introduce a certain error due to
+        # calibration with (a non-optimal) polynomial regression.
+        if return_propagator:
+            propagator = np.append(propagator, dfa_propagator(coefficients[0]))
+
         fluct = np.append(fluct, fluctuations)
         coeff = np.append(coeff, coefficients[0])
 
     fluct = np.array_split(fluct, len(scales))
 
-    return scales, fluct, coeff
+    if not return_propagator:
+        propagator = coeff
+
+    return scales, fluct, coeff, propagator
 
 
 #########################################

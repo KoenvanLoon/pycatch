@@ -15,7 +15,7 @@ variables_hourly = []
 
 class StateVariable:
     def __init__(self, name, spatial=False, temporal=False, snapshot_interval=cfg.interval_map_snapshots,
-                 window_size=100, window_overlap=0, datatype='map', full_name='', unit='unit'):
+                 window_size=1000, window_overlap=0, datatype='map', full_name='', unit='unit'):
         self.name = name
         self.spatial = spatial
         self.temporal = temporal
@@ -28,6 +28,8 @@ class StateVariable:
 
 
 # State variables for EWS #
+
+INDF = StateVariable('INDF', temporal=True, datatype='numpy', full_name='Index fund closing')
 
 # Maximum interception store
 micM = StateVariable('micM', spatial=True, full_name='Maximum interception storage spatial')
@@ -100,7 +102,7 @@ Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge',
 
 full_set_of_variables_weekly = [micM, micA, micL, laiM, laiA, laiL, moiM, moiA, moiL, bioM, bioA, bioL, regM, regA,
                                 regL, demM, demA, demL, qA, gA, gpM, gpA, grM, grA, grnM, grnA, depM, depA, depL, weaM,
-                                weaA, weaL, creM, creA, creL]
+                                weaA, weaL, creM, creA, creL, INDF]
 
 full_set_of_variables_hourly = [Rq]
 

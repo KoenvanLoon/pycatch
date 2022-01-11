@@ -7,15 +7,16 @@ number_of_timesteps_hourly = 2000  # in hours
 # number_of_timesteps_hourly = 8760 # ~1y in hours
 
 # Define number of weekly time steps to run
-number_of_timesteps_weekly = 4100  # in weeks
+number_of_timesteps_weekly = 104000
+# number_of_timesteps_weekly = 5000  # in weeks
 # number_of_timesteps_weekly = 104000 # ~2000y in weeks
 
 ## Rate of forcing (grazing)
 # Define the fraction of total time at which no grazing occurs at the beginning (baseline for initial state)
-rel_start_grazing = 1/8
+rel_start_grazing = 0  # 1/8
 # rel_start_grazing = 0
 # Define the total increase in grazing rate
-tot_increase_grazing = 0.0003
+tot_increase_grazing = 0.00025
 # tot_increase_grazing = 0.0006
 # Select whether grazing rate returns to the initial value after the halfway point
 # - note that this halfway point occurs on (1 - rel_start) * total time / 2
@@ -85,8 +86,7 @@ timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, 
 # - TODO check the 'full' list in EWS_StateVariables.py
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'
-# state_variables_for_ews_weekly = ['bioA', 'bioM', 'bioL', 'gA']
-state_variables_for_ews_weekly = ['bioA', 'moiA', 'gA']
+state_variables_for_ews_weekly = ['bioA', 'moiA']
 # state_variables_for_ews_weekly = 'full'
 
 ## Reporting for the model components (both hourly and weekly)

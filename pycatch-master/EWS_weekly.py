@@ -16,12 +16,12 @@ import EWS_StateVariables as ews_sv
 variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
 
 ## Generate dummy datasets for Kendall tau? ## TODO - move this to cfg
-generate_dummy_datasets = True
+generate_dummy_datasets = False
 save_detrended_data = True  # Temporal only, and only relevant when detrending != None
 method_1 = True
 method_2 = True
 method_3 = True
-nr_generated_datasets = 1000
+nr_generated_datasets = 100
 
 ### End user input ###
 
@@ -221,12 +221,12 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                     temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
                 np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
-                # # Temporal dfa # TODO - returns 3 values (tuple?)
-                # fpath = os.path.join(path + variable.name + '.t.dfa')
-                # temporal_statistic = ews.temporal_dfa(stack_of_windows)
-                # if state_variable_timeseries.ndim > 1:
-                #     temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
-                # np.savetxt(fpath + '.numpy.txt', temporal_statistic)
+                # Temporal dfa # TODO - returns 3 values, save only 1?
+                fpath = os.path.join(path + variable.name + '.t.dfa')
+                _, _, _, temporal_statistic = ews.temporal_dfa(stack_of_windows)  # scales, fluct, coeff, propagator
+                if state_variable_timeseries.ndim > 1:
+                    temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+                np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
                 # Temporal autocorr. #
                 fpath = os.path.join(path + variable.name + '.t.acr')
@@ -249,9 +249,9 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                     temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
                 np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
-                # Temporal cond. het. #
+                # Temporal cond. het. # TODO - returns 2 values, save only 1?
                 fpath = os.path.join(path + variable.name + '.t.coh')
-                temporal_statistic = ews.temporal_cond_het(stack_of_windows)
+                temporal_statistic, _ = ews.temporal_cond_het(stack_of_windows)  # _ is the p-value of the test, not saved
                 if state_variable_timeseries.ndim == 1:
                     # temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
                     np.savetxt(fpath + '.numpy.txt', temporal_statistic)
@@ -346,7 +346,7 @@ for realization in range(1, realizations + 1):
         ews_calculations(variable, path=f'./{realization}/', timer_on=True)
         if generate_dummy_datasets:
             generate_datasets(variable, path=f'./{realization}/', nr_realizations=nr_generated_datasets,
-                              detrending_temp='Gaussian', sigma=100, method1=method_1, method2=method_2, method3=method_3) # sigma=1000
+                              detrending_temp='None', sigma=100, method1=method_1, method2=method_2, method3=method_3) # sigma=1000
             ews_calculations_generated_datasets(variable, path=f'./{realization}/',
                                                 nr_realizations=nr_generated_datasets,
                                                 timer_on=True, method1=method_1, method2=method_2, method3=method_3)
