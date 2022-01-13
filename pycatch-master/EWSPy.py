@@ -410,11 +410,11 @@ def dfa_propagator(alpha, c_guess=0.5):
 
 
 warnings.simplefilter('ignore', np.RankWarning)  # Ignore np.RankWarning (== the rank of the coefficient matrix in the least-squares fit is deficient)
-def temporal_dfa(stack_of_windows, return_propagator=False):
+def temporal_dfa(stack_of_windows, window_size=100, return_propagator=False):
     # TODO - Works for a single time_window --> needs to be working *nicely* for array of time_windows
     fluct = []
     coeff = []
-    scales = divisor_generator(10, len(stack_of_windows[0]))
+    scales = divisor_generator(10, window_size)
     propagator = []
 
     for numpy_array in stack_of_windows:

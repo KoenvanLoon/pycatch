@@ -29,7 +29,7 @@ class StateVariable:
 
 # State variables for EWS #
 
-INDF = StateVariable('INDF', temporal=True, datatype='numpy', full_name='Index fund closing')
+INDF = StateVariable('INDF', temporal=True, datatype='numpy', full_name='Index fund closing', unit="Dollars ($)")
 
 # Maximum interception store
 micM = StateVariable('micM', spatial=True, full_name='Maximum interception storage spatial')
@@ -102,7 +102,7 @@ Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge',
 
 full_set_of_variables_weekly = [micM, micA, micL, laiM, laiA, laiL, moiM, moiA, moiL, bioM, bioA, bioL, regM, regA,
                                 regL, demM, demA, demL, qA, gA, gpM, gpA, grM, grA, grnM, grnA, depM, depA, depL, weaM,
-                                weaA, weaL, creM, creA, creL, INDF]
+                                weaA, weaL, creM, creA, creL]
 
 full_set_of_variables_hourly = [Rq]
 

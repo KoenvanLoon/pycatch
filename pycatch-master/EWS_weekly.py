@@ -171,10 +171,17 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                     stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
                                                                 variable.window_overlap)
                 else:
-                    stack_of_windows = [0] * state_variable_timeseries.shape[0]
-                    for k, timeseries in enumerate(state_variable_timeseries):
-                        stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size,
-                                                                       variable.window_overlap)
+                    # stack_of_windows = [0] * state_variable_timeseries.shape[0]
+                    # for k, timeseries in enumerate(state_variable_timeseries):
+                    #     stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size,
+                    #                                                    variable.window_overlap)
+                    # stack_x, stack_y, stack_z = np.asarray(stack_of_windows).shape
+                    # stack_of_windows = np.asarray(stack_of_windows).reshape(-1, stack_z)
+                    # print(stack_of_windows, stack_of_windows.shape)
+
+                    stack_of_windows = [0.0] * np.asarray(state_variable_timeseries).shape[1]
+                    for k, timeseries in enumerate(state_variable_timeseries.T):
+                        stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size, variable.window_overlap)
                     stack_x, stack_y, stack_z = np.asarray(stack_of_windows).shape
                     stack_of_windows = np.asarray(stack_of_windows).reshape(-1, stack_z)
 
@@ -223,7 +230,7 @@ def ews_calculations(variable, path='./1/', timer_on=False):
 
                 # Temporal dfa # TODO - returns 3 values, save only 1?
                 fpath = os.path.join(path + variable.name + '.t.dfa')
-                _, _, _, temporal_statistic = ews.temporal_dfa(stack_of_windows)  # scales, fluct, coeff, propagator
+                _, _, _, temporal_statistic = ews.temporal_dfa(stack_of_windows, window_size=variable.window_size)  # scales, fluct, coeff, propagator
                 if state_variable_timeseries.ndim > 1:
                     temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
                 np.savetxt(fpath + '.numpy.txt', temporal_statistic)
@@ -341,6 +348,8 @@ def ews_calculations(variable, path='./1/', timer_on=False):
 
 ### Running the functions for given state variables ###
 
+start_time = time.time()
+
 for realization in range(1, realizations + 1):
     for variable in variables:
         ews_calculations(variable, path=f'./{realization}/', timer_on=True)
@@ -350,3 +359,6 @@ for realization in range(1, realizations + 1):
             ews_calculations_generated_datasets(variable, path=f'./{realization}/',
                                                 nr_realizations=nr_generated_datasets,
                                                 timer_on=True, method1=method_1, method2=method_2, method3=method_3)
+
+end_time = time.time() - start_time
+print(f"Total elapsed time equals: {end_time} seconds")

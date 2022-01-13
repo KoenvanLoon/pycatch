@@ -3,6 +3,7 @@ from collections import deque
 import sys
 import numpy as np
 import EWS_main_configuration as cfg
+import time
 
 sys.path.append("./pcrasterModules/")
 
@@ -303,7 +304,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         save_loc_timeseries = self.currentTimeStep() == cfg.number_of_timesteps_weekly and cfg.loc_timeseries_data
 
         ###########
-        # Variables
+        # Variable reporting
         ###########
 
         # MAXIMUM INTERCEPTION STORE
@@ -367,7 +368,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                     self.currentTimeStep())
         if save_loc_timeseries:
             variable_loc_array = np.array(self.historyOfSoilMoistureFractionLoc)
-            generalfunctions_test01.report_as_array(variable_loc_array.T, 'moiL', self.currentSampleNumber(),
+            generalfunctions_test01.report_as_array(variable_loc_array, 'moiL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # BIOMASS
@@ -388,7 +389,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                     self.currentTimeStep())
         if save_loc_timeseries:
             variable_loc_array = np.array(self.historyOfBiomassLoc)
-            generalfunctions_test01.report_as_array(variable_loc_array.T, 'bioL', self.currentSampleNumber(),
+            generalfunctions_test01.report_as_array(variable_loc_array, 'bioL', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
         # REGOLITH THICKNESS
@@ -924,9 +925,13 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         budgetRel = budget / increaseInRunoffStoreCubicMetresInUpstreamArea
         report(budgetRel, generateNameST('B-rel', currentSampleNumber, currentTimeStep))
 
+start_time = time.time()
 
 myModel = CatchmentModel()
 dynamicModel = DynamicFramework(myModel, cfg.number_of_timesteps_weekly)
 mcModel = MonteCarloFramework(dynamicModel, cfg.nrOfSamples)
 mcModel.setForkSamples(True, 10)
 mcModel.run()
+
+end_time = time.time() - start_time
+print(f"Total elapsed time equals: {end_time} seconds")

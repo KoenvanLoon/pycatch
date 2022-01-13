@@ -86,8 +86,8 @@ timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, 
 # - TODO check the 'full' list in EWS_StateVariables.py
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'
-state_variables_for_ews_weekly = ['bioA', 'moiA']
-# state_variables_for_ews_weekly = 'full'
+# state_variables_for_ews_weekly = ['bioA', 'moiA']
+state_variables_for_ews_weekly = 'full'
 
 ## Reporting for the model components (both hourly and weekly)
 if setOfVariablesToReport == 'full':
