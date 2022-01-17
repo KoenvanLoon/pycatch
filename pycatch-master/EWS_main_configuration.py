@@ -16,7 +16,7 @@ number_of_timesteps_weekly = 104000
 rel_start_grazing = 0  # 1/8
 # rel_start_grazing = 0
 # Define the total increase in grazing rate
-tot_increase_grazing = 0.00025
+tot_increase_grazing = 0.0002
 # tot_increase_grazing = 0.0006
 # Select whether grazing rate returns to the initial value after the halfway point
 # - note that this halfway point occurs on (1 - rel_start) * total time / 2

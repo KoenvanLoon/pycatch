@@ -202,5 +202,13 @@ def dfa_propagator(alpha, c_guess=0.5):
     return x1
 
 
-dfap = dfa_propagator(0.5)
-print(dfap)
+# dfap = dfa_propagator(0.5)
+# print(dfap)
+
+a = np.linspace(0, 0.9, 9)
+b = np.linspace(0.1, 1, 9)
+c = np.linspace(0, 1, 10)
+
+print(a)
+print(b)
+print(c)

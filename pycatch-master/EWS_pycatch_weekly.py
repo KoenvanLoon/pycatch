@@ -3,7 +3,7 @@ from collections import deque
 import sys
 import numpy as np
 import EWS_main_configuration as cfg
-import time
+import time as timeit
 
 sys.path.append("./pcrasterModules/")
 
@@ -925,7 +925,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         budgetRel = budget / increaseInRunoffStoreCubicMetresInUpstreamArea
         report(budgetRel, generateNameST('B-rel', currentSampleNumber, currentTimeStep))
 
-start_time = time.time()
+start_time = timeit.time()
 
 myModel = CatchmentModel()
 dynamicModel = DynamicFramework(myModel, cfg.number_of_timesteps_weekly)
@@ -933,5 +933,5 @@ mcModel = MonteCarloFramework(dynamicModel, cfg.nrOfSamples)
 mcModel.setForkSamples(True, 10)
 mcModel.run()
 
-end_time = time.time() - start_time
+end_time = timeit.time() - start_time
 print(f"Total elapsed time equals: {end_time} seconds")
