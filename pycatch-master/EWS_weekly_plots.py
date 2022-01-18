@@ -2,7 +2,6 @@ import numpy as np
 import os
 from cycler import cycler
 import matplotlib.pyplot as plt
-import matplotlib.style as style
 
 import EWS_main_configuration as cfg
 import EWSPy as ews
@@ -33,7 +32,7 @@ ews_spatial_signals = {'s.mn': "mean", 's.std': "standard deviation", 's.var': "
                        's.krt': "kurtosis", 's.mI': "Moran's I"}
 
 
-def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1/', save=False, show=False):
+def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1/', legend=False, save=False, show=False):
     fig, ax1 = plt.subplots()
 
     # Grid
@@ -100,6 +99,8 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
         ax2 = ax1.twinx()
         colours2 = [plt.cm.tab10(i) for i in cycle_indx[1:]]
         ax2.set_prop_cycle(cycler(color=colours2, linestyle=linestyles))
+        ax1.tick_params(axis='y', colors=colours1[0])
+        ax2.tick_params(axis='y', colors=colours2[0])
 
         if variable2.spatial:
             x_axis2 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
@@ -149,6 +150,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
                 ax2.set_ylabel(f"{ews_spatial_signals[signal2]}", color=colours2[0])
                 ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]} and {variable2.full_name} "
                           f"{ews_spatial_signals[signal2]}")
+
         plots = plot1 + plot2
 
     # If signal 2 not present
@@ -162,10 +164,12 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
             ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]}")
 
     # Legend
-    labs = [p.get_label() for p in plots]
-    ax1.legend(plots, labs)
+    if legend:
+        labs = [p.get_label() for p in plots]
+        ax1.legend(plots, labs)
 
     # Saving file
+    fig.tight_layout()
     if save:
         if variable2 != 'None':
             fig.savefig(path + f"{variable1.name}_{signal1}_and_{variable2.name}_{signal2}.pdf", format="pdf")
@@ -211,6 +215,13 @@ def user_plotmaker(path='./1/'):
         variable2 = 'None'
         signal2_input = 'None'
 
+    print("Add a legend to the plot? [Y/n]")
+    legend = input()
+    if legend == 'Y' or legend == 'y':
+        legend = True
+    else:
+        legend = False
+
     print("Save the plot as a .pdf? [Y/n]")
     save_plot = input()
     if save_plot == 'Y' or save_plot == 'y':
@@ -227,7 +238,7 @@ def user_plotmaker(path='./1/'):
         show = False
 
     plot2(variable1=variable1, signal1=signal1_input, variable2=variable2, signal2=signal2_input, path=path,
-          save=save, show=show)
+          legend=legend, save=save, show=show)
 
 
 def user_plotmaker_looper(path='./1/'):
