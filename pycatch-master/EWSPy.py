@@ -96,8 +96,10 @@ queen_neighborhood = np.array([
 
 def spatial_corr(numpy_matrix): # Moran's I
     mean = spatial_mean(numpy_matrix)
+    mean = np.nan_to_num(mean, nan=0)
 
     var = spatial_var(numpy_matrix)
+    var = np.nan_to_num(var, nan=0)
 
     numpy_matrix_mmean = np.copy(numpy_matrix)
     numpy_matrix_mmean -= mean[:, None, None]
@@ -198,7 +200,7 @@ Rising variability & flickering:
     Coefficient of variation: Done & tested
     Skewness: Done & tested
     Kurtosis: Done & tested
-    Conditional heteroskedasticity: Done - Needs testing & further improvements
+    Conditional heteroskedasticity: Done & tested
     BDS test**: TODO
 
 *Models are not included, metrics are.
@@ -216,6 +218,7 @@ Rising variability & flickering:
 
 def temporal_AR1(stack_of_windows):
     mean = temporal_mean(stack_of_windows)
+    mean = np.nan_to_num(mean, nan=0.0)
 
     stack_of_windows_mmean = np.copy(stack_of_windows)
     stack_of_windows_mmean -= mean[:, None]
@@ -252,11 +255,12 @@ def temporal_returnrate(stack_of_windows):
 #     elif test == 'F':
 #         return fstatistic_F_test, p_val_F
 
-def temporal_cond_het(stack_of_windows, method='R-squared', alpha=0.025, log_transform=False):
+def temporal_cond_het(stack_of_windows, method='R-squared', alpha=0.1, log_transform=False):
     if log_transform:
         stack_of_windows = np.log10(stack_of_windows)
 
     mean = temporal_mean(stack_of_windows)
+    mean = np.nan_to_num(mean, nan=0.0)
     stack_of_windows_mmean = np.copy(stack_of_windows)
     stack_of_windows_mmean -= mean[:, None]
 
@@ -272,7 +276,7 @@ def temporal_cond_het(stack_of_windows, method='R-squared', alpha=0.025, log_tra
             p_val = np.append(p_val, lin_model.f_pvalue)
         elif method == 'R-squared':
             test_statistic = np.append(test_statistic, lin_model.rsquared)
-            p_val = np.append(p_val, scipy.stats.chi2.ppf((1 - alpha), df=1))
+            p_val = np.append(p_val, scipy.stats.chi2.ppf((1 - alpha), df=1) / (len(ar_resid_sq)-1))
     return test_statistic, p_val
 
 
@@ -292,6 +296,7 @@ def temporal_autocovariance(numpy_array, lag=1):
     for k, window in enumerate(numpy_array):
         N = len(window)
         mean = np.nanmean(window)
+        mean = np.nan_to_num(mean, nan=0.0)
 
         end_padded_series = np.zeros(N+lag)
         end_padded_series[:N] = window - mean
@@ -411,7 +416,6 @@ def dfa_propagator(alpha, c_guess=0.5):
 
 warnings.simplefilter('ignore', np.RankWarning)  # Ignore np.RankWarning (== the rank of the coefficient matrix in the least-squares fit is deficient)
 def temporal_dfa(stack_of_windows, window_size=100, return_propagator=False):
-    # TODO - Works for a single time_window --> needs to be working *nicely* for array of time_windows
     fluct = []
     coeff = []
     scales = divisor_generator(10, window_size)

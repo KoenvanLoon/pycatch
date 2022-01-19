@@ -205,10 +205,15 @@ def dfa_propagator(alpha, c_guess=0.5):
 # dfap = dfa_propagator(0.5)
 # print(dfap)
 
-a = np.linspace(0, 0.9, 9)
-b = np.linspace(0.1, 1, 9)
-c = np.linspace(0, 1, 10)
+# a = np.linspace(0, 0.9, 9)
+# b = np.linspace(0.1, 1, 9)
+# c = np.linspace(0, 1, 10)
+#
+# print(a)
+# print(b)
+# print(c)
 
-print(a)
-print(b)
-print(c)
+# import scipy.stats
+#
+# chi = scipy.stats.chi2.ppf((1 - 0.1), df=1)
+# print(chi)

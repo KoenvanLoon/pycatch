@@ -39,27 +39,27 @@ micL = StateVariable('micL', temporal=True, datatype='numpy', full_name='Maximum
 # LAI
 laiM = StateVariable('laiM', spatial=True, full_name='LAI spatial', unit="-")
 laiA = StateVariable('laiA', temporal=True, datatype='numpy', full_name='LAI temporal', unit="-")
-laiL = StateVariable('laiL', temporal=True, datatype='numpy', full_name='LAI temporal at location', unit="-")
+laiL = StateVariable('laiL', temporal=True, datatype='numpy', full_name='LAI at location', unit="-")
 
 # Soil moisture
 moiM = StateVariable('moiM', spatial=True, full_name='Soil moisture spatial', unit="-")
 moiA = StateVariable('moiA', temporal=True, datatype='numpy', full_name='Soil moisture temporal', unit="-")
-moiL = StateVariable('moiL', temporal=True, datatype='numpy', full_name='Soil moisture temporal at location', unit="-")
+moiL = StateVariable('moiL', temporal=True, datatype='numpy', full_name='Soil moisture at location', unit="-")
 
 # Biomass
 bioM = StateVariable('bioM', spatial=True, full_name='Biomass spatial', unit="kg m^-2")
 bioA = StateVariable('bioA', temporal=True, datatype='numpy', full_name='Biomass temporal', unit="kg m^-2")
-bioL = StateVariable('bioL', temporal=True, datatype='numpy', full_name='Biomass temporal at location', unit="kg m^-2")
+bioL = StateVariable('bioL', temporal=True, datatype='numpy', full_name='Biomass at location', unit="kg m^-2")
 
 # Regolith thickness
 regM = StateVariable('regM', spatial=True, full_name='Regolith thickness spatial', unit="m")
 regA = StateVariable('regA', temporal=True, datatype='numpy', full_name='Regolith thickness temporal', unit="m")
-regL = StateVariable('regL', temporal=True, datatype='numpy', full_name='Regolith thickness temporal at location', unit="m")
+regL = StateVariable('regL', temporal=True, datatype='numpy', full_name='Regolith thickness at location', unit="m")
 
 # DEM
 demM = StateVariable('demM', spatial=True, full_name='DEM spatial', unit="m")
 demA = StateVariable('demA', temporal=True, datatype='numpy', full_name='DEM temporal', unit="m")
-demL = StateVariable('demL', temporal=True, datatype='numpy', full_name='DEM temporal at location', unit="m")
+demL = StateVariable('demL', temporal=True, datatype='numpy', full_name='DEM at location', unit="m")
 
 # Discharge
 qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal', unit=1)
@@ -82,17 +82,17 @@ grnA = StateVariable('grnA', temporal=True, datatype='numpy', full_name='Net gro
 # Net deposition
 depM = StateVariable('depM', spatial=True, full_name='Net deposition spatial', unit=1)
 depA = StateVariable('depA', temporal=True, datatype='numpy', full_name='Net deposition temporal', unit=1)
-depL = StateVariable('depL', temporal=True, datatype='numpy', full_name='Net deposition temporal at location', unit=1)
+depL = StateVariable('depL', temporal=True, datatype='numpy', full_name='Net deposition at location', unit=1)
 
 # Net weathering
 weaM = StateVariable('weaM', spatial=True, full_name='Net weathering spatial', unit=1)
 weaA = StateVariable('weaA', temporal=True, datatype='numpy', full_name='Net weathering temporal', unit=1)
-weaL = StateVariable('weaL', temporal=True, datatype='numpy', full_name='Net weathering temporal at location', unit=1)
+weaL = StateVariable('weaL', temporal=True, datatype='numpy', full_name='Net weathering at location', unit=1)
 
 # Net creep deposition
 creM = StateVariable('creM', spatial=True, full_name='Net creep deposition spatial', unit=1)
 creA = StateVariable('creA', temporal=True, datatype='numpy', full_name='Net creep deposition temporal', unit=1)
-creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net creep deposition temporal at location', unit=1)
+creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net creep deposition at location', unit=1)
 
 
 # Rq

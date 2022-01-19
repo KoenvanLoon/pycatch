@@ -24,12 +24,12 @@ number_of_timesteps = cfg.number_of_timesteps_weekly
 
 
 ## Statistical EWS ##
-ews_temporal_signals = {'t.mn': "mean", 't.std': "standard deviation", 't.var': "variance",
-                        't.cv': "coefficient of variation", 't.skw': "skewness", 't.krt': "kurtosis",
-                        't.dfa': "detrended fluctuation analysis", 't.acr': "autocorrelation", 't.rr': "return rate",
-                        't.coh': "conditional heteroskedasticity", 'timeseries': "timeseries", 'gauss': "gauss"}
-ews_spatial_signals = {'s.mn': "mean", 's.std': "standard deviation", 's.var': "variance", 's.skw': "skewness",
-                       's.krt': "kurtosis", 's.mI': "Moran's I"}
+ews_temporal_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance",
+                        'cv': "coefficient of variation", 'skw': "skewness", 'krt': "kurtosis",
+                        'dfa': "detrended fluctuation analysis", 'acr': "autocorrelation", 'rr': "return rate",
+                        'coh': "conditional heteroskedasticity", 'timeseries': "timeseries", 'gauss': "gauss"}
+ews_spatial_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance", 'skw': "skewness",
+                       'krt': "kurtosis", 'mI': "Moran's I"}
 
 
 def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1/', legend=False, save=False, show=False):
@@ -64,8 +64,10 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
     if variable1.spatial:
         x_axis1 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
                             cfg.interval_map_snapshots)
+        dim1 = '.s.'
     elif variable1.temporal:
         x_axis1 = np.arange(0, number_of_timesteps, variable1.window_size - variable1.window_overlap)
+        dim1 = '.t.'
 
     # Signal 1
     if signal1 == 'timeseries':
@@ -81,7 +83,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
         timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
         plot1 = ax1.plot(timeseries_x_axis, timeseries_y_axis, label=f'Gaussian detrending {variable1.full_name}')
     elif signal1 != 'None':
-        fpath = os.path.join(path + variable1.name + '.' + signal1)
+        fpath = os.path.join(path + variable1.name + dim1 + signal1)
         signal1_array = np.loadtxt(fpath + '.numpy.txt')
         if signal1_array.ndim > 1 and variable1.temporal:
             signal1_array = signal1_array.T
@@ -97,16 +99,19 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
     # Signal 2
     if variable2 != 'None':
         ax2 = ax1.twinx()
+        ax2.minorticks_on()
         colours2 = [plt.cm.tab10(i) for i in cycle_indx[1:]]
         ax2.set_prop_cycle(cycler(color=colours2, linestyle=linestyles))
-        ax1.tick_params(axis='y', colors=colours1[0])
-        ax2.tick_params(axis='y', colors=colours2[0])
+        ax1.tick_params(axis='y', which='both', colors=colours1[0])
+        ax2.tick_params(axis='y', which='both', colors=colours2[0])
 
         if variable2.spatial:
             x_axis2 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
                                 cfg.interval_map_snapshots)
+            dim2 = '.s.'
         elif variable2.temporal:
             x_axis2 = np.arange(0, number_of_timesteps, variable2.window_size - variable2.window_overlap)
+            dim2 = '.t.'
 
         if signal2 == 'timeseries':
             fname = ews.file_name_str(variable2.name, number_of_timesteps)
@@ -115,7 +120,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
             plot2 = ax2.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable2.full_name}')
         elif signal2 != 'None':
-            fpath = os.path.join(path + variable2.name + '.' + signal2)
+            fpath = os.path.join(path + variable2.name + dim2 + signal2)
             signal2_array = np.loadtxt(fpath + '.numpy.txt')
             if signal2_array.ndim > 1 and variable2.temporal:
                 signal2_array = signal2_array.T
@@ -132,23 +137,23 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
             if variable2.temporal:
                 ax1.set_ylabel(f"{ews_temporal_signals[signal1]}", color=colours1[0])
                 ax2.set_ylabel(f"{ews_temporal_signals[signal2]}", color=colours2[0])
-                ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]} and {variable2.full_name} "
+                ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]} & {variable2.full_name} "
                           f"{ews_temporal_signals[signal2]}")
             elif variable2.spatial:
                 ax1.set_ylabel(f"{ews_temporal_signals[signal1]}", color=colours1[0])
                 ax2.set_ylabel(f"{ews_spatial_signals[signal2]}", color=colours2[0])
-                ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]} and {variable2.full_name} "
+                ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]} & {variable2.full_name} "
                           f"{ews_spatial_signals[signal2]}")
         elif variable1.spatial:
             if variable2.temporal:
                 ax1.set_ylabel(f"{ews_spatial_signals[signal1]}", color=colours1[0])
                 ax2.set_ylabel(f"{ews_temporal_signals[signal2]}", color=colours2[0])
-                ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]} and {variable2.full_name} "
+                ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]} & {variable2.full_name} "
                           f"{ews_temporal_signals[signal2]}")
             elif variable2.spatial:
                 ax1.set_ylabel(f"{ews_spatial_signals[signal1]}", color=colours1[0])
                 ax2.set_ylabel(f"{ews_spatial_signals[signal2]}", color=colours2[0])
-                ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]} and {variable2.full_name} "
+                ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]} & {variable2.full_name} "
                           f"{ews_spatial_signals[signal2]}")
 
         plots = plot1 + plot2

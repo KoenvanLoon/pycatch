@@ -16,8 +16,8 @@ import EWS_StateVariables as ews_sv
 variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
 
 ## Generate dummy datasets for Kendall tau? ## TODO - move this to cfg
-generate_dummy_datasets = False
-save_detrended_data = True  # Temporal only, and only relevant when detrending != None
+generate_dummy_datasets = True
+save_detrended_data = False  # Temporal only, and only relevant when detrending != None
 method_1 = True
 method_2 = True
 method_3 = True
@@ -171,14 +171,6 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                     stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
                                                                 variable.window_overlap)
                 else:
-                    # stack_of_windows = [0] * state_variable_timeseries.shape[0]
-                    # for k, timeseries in enumerate(state_variable_timeseries):
-                    #     stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size,
-                    #                                                    variable.window_overlap)
-                    # stack_x, stack_y, stack_z = np.asarray(stack_of_windows).shape
-                    # stack_of_windows = np.asarray(stack_of_windows).reshape(-1, stack_z)
-                    # print(stack_of_windows, stack_of_windows.shape)
-
                     stack_of_windows = [0.0] * np.asarray(state_variable_timeseries).shape[1]
                     for k, timeseries in enumerate(state_variable_timeseries.T):
                         stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size, variable.window_overlap)
@@ -258,10 +250,17 @@ def ews_calculations(variable, path='./1/', timer_on=False):
 
                 # Temporal cond. het. # TODO - returns 2 values, save only 1?
                 fpath = os.path.join(path + variable.name + '.t.coh')
-                temporal_statistic, _ = ews.temporal_cond_het(stack_of_windows)  # _ is the p-value of the test, not saved
-                if state_variable_timeseries.ndim == 1:
-                    # temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
-                    np.savetxt(fpath + '.numpy.txt', temporal_statistic)
+                save_p = True
+                if save_p and state_variable_timeseries.ndim == 1:
+                    temporal_statistic = [[0.0], [0.0]]
+                    statistic, p_val = ews.temporal_cond_het(stack_of_windows)
+                    temporal_statistic[0] = statistic
+                    temporal_statistic[1] = p_val
+                else:
+                    temporal_statistic, _ = ews.temporal_cond_het(stack_of_windows)  # _ is the p-value of the test, not saved
+                    if state_variable_timeseries.ndim > 1:
+                        temporal_statistic = temporal_statistic.reshape(stack_x, stack_y)
+                np.savetxt(fpath + '.numpy.txt', temporal_statistic)
 
             ## End timer if set to True##
             if timer_on:
