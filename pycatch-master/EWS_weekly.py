@@ -41,9 +41,18 @@ temporal_ews_interval = cfg.number_of_timesteps_weekly  # the interval is define
 
 ### Functions ###
 
-def time_series2time_windows(time_series, window_size=100, window_overlap=0):
-    return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size - window_overlap)])
+# def time_series2time_windows(time_series, window_size=100, window_overlap=0):
+#     return np.array([time_series[i:i + window_size] for i in range(0, len(time_series), window_size - window_overlap)])
 
+def time_series2time_windows(timeseries, window_size=100, window_overlap=0):
+    actual_window_overlap = window_size - window_overlap
+    sh = (timeseries.size - window_size + 1, window_size)
+    st = timeseries.strides * 2
+    if window_overlap != 0:
+        view = np.lib.stride_tricks.as_strided(timeseries, strides=st, shape=sh)[0::actual_window_overlap]
+    elif window_overlap == 0:
+        view = np.lib.stride_tricks.as_strided(timeseries, strides=st, shape=sh)[0::window_size]
+    return view
 
 def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp='None', sigma=50,
                       method1=False, method2=False, method3=False):

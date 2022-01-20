@@ -247,13 +247,15 @@ def kendall_tau_valhist(path='./1/'):
 
 
 def window(timeseries, window_size, window_overlap):
+    actual_window_overlap = window_size - window_overlap
+    sh = (timeseries.size - window_size + 1, window_size)
+    st = timeseries.strides * 2
     if window_overlap != 0:
-        sh = (timeseries.size - window_size + 1, window_size)
-        st = timeseries.strides * 2
-        view = np.lib.stride_tricks.as_strided(timeseries, strides=st, shape=sh)[0::window_overlap]
-    else:
-        view = np.array([timeseries[i:i + window_size] for i in range(0, len(timeseries), window_size - window_overlap)])
+        view = np.lib.stride_tricks.as_strided(timeseries, strides=st, shape=sh)[0::actual_window_overlap]
+    elif window_overlap == 0:
+        view = np.lib.stride_tricks.as_strided(timeseries, strides=st, shape=sh)[0::window_size]
     return view
+
 
 
 def test_windowsize(path='./1/'):
@@ -261,9 +263,10 @@ def test_windowsize(path='./1/'):
     fpath = os.path.join(path + fname)
     biomass_timeseries = np.loadtxt(fpath + '.numpy.txt')
 
-    window_sizes = ews.divisor_generator(500, cfg.number_of_timesteps_weekly)[:-1]
+    # window_sizes = ews.divisor_generator(500, cfg.number_of_timesteps_weekly)[:-1]
     # window_overlaps = [0, 10]
-    window_overlaps = np.arange(0, 500, 10)
+    window_sizes = np.arange(1000, cfg.number_of_timesteps_weekly // 2 + 1, 1000)
+    window_overlaps = np.arange(0, 1000, 10)
     x, y = np.meshgrid(window_overlaps, window_sizes)
 
     tau_arr = np.zeros((len(window_sizes), len(window_overlaps)))
@@ -311,4 +314,8 @@ def test_windowsize(path='./1/'):
     plt.show()
 
 
-test_windowsize()
+#test_windowsize()
+kendall_tau_valhist()
+
+# a = np.arange(0, 100, 1)
+# print(window(a, 9, 5))
