@@ -21,7 +21,7 @@ save_detrended_data = False  # Temporal only, and only relevant when detrending 
 method_1 = True
 method_2 = True
 method_3 = True
-nr_generated_datasets = 100
+nr_generated_datasets = 10
 
 ### End user input ###
 
@@ -363,7 +363,7 @@ for realization in range(1, realizations + 1):
         ews_calculations(variable, path=f'./{realization}/', timer_on=True)
         if generate_dummy_datasets:
             generate_datasets(variable, path=f'./{realization}/', nr_realizations=nr_generated_datasets,
-                              detrending_temp='None', sigma=100, method1=method_1, method2=method_2, method3=method_3) # sigma=1000
+                              detrending_temp='None', sigma=100, method1=method_1, method2=method_2, method3=method_3)  # sigma=1000
             ews_calculations_generated_datasets(variable, path=f'./{realization}/',
                                                 nr_realizations=nr_generated_datasets,
                                                 timer_on=True, method1=method_1, method2=method_2, method3=method_3)
