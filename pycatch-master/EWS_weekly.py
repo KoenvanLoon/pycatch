@@ -15,13 +15,15 @@ import EWS_StateVariables as ews_sv
 ## State variables for EWS ##
 variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
 
-## Generate dummy datasets for Kendall tau? ## TODO - move this to cfg
+## Null models ## TODO - move this to cfg
 generate_dummy_datasets = True
 save_detrended_data = False  # Temporal only, and only relevant when detrending != None
 method_1 = True
 method_2 = True
 method_3 = True
-nr_generated_datasets = 10
+nr_generated_datasets = 100
+cutoff = True
+cutoff_point = 96000  # TODO - Implement a way to cutoff data before/at (?) CT
 
 ### End user input ###
 
@@ -62,6 +64,8 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
         if variable.datatype == 'numpy':
             file_name = ews.file_name_str(variable.name, temporal_ews_interval)
             state_variable_timeseries = np.loadtxt(path + file_name + ".numpy.txt")
+            if cutoff:
+                state_variable_timeseries = state_variable_timeseries[:cutoff_point]
         else:
             print(f"Datatype for {variable.name} currently not supported.")
 
@@ -173,16 +177,23 @@ def ews_calculations(variable, path='./1/', timer_on=False):
 
             if EWS_calculations:
                 ## Splitting timeseries into (overlapping) windows ##
-                # stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
-                #                                             variable.window_overlap)
+                # if cutoff:
+                #     state_variable_timeseries = state_variable_timeseries[:cutoff_point]
 
                 if state_variable_timeseries.ndim == 1:
+                    if cutoff:
+                        state_variable_timeseries = state_variable_timeseries[:cutoff_point]
                     stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
                                                                 variable.window_overlap)
                 else:
                     stack_of_windows = [0.0] * np.asarray(state_variable_timeseries).shape[1]
                     for k, timeseries in enumerate(state_variable_timeseries.T):
-                        stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size, variable.window_overlap)
+                        if cutoff:
+                            stack_of_windows[k] = time_series2time_windows(timeseries[:cutoff_point],
+                                                                           variable.window_size, variable.window_overlap)
+                        else:
+                            stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size,
+                                                                           variable.window_overlap)
                     stack_x, stack_y, stack_z = np.asarray(stack_of_windows).shape
                     stack_of_windows = np.asarray(stack_of_windows).reshape(-1, stack_z)
 

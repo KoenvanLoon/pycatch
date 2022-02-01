@@ -42,7 +42,7 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
 
 
 ## Second method ##
-def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
+def method2_(dataset, realizations=1, method='Detrending', path='./1/', file_name='xxx', replace=False):
     generated_number_length = 4
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
@@ -51,6 +51,10 @@ def method2_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
                       cfg.interval_map_snapshots)
 
     for k, data in enumerate(dataset):
+        if method == 'Detrending':
+            mean = np.nanmean(data, axis=(1, 2))
+            data = data - mean
+
         fft2_ = fft.fft2(data)
         fft2_mag = np.abs(fft2_)
         fft2_phases = np.angle(fft2_)
@@ -121,7 +125,7 @@ def spatial_corr(numpy_matrix):  # Moran's I, same method as used in EWSPy
     return P1 / P2
 
 
-def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=1.0):
+def method3_(dataset, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1.0):
     generated_number_length = 4
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
@@ -131,7 +135,8 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
 
     for k, data in enumerate(dataset):
         Morans_I = spatial_corr(data)
-        alpha0 = np.nanmean(data) * (1 - Morans_I)
+        alpha0_1 = np.nanmean(data) * (1 - Morans_I)
+        alpha0_2 = np.nanmean(data)
         sig2 = np.nanvar(data) * (1 - Morans_I ** 2)
 
         dim = data.shape
@@ -147,10 +152,13 @@ def method3_(dataset, realizations=1, path='./1/', file_name='xxx', stdev_error=
         for realization in range(realizations):
             random_error = np.random.normal(loc=0.0, scale=stdev_error, size=N)
 
-            if np.isnan(np.sqrt(sig2)):
-                generated_dataset_numpy = np.dot(inv_M, random_error * 0.0).reshape(dim) + alpha0
-            else:
-                generated_dataset_numpy = np.dot(inv_M, random_error * np.sqrt(sig2)).reshape(dim) + alpha0
+            if method == 'Adjusted':
+                if np.isnan(np.sqrt(sig2)):
+                    generated_dataset_numpy = np.dot(inv_M, random_error * 0.0).reshape(dim) + alpha0_1
+                else:
+                    generated_dataset_numpy = np.dot(inv_M, random_error * np.sqrt(sig2)).reshape(dim) + alpha0_1
+            elif method == 'Normal':
+                generated_dataset_numpy = np.dot(inv_M, random_error).reshape(dim) + alpha0_2
 
             generated_dataset = numpy2pcr(Scalar, generated_dataset_numpy, np.NaN)
             generated_number_string = 'm3g' + str(realization).zfill(generated_number_length)

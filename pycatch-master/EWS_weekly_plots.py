@@ -7,6 +7,15 @@ import EWS_main_configuration as cfg
 import EWSPy as ews
 import EWS_StateVariables as ews_sv
 
+## Null models ## TODO - move this to cfg
+generate_dummy_datasets = True
+save_detrended_data = False  # Temporal only, and only relevant when detrending != None
+method_1 = True
+method_2 = True
+method_3 = True
+nr_generated_datasets = 10
+cutoff = True
+cutoff_point = 96000  # TODO - Check if cutoff works
 
 ## State variables for EWS ##
 # State variables present in EWS_StateVariables can be added through EWS_main_configuration.py
@@ -26,8 +35,9 @@ number_of_timesteps = cfg.number_of_timesteps_weekly
 ## Statistical EWS ##
 ews_temporal_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance",
                         'cv': "coefficient of variation", 'skw': "skewness", 'krt': "kurtosis",
-                        'dfa': "detrended fluctuation analysis", 'acr': "autocorrelation", 'rr': "return rate",
-                        'coh': "conditional heteroskedasticity", 'timeseries': "timeseries", 'gauss': "gauss"}
+                        'dfa': "detrended fluctuation analysis", 'acr': "autocorrelation", 'AR1': "AR1",
+                        'rr': "return rate", 'coh': "conditional heteroskedasticity", 'timeseries': "timeseries",
+                        'gauss': "gauss"}
 ews_spatial_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance", 'skw': "skewness",
                        'krt': "kurtosis", 'mI': "Moran's I"}
 
@@ -62,11 +72,17 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
     ax1.set_xlabel('time (weeks)')
 
     if variable1.spatial:
-        x_axis1 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
-                            cfg.interval_map_snapshots)
+        if cutoff:
+            x_axis1 = np.arange(cfg.interval_map_snapshots, cutoff_point + 1, cfg.interval_map_snapshots)
+        else:
+            x_axis1 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
+                                cfg.interval_map_snapshots)
         dim1 = '.s.'
     elif variable1.temporal:
-        x_axis1 = np.arange(0, number_of_timesteps, variable1.window_size - variable1.window_overlap)
+        if cutoff:
+            x_axis1 = np.arange(variable1.window_size, cutoff_point + 1, variable1.window_size - variable1.window_overlap)
+        else:
+            x_axis1 = np.arange(variable1.window_size, number_of_timesteps, variable1.window_size - variable1.window_overlap)
         dim1 = '.t.'
 
     # Signal 1
@@ -106,11 +122,17 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
         ax2.tick_params(axis='y', which='both', colors=colours2[0])
 
         if variable2.spatial:
-            x_axis2 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
-                                cfg.interval_map_snapshots)
+            if cutoff:
+                x_axis2 = np.arange(cfg.interval_map_snapshots, cutoff_point + 1, cfg.interval_map_snapshots)
+            else:
+                x_axis2 = np.arange(cfg.interval_map_snapshots, number_of_timesteps + cfg.interval_map_snapshots,
+                                    cfg.interval_map_snapshots)
             dim2 = '.s.'
         elif variable2.temporal:
-            x_axis2 = np.arange(0, number_of_timesteps, variable2.window_size - variable2.window_overlap)
+            if cutoff:
+                x_axis2 = np.arange(variable1.window_size, cutoff_point, variable2.window_size - variable2.window_overlap)
+            else:
+                x_axis2 = np.arange(variable1.window_size, number_of_timesteps, variable2.window_size - variable2.window_overlap)
             dim2 = '.t.'
 
         if signal2 == 'timeseries':

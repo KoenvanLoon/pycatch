@@ -52,10 +52,18 @@ def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
 
 
 ## Method 2 ##
-def method2_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
+def method2_(data, realizations=1, method='Detrending', path='./1/', file_name='xxx', replace=False):
     generated_number_length = 4
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
+
+    if method == 'Detrending':
+        y = data
+        x = np.arange(len(data))
+        coef = np.polyfit(x, y, 1)
+        poly1d_fn = np.poly1d(coef)  # Function which takes in x and returns an estimate for y
+        lin_detr = poly1d_fn(x)
+        data = data - lin_detr  # Remove trend from data
 
     fft_ = fft.fft(data)
     fft_mag = np.abs(fft_)
@@ -82,6 +90,8 @@ def method2_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         generated_dataset = fft.ifft(fft_sym)
 
         generated_dataset = np.absolute(generated_dataset)  # TODO - Check if this is correct
+        if method == 'Detrending':
+            generated_dataset = generated_dataset + lin_detr
 
         generated_number_string = 'm2g' + str(realization).zfill(generated_number_length)
         dir_name = os.path.join(path + generated_number_string)
@@ -95,20 +105,25 @@ def method2_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
 
 
 ## Method 3 ##
-def method3_(data, realizations=1, path='./1/', file_name='xxx', stdev_error=1):
+def method3_(data, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1):
     generated_number_length = 4
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
 
     alpha1 = statsmodels.api.tsa.acf(data, nlags=1)
     sig2 = np.nanvar(data) * (1 - alpha1[1] ** 2)
-    alpha0 = np.nanmean(data) * (1 - alpha1[1])
+    alpha0_1 = np.nanmean(data) * (1 - alpha1[1])
+    alpha0_2 = np.nanmean(data)
 
     for realization in range(realizations):
         e = np.random.normal(loc=0.0, scale=stdev_error, size=len(data))
-        AR1m = np.zeros(len(data))
-        for i in range(len(data)):
-            AR1m[i] = alpha1[1] * AR1m[i - 1] + alpha0 + np.sqrt(sig2) * e[i]
+        AR1m = np.ones(len(data)) * alpha0_2
+        if method == 'Adjusted':
+            for i in range(len(data)):
+                AR1m[i] = alpha1[1] * AR1m[i - 1] + alpha0_1 + np.sqrt(sig2) * e[i]
+        elif method == 'Normal':
+            for i in range(len(data)):
+                AR1m[i] = alpha1[1] * AR1m[i - 1] + alpha0_2 + e[i]
         generated_dataset = AR1m
 
         generated_number_string = 'm3g' + str(realization).zfill(generated_number_length)
