@@ -15,7 +15,7 @@ method_2 = True
 method_3 = True
 nr_generated_datasets = 10
 cutoff = True
-cutoff_point = 96000  # TODO - Check if cutoff works
+cutoff_point = 96000  # TODO - Cutoff False doesn't work, cutoff beginning & end?
 
 ## State variables for EWS ##
 # State variables present in EWS_StateVariables can be added through EWS_main_configuration.py
@@ -130,7 +130,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
             dim2 = '.s.'
         elif variable2.temporal:
             if cutoff:
-                x_axis2 = np.arange(variable1.window_size, cutoff_point, variable2.window_size - variable2.window_overlap)
+                x_axis2 = np.arange(variable1.window_size, cutoff_point + 1, variable2.window_size - variable2.window_overlap)
             else:
                 x_axis2 = np.arange(variable1.window_size, number_of_timesteps, variable2.window_size - variable2.window_overlap)
             dim2 = '.t.'
