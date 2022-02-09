@@ -5,7 +5,7 @@ import os
 import time
 from scipy import ndimage
 
-import EWS_main_configuration as cfg
+import EWS_configuration as cfg
 import NULL_models_timeseries_weekly as temp_NULL
 import NULL_models_spatial_weekly as spat_NULL
 import EWS_StateVariables as ews_sv
@@ -14,16 +14,6 @@ import EWS_StateVariables as ews_sv
 
 ## State variables for EWS ##
 variables = ews_sv.variables_weekly  # State variables present in EWS_StateVariables can be added through configuration
-
-## Null models ## TODO - move this to cfg
-generate_dummy_datasets = True
-save_detrended_data = False  # Temporal only, and only relevant when detrending != None
-method_1 = True
-method_2 = True
-method_3 = True
-nr_generated_datasets = 100
-cutoff = True
-cutoff_point = 96000  # TODO - Implement a way to cutoff data before/at (?) CT
 
 ### End user input ###
 
@@ -64,8 +54,8 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
         if variable.datatype == 'numpy':
             file_name = ews.file_name_str(variable.name, temporal_ews_interval)
             state_variable_timeseries = np.loadtxt(path + file_name + ".numpy.txt")
-            if cutoff:
-                state_variable_timeseries = state_variable_timeseries[:cutoff_point]
+            if cfg.cutoff:
+                state_variable_timeseries = state_variable_timeseries[:cfg.cutoff_point]
         else:
             print(f"Datatype for {variable.name} currently not supported.")
 
@@ -77,7 +67,7 @@ def generate_datasets(variable, path='./1/', nr_realizations=1, detrending_temp=
             elif detrending_temp == 'Gaussian':  # TODO - Multiple sigmas?
                 gaussian_filter = ndimage.gaussian_filter1d(state_variable_timeseries, sigma)
                 state_variable_timeseries = state_variable_timeseries - gaussian_filter
-                if save_detrended_data:
+                if cfg.save_detrended_data:
                     # Only 1 realization made, as the detrending method parameters do not change.
                     temp_NULL.detrend_(state_variable_timeseries, gaussian_filter, realizations=nr_realizations,
                                        path=path, file_name=variable.name)
@@ -129,7 +119,7 @@ def ews_calculations_generated_datasets(variable, path='./1/', nr_realizations=1
     if len(str(realizations)) > 4:
         generated_number_length = len(str(realizations))
 
-    if save_detrended_data and variable.temporal:
+    if cfg.save_detrended_data and variable.temporal:
         generated_number_string = 'dtr' + str(0).zfill(generated_number_length) + '/'
         dir_name = os.path.join(path + generated_number_string)
         ews_calculations(variable, path=dir_name, timer_on=timer_on)
@@ -181,15 +171,15 @@ def ews_calculations(variable, path='./1/', timer_on=False):
                 #     state_variable_timeseries = state_variable_timeseries[:cutoff_point]
 
                 if state_variable_timeseries.ndim == 1:
-                    if cutoff:
-                        state_variable_timeseries = state_variable_timeseries[:cutoff_point]
+                    if cfg.cutoff:
+                        state_variable_timeseries = state_variable_timeseries[:cfg.cutoff_point]
                     stack_of_windows = time_series2time_windows(state_variable_timeseries, variable.window_size,
                                                                 variable.window_overlap)
                 else:
                     stack_of_windows = [0.0] * np.asarray(state_variable_timeseries).shape[1]
                     for k, timeseries in enumerate(state_variable_timeseries.T):
-                        if cutoff:
-                            stack_of_windows[k] = time_series2time_windows(timeseries[:cutoff_point],
+                        if cfg.cutoff:
+                            stack_of_windows[k] = time_series2time_windows(timeseries[:cfg.cutoff_point],
                                                                            variable.window_size, variable.window_overlap)
                         else:
                             stack_of_windows[k] = time_series2time_windows(timeseries, variable.window_size,
@@ -372,12 +362,14 @@ start_time = time.time()
 for realization in range(1, realizations + 1):
     for variable in variables:
         ews_calculations(variable, path=f'./{realization}/', timer_on=True)
-        if generate_dummy_datasets:
-            generate_datasets(variable, path=f'./{realization}/', nr_realizations=nr_generated_datasets,
-                              detrending_temp='None', sigma=100, method1=method_1, method2=method_2, method3=method_3)  # sigma=1000
+        if cfg.generate_dummy_datasets:
+            generate_datasets(variable, path=f'./{realization}/', nr_realizations=cfg.nr_generated_datasets,
+                              detrending_temp='None', sigma=100, method1=cfg.method_1, method2=cfg.method_2,
+                              method3=cfg.method_3)
             ews_calculations_generated_datasets(variable, path=f'./{realization}/',
-                                                nr_realizations=nr_generated_datasets,
-                                                timer_on=True, method1=method_1, method2=method_2, method3=method_3)
+                                                nr_realizations=cfg.nr_generated_datasets,
+                                                timer_on=True, method1=cfg.method_1, method2=cfg.method_2,
+                                                method3=cfg.method_3)
 
 end_time = time.time() - start_time
 print(f"Total elapsed time equals: {end_time} seconds")

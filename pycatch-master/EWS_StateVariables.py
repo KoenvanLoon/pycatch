@@ -1,4 +1,4 @@
-import EWS_main_configuration as cfg
+import EWS_configuration as cfg
 
 # State variables used in all other EWS Python scripts are stored in the list below. For each state variable, multiple
 # variables of these state variables, such as snapshot interval, window size and overlap, and datatype, can be defined

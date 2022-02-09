@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import time as timeit
 
 import EWSPy as ews
-import EWS_main_configuration as cfg
+import EWS_configuration as cfg
 import EWS_StateVariables as ews_sv
 
 ## Variables ##
@@ -23,16 +23,6 @@ ews_temporal_signals = {'mn': "mean", 'std': "standard deviation", 'var': "varia
                         'gauss': "gauss"}
 ews_spatial_signals = {'std': "standard deviation", 'var': "variance", 'skw': "skewness", 'krt': "kurtosis",
                        'mI': "Moran's I"}
-
-## Null models ## TODO - move this to cfg
-generate_dummy_datasets = True
-save_detrended_data = False  # Temporal only, and only relevant when detrending != None
-method_1 = True
-method_2 = True
-method_3 = True
-nr_generated_datasets = 100
-cutoff = True
-cutoff_point = 96000  # TODO - Implement a way to cutoff data before/at (?) CT
 
 
 def kendalltau_stats(state_variable, sum_stat, comp2='Same', path='./1/'):
@@ -63,12 +53,12 @@ def kendalltau_stats_dummy(state_variable, sum_stat, method='m1g', comp2='Same',
         dim = '.s.'
 
     generated_number_length = 4
-    if len(str(nr_generated_datasets)) > 4:
-        generated_number_length = len(str(nr_generated_datasets))
+    if len(str(cfg.nr_generated_datasets)) > 4:
+        generated_number_length = len(str(cfg.nr_generated_datasets))
 
-    taurray = [np.NaN] * nr_generated_datasets
-    parray = [np.NaN] * nr_generated_datasets
-    for realization in range(nr_generated_datasets):
+    taurray = [np.NaN] * cfg.nr_generated_datasets
+    parray = [np.NaN] * cfg.nr_generated_datasets
+    for realization in range(cfg.nr_generated_datasets):
         fdict = os.path.join(path + method + str(realization).zfill(generated_number_length) + '/'
                              + state_variable.name + dim)
         if os.path.exists(fdict + sum_stat + '.numpy.txt'):
@@ -193,20 +183,20 @@ def test_windowsize(path='./1/'):
     fname = ews.file_name_str('bioA', cfg.number_of_timesteps_weekly)
     fpath = os.path.join(path + fname)
     biomass_timeseries = np.loadtxt(fpath + '.numpy.txt')
-    if cutoff:
-        biomass_timeseries = biomass_timeseries[:cutoff_point]
+    if cfg.cutoff:
+        biomass_timeseries = biomass_timeseries[:cfg.cutoff_point]
 
     # Window sizes & overlap
     # ## Normal
     # window_overlaps = np.arange(0, 1000, 10)
-    # if cutoff:
-    #     window_sizes = np.arange(1000, cutoff_point // 2 + 1, 10)
+    # if cfg.cutoff:
+    #     window_sizes = np.arange(1000, cfg.cutoff_point // 2 + 1, 10)
     # else:
     #     window_sizes = np.arange(1000, cfg.number_of_timesteps_weekly // 2 + 1, 10)
 
     ## Zoom
     window_overlaps = np.arange(0, 1000, 10)
-    if cutoff:
+    if cfg.cutoff:
         window_sizes = np.arange(1000, 15000, 10)
     else:
         window_sizes = np.arange(1000, 15000, 10)

@@ -4,7 +4,7 @@ from scipy.signal import convolve
 import os
 import EWSPy as ews
 # import configuration_weekly as cfg
-import EWS_main_configuration as cfg
+import EWS_configuration as cfg
 from pcraster import numpy2pcr, report, Scalar
 
 

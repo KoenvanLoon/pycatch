@@ -2,7 +2,7 @@ import datetime
 from collections import deque
 import sys
 import numpy as np
-import EWS_main_configuration as cfg
+import EWS_configuration as cfg
 import time as timeit
 
 sys.path.append("./pcrasterModules/")
