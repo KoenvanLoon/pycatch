@@ -253,7 +253,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         potentialEvapotranspirationFluxFromSubsurface = \
             max(0.0, potentialEvapotranspirationFlux)
 
-        self.actualAbstractionFluxFromSubsurface = \
+        self.AbstractionFluxFromSubsurface = \
             self.d_subsurfaceWaterOneLayer.abstractWater(potentialEvapotranspirationFluxFromSubsurface)
 
         # lateral flow in subsurface and upward seepage from subsurface storage
@@ -663,47 +663,10 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             cfg.biomassmodifiedmay_report_rasters)
 
         # precipitation
-        # scenario: original
-        probabilityOfARainstorm = 0.4
-        durationOfRainstorm = cfg.theDurationOfRainstorm
-        expectedRainfallIntensity = 0.002
-        gammaShapeParameter = 100
-
-        # scenario: higher intensity
-        # probabilityOfARainstorm=0.4*0.75
-        # durationOfRainstorm=cfg.theDurationOfRainstorm
-        # expectedRainfallIntensity=0.002/0.75
-        # gammaShapeParameter=100
-
-        # scenario: much higher intensity
-        # probabilityOfARainstorm=0.4*0.25
-        # durationOfRainstorm=cfg.theDurationOfRainstorm
-        # expectedRainfallIntensity=0.002/0.25
-        # gammaShapeParameter=100
-
-        # scenario: less rainstorms, longer duration
-        # probabilityOfARainstorm=0.4*0.50
-        # durationOfRainstorm=cfg.theDurationOfRainstorm/0.50
-        # expectedRainfallIntensity=0.002
-        # gammaShapeParameter=100
-
-        # scenario: shorter rainstorm
-        # probabilityOfARainstorm=0.4
-        # durationOfRainstorm=cfg.theDurationOfRainstorm/2.0
-        # expectedRainfallIntensity=0.002*2.0
-        # gammaShapeParameter=100
-
-        # scenario: more rainstorms (and also more rain in total)
-        # probabilityOfARainstorm=0.999
-        # durationOfRainstorm=cfg.theDurationOfRainstorm
-        # expectedRainfallIntensity=0.002
-        # gammaShapeParameter=100
-
-        # scenario: all more
-        # probabilityOfARainstorm=0.4
-        # durationOfRainstorm=cfg.theDurationOfRainstorm*2.0
-        # expectedRainfallIntensity=0.004
-        # gammaShapeParameter=100
+        probabilityOfARainstorm = cfg.rainstorm_probability
+        durationOfRainstorm = cfg.rainstorm_duration
+        expectedRainfallIntensity = cfg.rainstorm_expected_intensity
+        gammaShapeParameter = cfg.rainstorm_gamma_shape_param
 
         self.d_rainfalleventsfromgammadistribution = \
             rainfalleventsfromgammadistribution.RainfallEventsFromGammaDistribution(

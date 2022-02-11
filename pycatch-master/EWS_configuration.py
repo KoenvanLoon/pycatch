@@ -52,7 +52,11 @@ fixedStates : Option to fix both the regolith and the vegetation states (week mo
 
 changeGeomorphology : Option to call on the methods that change the geomorphology (week model). Usually True.
 
-theDurationOfRainstorm : The time in hours for modelled rainfall events.
+rainstorm_probability : Chance of rainstorm per week, e.g. if set to 0.4, there is a 40% chance of rain per week.
+
+rainstorm_duration : The time in hours for modelled rainfall events.
+
+rainstorm_expected_intensity : 
 
 rel_start_grazing : Ratio between 0 and 1 which sets the starting point over the number of timesteps
 
@@ -90,8 +94,6 @@ timesteps_to_report_all_weekly = list(range(0, number_of_timesteps_weekly + 1, i
 timesteps_to_report_some_hourly = list(range(100, number_of_timesteps_hourly + 1, 100))
 timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, interval_map_snapshots))
 
-timeStepsToReportRqs = list(range(20, number_of_timesteps_hourly + 1, 20))  # TODO - Change this to all_weekly?
-
 # Monte Carlo (MC) realizations
 nrOfSamples = 1
 
@@ -110,8 +112,12 @@ fixedStates = False
 # Change geomorphology
 changeGeomorphology = True
 
-# Rainstorm duration
-theDurationOfRainstorm = 2.0  # TODO - Move intensity etc. to the cfg also.
+# Rainstorm parameters
+# # scenario: original
+rainstorm_probability = 0.4
+rainstorm_duration = 2.0
+rainstorm_expected_intensity = 0.002
+rainstorm_gamma_shape_param = 100
 
 # Grazing
 rel_start_grazing = 0
@@ -247,6 +253,56 @@ elif setOfVariablesToReport == 'None':
     baselevel_report_rasters = []
     creep_report_rasters = []
     randomparameters_report_rasters = []
+
+# Rainstorm scenarios
+"""
+Multiple rainstorm scenarios are given below. Originally, these could be found in the pycatch models.
+
+    ! - Note that the names of these variables have been changed.
+
+"""
+
+# # scenario: original
+# probabilityOfARainstorm = 0.4
+# durationOfRainstorm = 2.0
+# expectedRainfallIntensity = 0.002
+# gammaShapeParameter = 100
+
+# # scenario: higher intensity
+# probabilityOfARainstorm=0.4*0.75
+# durationOfRainstorm=2.0
+# expectedRainfallIntensity=0.002/0.75
+# gammaShapeParameter=100
+
+# # scenario: much higher intensity
+# probabilityOfARainstorm=0.4*0.25
+# durationOfRainstorm=2.0
+# expectedRainfallIntensity=0.002/0.25
+# gammaShapeParameter=100
+
+# # scenario: less rainstorms, longer duration
+# probabilityOfARainstorm=0.4*0.50
+# durationOfRainstorm=4.0
+# expectedRainfallIntensity=0.002
+# gammaShapeParameter=100
+
+# # scenario: shorter rainstorm
+# probabilityOfARainstorm=0.4
+# durationOfRainstorm=1.0
+# expectedRainfallIntensity=0.002*2.0
+# gammaShapeParameter=100
+
+# # scenario: more rainstorms (and also more rain in total)
+# probabilityOfARainstorm=0.999
+# durationOfRainstorm=2.0
+# expectedRainfallIntensity=0.002
+# gammaShapeParameter=100
+
+# # scenario: all more
+# probabilityOfARainstorm=0.4
+# durationOfRainstorm=4.0
+# expectedRainfallIntensity=0.004
+# gammaShapeParameter=100
 
 
 #  TODO - Put the parts below above the reporting for the model components in their respective place, i.e. hour/week
