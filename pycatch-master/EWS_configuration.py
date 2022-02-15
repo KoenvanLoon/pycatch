@@ -164,12 +164,12 @@ cutoff_point : Time at which states shift. Retrieved from plotting the biomass t
 # State variables
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
-# state_variables_for_ews_weekly = ['bioA', 'moiA']
-state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
+state_variables_for_ews_weekly = ['bioA', 'demM', 'micM', 'regM', 'laiM', 'moiM', 'bioM']
+# state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
 
 # Generate null models
-generate_dummy_datasets = True
-nr_generated_datasets = 1
+generate_dummy_datasets = False
+nr_generated_datasets = 100
 
 # Methods for generated null models
 method_1 = True
@@ -215,7 +215,7 @@ elif setOfVariablesToReport == 'filtering':
     interception_report_rasters = []
     #   reports of totals (Vot) only make sense if calculateUpstreamTotals is True
     infiltration_report_rasters_weekly = []
-    infiltration_report_rasters = []
+    infiltration_report_rasters = ["Iks"]
     runoff_report_rasters = []
     subsurface_report_rasters = []
     #   reports of totals (Gxt, Got) only make sense if calculateUpstreamTotals is True

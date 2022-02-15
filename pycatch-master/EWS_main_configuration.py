@@ -41,7 +41,11 @@ createRealizations = False
 calculateUpstreamTotals = False
 
 ## Duration of rainstorms
-theDurationOfRainstorm = 2.0
+#theDurationOfRainstorm = 2.0
+rainstorm_probability = 0.4
+rainstorm_duration = 2.0
+rainstorm_expected_intensity = 0.002
+rainstorm_gamma_shape_param = 100
 
 ## Reporting of variables
 # Selects which set of variables are reported, either 'full' or 'filtering'. These are passed to the class of a

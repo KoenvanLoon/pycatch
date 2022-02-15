@@ -143,7 +143,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             else:
                 self.grazingRate = self.grazingRate + (grazingRateIncrease / 2)
 
-        runoffMetreWaterDepthPerWeek = self.runoffMetreWaterDepthPerHour * cfg.theDurationOfRainstorm
+        runoffMetreWaterDepthPerWeek = self.runoffMetreWaterDepthPerHour * cfg.rainstorm_duration
         self.biomass, self.LAI = self.d_biomassModifiedMay.update(self.actualAbstractionFluxFromSubsurface,
                                                                   runoffMetreWaterDepthPerWeek, self.grazingRate)
 
@@ -253,7 +253,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         potentialEvapotranspirationFluxFromSubsurface = \
             max(0.0, potentialEvapotranspirationFlux)
 
-        self.AbstractionFluxFromSubsurface = \
+        self.actualAbstractionFluxFromSubsurface = \
             self.d_subsurfaceWaterOneLayer.abstractWater(potentialEvapotranspirationFluxFromSubsurface)
 
         # lateral flow in subsurface and upward seepage from subsurface storage
