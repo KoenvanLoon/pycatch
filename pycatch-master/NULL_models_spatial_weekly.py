@@ -14,9 +14,7 @@ from pcraster import numpy2pcr, report, Scalar
 
 ## First method ##
 def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
-    generated_number_length = 4
-    if len(str(realizations)) > 4:
-        generated_number_length = len(str(realizations))
+    generated_number_length = ews.generated_number_length(realizations)
 
     data_shape = dataset[0].shape
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
@@ -43,16 +41,14 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
 
 ## Second method ##
 def method2_(dataset, realizations=1, method='Detrending', path='./1/', file_name='xxx', replace=False):
-    generated_number_length = 4
-    if len(str(realizations)) > 4:
-        generated_number_length = len(str(realizations))
+    generated_number_length = ews.generated_number_length(realizations)
 
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
     for k, data in enumerate(dataset):
         if method == 'Detrending':
-            mean = np.nanmean(data, axis=(1, 2))
+            mean = np.nanmean(data)
             data = data - mean
 
         fft2_ = fft.fft2(data)
@@ -91,50 +87,17 @@ Combination of Jon Yearsley (2021). Generate AR1 spatial data (https://www.mathw
 and Dakos et al. 10.1073/pnas.0802430105
 """
 
-rook_neighborhood = np.array([
-    [0, 1, 0],
-    [1, 0, 1],
-    [0, 1, 0]
-])
-
-
-def spatial_corr(numpy_matrix):  # Moran's I, same method as used in EWSPy
-    mean = np.nanmean(numpy_matrix)
-    var = np.nanvar(numpy_matrix)
-
-    numpy_matrix_mmean = np.copy(numpy_matrix)
-    numpy_matrix_mmean -= mean
-
-    is_nan = np.isnan(numpy_matrix_mmean)
-    is_not_nan = ~ is_nan
-    is_not_nan_as_nr = is_not_nan.astype(float)
-
-    numpy_matrix_var = np.copy(is_not_nan_as_nr)
-    numpy_matrix_var *= var
-
-    numpy_matrix_copy = np.copy(numpy_matrix)
-    numpy_matrix_copy[is_nan] = 0
-
-    sum_neighbours = convolve(numpy_matrix_copy, rook_neighborhood, mode='same')
-
-    n_neighbours_times_avg = convolve(is_not_nan_as_nr * mean, rook_neighborhood, mode='same')
-    n_neighbours_times_avg[is_nan] = 0
-
-    P1 = np.nansum(numpy_matrix_mmean * (sum_neighbours - n_neighbours_times_avg))
-    P2 = np.nansum(sum_neighbours * numpy_matrix_var)
-    return P1 / P2
-
 
 def method3_(dataset, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1.0):
-    generated_number_length = 4
-    if len(str(realizations)) > 4:
-        generated_number_length = len(str(realizations))
+    generated_number_length = ews.generated_number_length(realizations)
 
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
                       cfg.interval_map_snapshots)
 
+    spatial_correlation = ews.spatial_corr(dataset)
+
     for k, data in enumerate(dataset):
-        Morans_I = spatial_corr(data)
+        Morans_I = spatial_correlation[k]
         alpha0_1 = np.nanmean(data) * (1 - Morans_I)
         alpha0_2 = np.nanmean(data)
         sig2 = np.nanvar(data) * (1 - Morans_I ** 2)

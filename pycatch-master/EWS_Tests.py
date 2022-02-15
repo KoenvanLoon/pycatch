@@ -52,9 +52,7 @@ def kendalltau_stats_dummy(state_variable, sum_stat, method='m1g', comp2='Same',
     elif state_variable.spatial:
         dim = '.s.'
 
-    generated_number_length = 4
-    if len(str(cfg.nr_generated_datasets)) > 4:
-        generated_number_length = len(str(cfg.nr_generated_datasets))
+    generated_number_length = ews.generated_number_length(cfg.nr_generated_datasets)
 
     taurray = [np.NaN] * cfg.nr_generated_datasets
     parray = [np.NaN] * cfg.nr_generated_datasets

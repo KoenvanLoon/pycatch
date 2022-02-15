@@ -12,9 +12,7 @@ import EWS_configuration as cfg
 # TODO - method 2 did not return the right mean - check solution -, other values are A-OK
 
 def detrend_(data, gauss='None', realizations=1, path='./1/', file_name='xxx'):
-    generated_number_length = 4
-    if len(str(realizations)) > 4:
-        generated_number_length = len(str(realizations))
+    generated_number_length = ews.generated_number_length(realizations)
 
     generated_number_string = 'dtr' + str(0).zfill(generated_number_length)
     dir_name = os.path.join(path + generated_number_string)
@@ -33,9 +31,7 @@ def detrend_(data, gauss='None', realizations=1, path='./1/', file_name='xxx'):
 
 ## Method 1 ##
 def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
-    generated_number_length = 4
-    if len(str(realizations)) > 4:
-        generated_number_length = len(str(realizations))
+    generated_number_length = ews.generated_number_length(realizations)
 
     for realization in range(realizations):
         generated_dataset = np.random.choice(data, len(data), replace=replace)
@@ -53,10 +49,7 @@ def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
 
 ## Method 2 ##
 def method2_(data, realizations=1, method='Detrending', path='./1/', file_name='xxx', replace=False):
-    generated_number_length = 4
-    if len(str(realizations)) > 4:
-        generated_number_length = len(str(realizations))
-
+    generated_number_length = ews.generated_number_length(realizations)
     if method == 'Detrending':
         y = data
         x = np.arange(len(data))
@@ -106,9 +99,7 @@ def method2_(data, realizations=1, method='Detrending', path='./1/', file_name='
 
 ## Method 3 ##
 def method3_(data, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1):
-    generated_number_length = 4
-    if len(str(realizations)) > 4:
-        generated_number_length = len(str(realizations))
+    generated_number_length = ews.generated_number_length(realizations)
 
     alpha1 = statsmodels.api.tsa.acf(data, nlags=1)
     sig2 = np.nanvar(data) * (1 - alpha1[1] ** 2)

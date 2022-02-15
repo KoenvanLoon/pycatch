@@ -1,6 +1,6 @@
 """
 EWS - Early Warning Signals
-EWS Configuration (cfg)
+EWS Python functions (EWSPy)
 
 @authors: KoenvanLoon & TijmenJanssen
 """
@@ -56,6 +56,31 @@ def file_name_str(name, timestep):
     file_name_str.insert(-3, '.')
     file_name_str = [''.join(file_name_str)]
     return file_name_str[0]
+
+
+# Generated number length
+"""
+Generates the number length used for folder-names where generated data is stored. 
+
+Args:
+-----
+
+realizations : int, number of generated datasets made.
+
+Returns:
+-----
+
+generated_number_length : int, number length used for folder-names where generated data is stored. Standard is 4,
+    otherwise number length equals the maximum number of individual numbers used
+
+"""
+
+
+def generated_number_length(realizations):
+    generated_number_length = 4
+    if len(str(realizations)) > 4:
+        generated_number_length = len(str(realizations))
+    return generated_number_length
 
 
 # Spatial early-warning signals

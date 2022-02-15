@@ -1,16 +1,56 @@
+"""
+EWS - Early Warning Signals
+EWS State Variables
+
+@authors: KoenvanLoon & TijmenJanssen
+"""
+
 import EWS_configuration as cfg
 
-# State variables used in all other EWS Python scripts are stored in the list below. For each state variable, multiple
-# variables of these state variables, such as snapshot interval, window size and overlap, and datatype, can be defined
-# below as to guarantee the use of the same variables over the different EWS Python scripts.
-# - Note that the 'full' sets of state variables are defined at the end of this file, and if state variables for EWS are
-#   added, they also should be included here.
+
+# Class StateVariable for Variable objects
+"""
+State variables used in all other EWS Python scripts are stored in the lists below. For each state variable, multiple
+variables of these state variables, such as snapshot interval, window size and overlap, and datatype, can be defined
+below as to guarantee the use of the same variables over the different EWS Python scripts.
+
+    ! - Note that the 'full' sets of state variables are defined at the end of this file, and if state variables for EWS 
+    are added, they also should be included here.
+    
+Args:
+-----
+
+name : string, short name for state variable (usually taken from model).
+
+spatial : bool, selects whether data is spatial or not.
+
+temporal : bool, selects whether data is temporal or not.
+
+snapshot_interval : int, modelled time between saved spatial data.
+
+window_size : int, amount of datapoints over which the early-warning signal is calculated (window).
+
+window_overlap : int, amount of datapoints from previous window taken into the next window.
+
+datatype : string, either 'map' for map-files or 'numpy' for numpy.txt-files.
+
+full_name : string, full name of the state variable.
+
+unit : string, unit of the state variable.
+    
+
+Example:
+--------
+
+Index Fund :
+
+    INDF = StateVariable('INDF', temporal=True, datatype='numpy', window_size=30, window_overlap=0, 
+        datatype='numpy.txt', full_name='Index fund closing value', unit="Dollars ($)")
+    
+"""
 
 variables_weekly = []
 variables_hourly = []
-
-
-# Class StateVariable for Variable objects #
 
 
 class StateVariable:
@@ -28,8 +68,6 @@ class StateVariable:
 
 
 # State variables for EWS #
-
-INDF = StateVariable('INDF', temporal=True, datatype='numpy', full_name='Index fund closing', unit="Dollars ($)")
 
 # Maximum interception store
 micM = StateVariable('micM', spatial=True, full_name='Maximum interception storage spatial', unit="m")
@@ -98,7 +136,8 @@ creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net cre
 # Rq
 Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', window_size=876)
 
-# Check which variables are present in the configuration and append these to the list of variables #
+
+# Check which variables are present in the configuration and append these to the list of variables
 
 full_set_of_variables_weekly = [micM, micA, micL, laiM, laiA, laiL, moiM, moiA, moiL, bioM, bioA, bioL, regM, regA,
                                 regL, demM, demA, demL, qA, gA, gpM, gpA, grM, grA, grnM, grnA, depM, depA, depL, weaM,
