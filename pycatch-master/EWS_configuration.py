@@ -72,7 +72,7 @@ return_ini_grazing : Selects whether the grazing rates return to the initial val
 number_of_timesteps_hourly = 8760  # ~1y in hours (24 hours per day)
 # number_of_timesteps_hourly = 2000  # smaller test-run
 number_of_timesteps_weekly = 104000  # ~2000y in weeks (52 weeks per year)
-# number_of_timesteps_weekly = 5000  # smaller test-run
+# number_of_timesteps_weekly = 5200  # smaller test-run of ~100y in weeks
 
 # Saving spatial data
 map_data = True
@@ -83,8 +83,8 @@ mean_timeseries_data = True
 loc_timeseries_data = True
 
 # Reporting of variables
-setOfVariablesToReport = 'full'
-# setOfVariablesToReport = 'filtering'
+# setOfVariablesToReport = 'full'
+setOfVariablesToReport = 'filtering'
 # setOfVariablesToReport = 'None'
 
 # Timesteps of reporting variables
@@ -150,6 +150,11 @@ method_2 : If True, the given number of null model realizations are created with
 method_3 : If True, the given number of null model realizations are created with an AR(1) model fitted to the data
     (similar autocorrelations, mean and variance).
 
+detrended_method : Either 'None' or 'Gaussian', selects whether none detrending occurs or Gaussian filtering detrending 
+    using scipy.ndimage.gaussian_filter1d().
+    
+detrended_sigma : If detrended_method is 'Gaussian', selects the sigma used in scipy.ndimage.gaussian_filter1d().
+
 save_detrended_data : Selects whether detrended temporal data used in the generation of null models is saved. Only
     relevent when detrending in EWS_weekly.py is not set to 'None'.
 
@@ -164,20 +169,23 @@ cutoff_point : Time at which states shift. Retrieved from plotting the biomass t
 # State variables
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
-state_variables_for_ews_weekly = ['bioA', 'demM', 'micM', 'regM', 'laiM', 'moiM', 'bioM']
+# state_variables_for_ews_weekly = ['bioA', 'demM', 'micM', 'regM', 'laiM', 'moiM', 'bioM']
+state_variables_for_ews_weekly = ['bioA', 'bioM']
 # state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
 
 # Generate null models
-generate_dummy_datasets = False
-nr_generated_datasets = 100
+generate_dummy_datasets = True
+nr_generated_datasets = 10
 
 # Methods for generated null models
 method_1 = True
 method_2 = True
 method_3 = True
 
-# Save detrended temporal data
-save_detrended_data = False
+# Temporal data detrending
+detrended_method = 'Gaussian'
+detrended_sigma = 50
+save_detrended_data = True
 
 # Cutoff transition
 cutoff = True
@@ -214,15 +222,15 @@ if setOfVariablesToReport == 'full':
 elif setOfVariablesToReport == 'filtering':
     interception_report_rasters = []
     #   reports of totals (Vot) only make sense if calculateUpstreamTotals is True
-    infiltration_report_rasters_weekly = []
-    infiltration_report_rasters = ["Iks"]
+    infiltration_report_rasters_weekly = ["Iks"]
+    infiltration_report_rasters = []
     runoff_report_rasters = []
     subsurface_report_rasters = []
     #   reports of totals (Gxt, Got) only make sense if calculateUpstreamTotals is True
     shading_report_rasters = []
     surfacestore_report_rasters = []
     rainfalleventsfromgammadistribution_report_rasters = []
-    exchange_report_rasters = ["Xrc", "Xra"]
+    exchange_report_rasters = []
     soilwashMMF_report_rasters = []
     regolith_report_rasters = []
     bedrockweathering_report_rasters = []

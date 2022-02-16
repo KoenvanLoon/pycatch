@@ -12,9 +12,15 @@ import EWS_StateVariables as ews_sv
 variables = ews_sv.variables_weekly
 # variables = ews_sv.variables_hourly
 
+timeseries = ews_sv.variables_weekly
+
 names = []
 for variable in variables:
     names.append([f'{variable.full_name} as {variable.name}'])
+
+names_timeseries = []
+for ts in timeseries:
+    names_timeseries.append([f'{ts.full_name} as {ts.name}'])
 
 ## Number of timesteps over which EWS can be calculated ##
 # This number can be different for the weekly and hourly model
@@ -131,6 +137,12 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
             plot2 = ax2.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable2.full_name}')
+        elif signal2 == 'gauss':
+            fname = ews.file_name_str(variable1.name + 'g', number_of_timesteps)
+            fpath = os.path.join(path + fname)
+            timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
+            timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
+            plot2 = ax2.plot(timeseries_x_axis, timeseries_y_axis, label=f'Gaussian detrending {variable2.full_name}')
         elif signal2 != 'None':
             fpath = os.path.join(path + variable2.name + dim2 + signal2)
             signal2_array = np.loadtxt(fpath + '.numpy.txt')
@@ -270,5 +282,112 @@ def user_plotmaker_looper(path='./1/'):
         print("Invalid input, terminated plotmaker. Goodbye.")
 
 
-# user_plotmaker_looper(path='./1/dtr0000/')
-user_plotmaker_looper(path='./1/')
+def weekly_hourly_coupled():
+    fig, ax1 = plt.subplots()
+
+    ax1.minorticks_on()
+    ax1.grid(which='minor', linestyle=':', alpha=0.2)
+    ax1.grid(which='major', linestyle='--', alpha=0.5)
+
+    ax1.set_xlabel('time (weeks)')
+
+    snapshot_timeseries = np.loadtxt('./snapshot_times.numpy.txt')
+
+    print("Timeseries present in the current run are:")
+    for name in names_timeseries:
+        print(name)
+
+    print("Enter the short name for the timeseries:")
+    timeseries_input = input()
+
+    timeseries_ = [ts for ts in timeseries if ts.name == timeseries_input][0]
+    if timeseries_.temporal:
+        #timeseries = [ts for ts in timeseries if timeseries.name == timeseries_input][0]
+
+        fname_week = ews.file_name_str(timeseries_.name, cfg.number_of_timesteps_weekly)
+        fpath = f'./inputs_from_weekly/{fname_week}'
+
+        timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
+        timeseries_x_axis = np.arange(0, cfg.number_of_timesteps_weekly, 1)
+
+    elif timeseries_.spatial:
+        print("Spatial data can not be used for timeseries.")
+
+    print("Variables present in the current run are:")
+    for name in names:
+        print(name)
+
+    print("Enter the short name for state variable:")
+    variable_input = input()
+    variable = [variable for variable in variables if variable.name == variable_input][0]
+    if variable.temporal:
+        print("EWS signals present are:", ews_temporal_signals)
+    elif variable.spatial:
+        print("EWS signals present are:", ews_spatial_signals)
+
+    statistic_input = input()
+
+    snapshot_y_axis = []
+    snapshot_x_axis = snapshot_timeseries
+
+    for nr, _ in enumerate(snapshot_timeseries):
+
+        if variable.temporal:
+            dim = '.t.'
+        elif variable.spatial:
+            dim = '.s.'
+
+        fname = variable.name + dim + statistic_input + '.numpy.txt'
+        fpath = os.path.join('./h' + str(nr).zfill(2) + '/' + fname)
+        statistic = np.loadtxt(fpath)
+        if statistic.ndim == 0:
+            snapshot_y_axis.append(statistic)
+        elif statistic.ndim == 1:
+            snapshot_y_axis.append(statistic[-1])
+
+    #colour = plt.cm.tab10(1)
+
+    ax1.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {timeseries_.full_name}', color=plt.cm.tab10(0))
+    #ax1.set_ylabel()
+
+    ax2 = ax1.twinx()
+    ax2.minorticks_on()
+
+    ax1.tick_params(axis='y', which='both', colors=plt.cm.tab10(0))
+    ax2.tick_params(axis='y', which='both', colors=plt.cm.tab10(1))
+
+    if variable.spatial:
+        ax2.scatter(snapshot_x_axis, snapshot_y_axis, label=f'{variable.full_name} {ews_spatial_signals[statistic_input]}', c=plt.cm.tab10(1))
+        ax2.set_ylabel(f'{ews_spatial_signals[statistic_input]}', c=plt.cm.tab10(1))
+        ax1.set_title(f'{timeseries_.full_name} timeseries from weekly & {variable.full_name} {ews_spatial_signals[statistic_input]}')
+    elif variable.temporal:
+        ax2.scatter(snapshot_x_axis, snapshot_y_axis, label=f'{variable.full_name} {ews_temporal_signals[statistic_input]}', c=plt.cm.tab10(1))
+        ax2.set_ylabel(f'{ews_temporal_signals[statistic_input]}', c=plt.cm.tab10(1))
+        ax1.set_title(f'{timeseries_.full_name} timeseries from weekly & {variable.full_name} {ews_temporal_signals[statistic_input]}')
+
+    # Trendline
+    z = np.polyfit(snapshot_x_axis, snapshot_y_axis, 1)
+    p = np.poly1d(z)
+    ax2.plot(snapshot_x_axis, p(snapshot_x_axis), "r--")
+
+    #plots = plot1 + plot2
+    fig.tight_layout()
+
+    print("Put number of snapshot next to point? [Y/n]")
+    nr_on = input()
+    if nr_on == 'Y'  or nr_on == 'y':
+        for i, nr in enumerate(snapshot_timeseries):
+            #ax2.annotate(int(nr), (snapshot_x_axis[i], snapshot_y_axis[i]))
+            ax2.annotate(int(i), (snapshot_x_axis[i], snapshot_y_axis[i]))
+
+    print("Save the plot as a .pdf? [Y/n]")
+    save_plot = input()
+    if save_plot == 'Y' or save_plot == 'y':
+        fig.savefig('./plots/' + f'{timeseries_.full_name}_timeseries_from_weekly_and_{variable.name}_{ews_temporal_signals[statistic_input]}.pdf',
+                    format="pdf")
+
+    plt.show()
+
+
+user_plotmaker_looper(path='./1/dtr0000/')
+# user_plotmaker_looper(path='./1/')

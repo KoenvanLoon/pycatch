@@ -2,6 +2,7 @@ import numpy as np
 import os
 import scipy.stats
 import matplotlib.pyplot as plt
+from scipy import ndimage
 import time as timeit
 
 import EWSPy as ews
@@ -185,14 +186,15 @@ def test_windowsize(path='./1/'):
         biomass_timeseries = biomass_timeseries[:cfg.cutoff_point]
 
     # Window sizes & overlap
-    # ## Normal
+
+    # # Normal
     # window_overlaps = np.arange(0, 1000, 10)
     # if cfg.cutoff:
     #     window_sizes = np.arange(1000, cfg.cutoff_point // 2 + 1, 10)
     # else:
     #     window_sizes = np.arange(1000, cfg.number_of_timesteps_weekly // 2 + 1, 10)
 
-    ## Zoom
+    # Zoom
     window_overlaps = np.arange(0, 1000, 10)
     if cfg.cutoff:
         window_sizes = np.arange(1000, 15000, 10)
@@ -268,5 +270,102 @@ def test_windowsize(path='./1/'):
     plt.show()
 
 
+def test_windowgauss(path='./1/'):
+    # Loading files
+    fname = ews.file_name_str('bioA', cfg.number_of_timesteps_weekly)
+    fpath = os.path.join(path + fname)
+    biomass_timeseries = np.loadtxt(fpath + '.numpy.txt')
+    if cfg.cutoff:
+        biomass_timeseries = biomass_timeseries[:cfg.cutoff_point]
+
+    # Window sizes & overlap
+
+    # # Normal
+    # gaussian_filter = np.arange(0, 1000, 10)
+    # if cfg.cutoff:
+    #     window_sizes = np.arange(1000, cfg.cutoff_point // 2 + 1, 10)
+    # else:
+    #     window_sizes = np.arange(1000, cfg.number_of_timesteps_weekly // 2 + 1, 10)
+
+    # Zoom
+    gaussian_filter = np.arange(0, 1000, 10)
+    if cfg.cutoff:
+        window_sizes = np.arange(1000, 15000, 10)
+    else:
+        window_sizes = np.arange(1000, 15000, 10)
+
+    # X and Y coords
+    x, y = np.meshgrid(gaussian_filter, window_sizes)
+
+    # Calculating and storing tau and p values
+    tau_arr = np.zeros((len(window_sizes), len(gaussian_filter)))
+    p_arr = np.zeros((len(window_sizes), len(gaussian_filter)))
+    for i, window_size in enumerate(window_sizes):
+        print(f"Moved to windowsize {window_size}")
+        for j, gauss_filter in enumerate(gaussian_filter):
+            filter = ndimage.gaussian_filter1d(biomass_timeseries, gauss_filter)
+            biomass_timeseries_detrended = biomass_timeseries - filter
+
+            stack_of_windows = window(biomass_timeseries_detrended, window_size, 0)
+
+            mean = np.nanmean(stack_of_windows, axis=1)
+            stat = ews.temporal_var(stack_of_windows)
+
+            tau, p = scipy.stats.kendalltau(stat, mean, nan_policy='propagate')
+            # tau_arr[i, j] = tau
+            # p_arr[i, j] = p
+
+            if np.abs(tau) >= 0.3:
+                tau_arr[i, j] = tau
+            else:
+                tau_arr[i, j] = np.nan
+
+            if p <= 0.05:
+                p_arr[i, j] = p
+            else:
+                p_arr[i, j] = np.nan
+
+    # Making the plots
+    z_array = [tau_arr, p_arr]
+    fig, axs = plt.subplots(ncols=2)
+    for ax, z in zip(axs, z_array):
+        # Making the contour plot
+        if z.all() == tau_arr.all():
+            ax.set_title('Biomass var windowtest \u03C4-value')
+            # # Max value(s)
+            # max_value = np.max(z)
+            # local_max_index = np.where(z == max_value)
+            # max_x, max_y = x[local_max_index[0], local_max_index[1]], y[local_max_index[0], local_max_index[1]]
+            # ax.plot(max_x, max_y, color='red', marker="v", zorder=10, markersize=10, clip_on=False)
+        elif z.all() == p_arr.all():
+            ax.set_title('Biomass var windowtest p-value')
+        cs = ax.contourf(x, y, z, 10)
+        #ax.contour(cs, colors='k')
+
+        # Creating z coord for plot
+        x_flat, y_flat, z_flat = x.flatten(), y.flatten(), z.flatten()
+        def fmt(x, y):
+            dist = np.linalg.norm(np.vstack([x_flat - x, y_flat - y]), axis=0)
+            index = np.argmin(dist)
+            z = z_flat[index]
+            return 'x={x:.5f}   y={y:.5f}   z={z:.5f}'.format(x=x, y=y, z=z)
+        fig.gca().format_coord = fmt
+
+        # Labels, colorbar and grid
+        ax.set_ylabel('Window size')
+        ax.set_xlabel('Window overlap')
+        ax.grid(c='k', alpha=0.3)
+        fig.colorbar(cs, ax=ax)
+
+        # # Min values
+        # min_value = np.min(z)
+        # local_min_index = np.where(z == min_value)
+        # min_x, min_y = x[local_min_index[0], local_min_index[1]], y[local_min_index[0], local_min_index[1]]
+        # ax.plot(min_x, min_y, color='blue', marker="v", zorder=10, markersize=10, clip_on=False)
+
+    plt.show()
+
+
+test_windowgauss()
 #test_windowsize()
-kendall_tau_valhist()
+#kendall_tau_valhist()

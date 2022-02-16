@@ -2,8 +2,8 @@ import numpy as np
 from scipy import fft
 import statsmodels.api
 import os
+from scipy import ndimage
 import EWSPy as ews
-# import configuration_weekly as cfg
 import EWS_configuration as cfg
 
 
@@ -11,23 +11,33 @@ import EWS_configuration as cfg
 
 # TODO - method 2 did not return the right mean - check solution -, other values are A-OK
 
-def detrend_(data, gauss='None', realizations=1, path='./1/', file_name='xxx'):
-    generated_number_length = ews.generated_number_length(realizations)
+def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
+    detrended_data = data
 
-    generated_number_string = 'dtr' + str(0).zfill(generated_number_length)
-    dir_name = os.path.join(path + generated_number_string)
+    if cfg.detrended_method == 'Gaussian':
+        gaussian_filter = ndimage.gaussian_filter1d(data, cfg.detrended_sigma)
+        detrended_data = data - gaussian_filter
+    elif cfg.detrended_method is not 'None':
+        print("Invalid input for detrending_temp in generate_datasets (EWS_weekly.py). No detrending done.")
 
-    if os.path.isdir(dir_name) == False:
-        os.makedirs(dir_name)
+    if cfg.save_detrended_data:
+        generated_number_length = ews.generated_number_length(realizations)
+        generated_number_string = 'dtr' + str(0).zfill(generated_number_length)
+        dir_name = os.path.join(path + generated_number_string)
 
-    fname1 = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
-    fpath1 = os.path.join(dir_name, fname1)
-    np.savetxt(fpath1 + '.numpy.txt', data)
+        if os.path.isdir(dir_name) == False:
+            os.makedirs(dir_name)
 
-    if gauss is not 'None':
-        fname2 = ews.file_name_str(file_name + 'g', cfg.number_of_timesteps_weekly)
-        fpath2 = os.path.join(dir_name, fname2)
-        np.savetxt(fpath2 + '.numpy.txt', gauss)
+        fname1 = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
+        fpath1 = os.path.join(dir_name, fname1)
+        np.savetxt(fpath1 + '.numpy.txt', detrended_data)
+
+        if cfg.detrended_method == 'Gaussian':
+            fname2 = ews.file_name_str(file_name + 'g', cfg.number_of_timesteps_weekly)
+            fpath2 = os.path.join(dir_name, fname2)
+            np.savetxt(fpath2 + '.numpy.txt', gaussian_filter)
+
+    return detrended_data
 
 ## Method 1 ##
 def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
