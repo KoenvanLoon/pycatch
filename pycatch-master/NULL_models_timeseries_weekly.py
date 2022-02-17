@@ -9,7 +9,7 @@ import EWS_configuration as cfg
 
 ### Null models timeseries (Dakos et al. 2008) ###
 
-# TODO - method 2 did not return the right mean - check solution -, other values are A-OK
+# TODO - method 2 did not return the right mean - check solution -, check method 3
 
 def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
     detrended_data = data

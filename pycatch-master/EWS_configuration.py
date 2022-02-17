@@ -170,11 +170,11 @@ cutoff_point : Time at which states shift. Retrieved from plotting the biomass t
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
 # state_variables_for_ews_weekly = ['bioA', 'demM', 'micM', 'regM', 'laiM', 'moiM', 'bioM']
-state_variables_for_ews_weekly = ['bioA', 'bioM']
-# state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
+# state_variables_for_ews_weekly = ['bioA', 'bioM']
+state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
 
 # Generate null models
-generate_dummy_datasets = True
+generate_dummy_datasets = False
 nr_generated_datasets = 10
 
 # Methods for generated null models
@@ -188,7 +188,7 @@ detrended_sigma = 50
 save_detrended_data = True
 
 # Cutoff transition
-cutoff = True
+cutoff = False
 cutoff_point = 96000  # TODO - Implement a way to cutoff data before/at (?) CT --> if tuple, elif int/scalar.
 
 # Reporting for the model components (both hourly and weekly)

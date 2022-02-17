@@ -10,7 +10,7 @@ from pcraster import numpy2pcr, report, Scalar
 
 ### Null models adapted from (Dakos et al. 2008) ###
 
-# TODO - method 2 did not always return the right mean --> check solution -, other values are A-OK
+# TODO - method 2 did not always return the right mean --> check solution -, check method 3
 
 ## First method ##
 def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):

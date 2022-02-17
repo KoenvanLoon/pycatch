@@ -160,8 +160,6 @@ def kendall_tau_valhist(path='./1/'):
         print("Terminated histogram maker. Goodbye.")
 
 
-# kendall_tau_valhist(path='./1/')
-
 # TODO - Variables sorted as in weekly_plots, move other things to cfg
 # TODO - Change method names
 
@@ -280,7 +278,7 @@ def test_windowgauss(path='./1/'):
 
     # Window sizes & overlap
 
-    # # Normal
+    # # Normal - Don't even try to run this, it takes ages
     # gaussian_filter = np.arange(0, 1000, 10)
     # if cfg.cutoff:
     #     window_sizes = np.arange(1000, cfg.cutoff_point // 2 + 1, 10)
@@ -288,11 +286,11 @@ def test_windowgauss(path='./1/'):
     #     window_sizes = np.arange(1000, cfg.number_of_timesteps_weekly // 2 + 1, 10)
 
     # Zoom
-    gaussian_filter = np.arange(0, 1000, 10)
+    gaussian_filter = np.arange(100, 20000, 100)
     if cfg.cutoff:
-        window_sizes = np.arange(1000, 15000, 10)
+        window_sizes = np.arange(1000, 15000, 100)
     else:
-        window_sizes = np.arange(1000, 15000, 10)
+        window_sizes = np.arange(1000, 15000, 100)
 
     # X and Y coords
     x, y = np.meshgrid(gaussian_filter, window_sizes)
@@ -300,30 +298,31 @@ def test_windowgauss(path='./1/'):
     # Calculating and storing tau and p values
     tau_arr = np.zeros((len(window_sizes), len(gaussian_filter)))
     p_arr = np.zeros((len(window_sizes), len(gaussian_filter)))
-    for i, window_size in enumerate(window_sizes):
-        print(f"Moved to windowsize {window_size}")
-        for j, gauss_filter in enumerate(gaussian_filter):
-            filter = ndimage.gaussian_filter1d(biomass_timeseries, gauss_filter)
-            biomass_timeseries_detrended = biomass_timeseries - filter
+
+    for j, gauss_filter in enumerate(gaussian_filter):
+        print(f"Moved to Gaussian filter-size {gauss_filter}")
+        filter = ndimage.gaussian_filter1d(biomass_timeseries, gauss_filter)
+        biomass_timeseries_detrended = biomass_timeseries - filter
+        for i, window_size in enumerate(window_sizes):
 
             stack_of_windows = window(biomass_timeseries_detrended, window_size, 0)
 
             mean = np.nanmean(stack_of_windows, axis=1)
-            stat = ews.temporal_var(stack_of_windows)
+            stat = ews.temporal_AR1(stack_of_windows)
 
             tau, p = scipy.stats.kendalltau(stat, mean, nan_policy='propagate')
-            # tau_arr[i, j] = tau
-            # p_arr[i, j] = p
+            tau_arr[i, j] = tau
+            p_arr[i, j] = p
 
-            if np.abs(tau) >= 0.3:
-                tau_arr[i, j] = tau
-            else:
-                tau_arr[i, j] = np.nan
-
-            if p <= 0.05:
-                p_arr[i, j] = p
-            else:
-                p_arr[i, j] = np.nan
+            # if np.abs(tau) >= 0.3:
+            #     tau_arr[i, j] = tau
+            # else:
+            #     tau_arr[i, j] = np.nan
+            #
+            # if p <= 0.05:
+            #     p_arr[i, j] = p
+            # else:
+            #     p_arr[i, j] = np.nan
 
     # Making the plots
     z_array = [tau_arr, p_arr]
@@ -331,14 +330,14 @@ def test_windowgauss(path='./1/'):
     for ax, z in zip(axs, z_array):
         # Making the contour plot
         if z.all() == tau_arr.all():
-            ax.set_title('Biomass var windowtest \u03C4-value')
+            ax.set_title('Biomass AR1 window-gaussian-test \u03C4-value')
             # # Max value(s)
             # max_value = np.max(z)
             # local_max_index = np.where(z == max_value)
             # max_x, max_y = x[local_max_index[0], local_max_index[1]], y[local_max_index[0], local_max_index[1]]
             # ax.plot(max_x, max_y, color='red', marker="v", zorder=10, markersize=10, clip_on=False)
         elif z.all() == p_arr.all():
-            ax.set_title('Biomass var windowtest p-value')
+            ax.set_title('Biomass AR1 window-gaussian-test p-value')
         cs = ax.contourf(x, y, z, 10)
         #ax.contour(cs, colors='k')
 
@@ -353,7 +352,7 @@ def test_windowgauss(path='./1/'):
 
         # Labels, colorbar and grid
         ax.set_ylabel('Window size')
-        ax.set_xlabel('Window overlap')
+        ax.set_xlabel('Gaussian filter size')
         ax.grid(c='k', alpha=0.3)
         fig.colorbar(cs, ax=ax)
 

@@ -389,5 +389,5 @@ def weekly_hourly_coupled():
     plt.show()
 
 
-user_plotmaker_looper(path='./1/dtr0000/')
-# user_plotmaker_looper(path='./1/')
+# user_plotmaker_looper(path='./1/dtr0000/')
+user_plotmaker_looper(path='./1/')
