@@ -49,6 +49,9 @@ Index Fund :
     
 """
 
+# TODO - Expand variables_hourly
+# TODO - Add units
+
 variables_weekly = []
 variables_hourly = []
 

@@ -1,9 +1,9 @@
 import numpy as np
 from scipy import fft
 from scipy.signal import convolve
+from scipy import ndimage
 import os
 import EWSPy as ews
-# import configuration_weekly as cfg
 import EWS_configuration as cfg
 from pcraster import numpy2pcr, report, Scalar
 
@@ -12,7 +12,94 @@ from pcraster import numpy2pcr, report, Scalar
 
 # TODO - method 2 did not always return the right mean --> check solution -, check method 3
 
-## First method ##
+# Detrend dataset
+"""
+Detrends the given dataset making use of either Gaussian filtering or linear detrending, as specified in the 
+configuration. Optionally, this data is saved.
+
+Args:
+-----
+
+data : numpy array, the spatial datasets.
+
+realizations : int, the number of datasets generated. Used for folder name in the case of detrending.
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+Return:
+-----
+
+detrended_data : The detrended spatial datasets.
+
+"""
+
+
+def detrend_(dataset, realizations=1, path='./1/', file_name='xxx'):
+    generated_number_length = ews.generated_number_length(realizations)
+
+    steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
+                      cfg.interval_map_snapshots)
+
+    detrended_dataset = [0.0] * len(dataset)
+
+    for k, data in enumerate(dataset):
+        detrended_data = data
+        if cfg.detrended_method == 'Gaussian':
+            gaussian_filter = ndimage.gaussian_filter(data, cfg.detrended_sigma)
+            detrended_data -= gaussian_filter
+        elif cfg.detrended_method == 'Linear':
+            mean = np.nanmean(data)
+            detrended_data -= mean
+        elif cfg.detrended_method is not 'None':
+            print("Invalid input for detrending_spat in generate_datasets (EWS_weekly.py). No detrending done.")
+
+        detrended_dataset[k] = detrended_data
+
+        if cfg.save_detrended_data:
+            generated_number_string = 'dtr' + str(0).zfill(generated_number_length)
+            dir_name = os.path.join(path + generated_number_string)
+
+            if os.path.isdir(dir_name) == False:
+                os.makedirs(dir_name)
+
+            fname1 = ews.file_name_str(file_name, steps[k])
+            fpath1 = os.path.join(dir_name, fname1)
+            # np.savetxt(fpath1 + '.numpy.txt', detrended_data)
+            report(detrended_data, fpath1)
+
+            if cfg.detrended_method == 'Gaussian':
+                fname2 = ews.file_name_str(file_name + 'g', steps[k])
+                fpath2 = os.path.join(dir_name, fname2)
+                # np.savetxt(fpath2 + '.numpy.txt', gaussian_filter)
+                report(gaussian_filter, fpath2)
+
+    return detrended_dataset
+
+
+# Generate datasets method 1
+"""
+Generates dataset(s) with similar mean and variance by randomly picking values from the original dataset. In the case
+of replace==False, this is similar to shuffling the dataset.
+
+Args:
+-----
+
+data : numpy array, the spatial datasets.
+
+realizations : int, the number of datasets generated.
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
+    picked values. Usually set to False to ensure similar mean and variance for smaller datasets.
+
+"""
+
+
 def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
 
@@ -39,8 +126,33 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
             report(generated_dataset, fpath)
 
 
-## Second method ##
-def method2_(dataset, realizations=1, method='Detrending', path='./1/', file_name='xxx', replace=False):
+# Generate datasets method 2
+"""
+Generates dataset(s) with similar autocorrelation, mean and variance by generating datasets with the same Fourier 
+spectrum and amplitudes.
+
+Args:
+-----
+
+data : numpy array, the spatial datasets.
+
+realizations : int, the number of datasets generated.
+
+method : str, either 'None' or 'Detrending', if detrended data is used as input, no further detrending is needed. If
+    not-detrended data is used, linear detrending is applied before the Fourier spectrum and amplitudes are calculated,
+    with the linear detrend added after the generation of datasets. 
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
+    picked values.
+
+"""
+
+
+def method2_(dataset, realizations=1, method='None', path='./1/', file_name='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
 
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
@@ -81,12 +193,34 @@ def method2_(dataset, realizations=1, method='Detrending', path='./1/', file_nam
             report(generated_dataset, fpath)
 
 
-## Third method ##
+# Third method note
 """
 Combination of Jon Yearsley (2021). Generate AR1 spatial data (https://www.mathworks.com/matlabcentral/fileexchange/5099-generate-ar1-spatial-data), MATLAB Central File Exchange. Retrieved November 30, 2021.
 and Dakos et al. 10.1073/pnas.0802430105
 """
 
+# Generate datasets method 3
+"""
+Generates dataset(s) with similar autocorrelation, mean and variance by generating datasets with an AR(1) model trained
+on the original dataset.
+
+Args:
+-----
+
+data : numpy array, the spatial datasets.
+
+realizations : int, the number of datasets generated.
+
+method : str, either 'Normal' or 'Adjusted'. For 'Normal', the standard AR(1) format is used. For 'Adjusted', the AR(1)
+    format of Jon Yearsley (2021) is used.
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+stdev_error : int/float, the standard deviation of the white noise process.
+
+"""
 
 def method3_(dataset, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1.0):
     generated_number_length = ews.generated_number_length(realizations)

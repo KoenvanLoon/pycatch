@@ -1,6 +1,6 @@
 """
 EWS - Early Warning Signals
-EWS_weekly
+EWS_hourly
 
 @authors: KoenvanLoon & TijmenJanssen
 """
@@ -12,8 +12,8 @@ import time
 
 import EWSPy as ews
 import EWS_configuration as cfg
-import NULL_models_timeseries_weekly as temp_NULL
-import NULL_models_spatial_weekly as spat_NULL
+# import NULL_models_timeseries_weekly as temp_NULL
+# import NULL_models_spatial_weekly as spat_NULL
 import EWS_StateVariables as ews_sv
 
 
@@ -30,7 +30,7 @@ variables : The state variables for which calculations are done.
 
 """
 
-variables = ews_sv.variables_weekly
+variables = ews_sv.variables_hourly
 
 
 # Spatial interval
@@ -46,7 +46,7 @@ spatial_ews_interval : 2D numpy array containing the time steps at which a spati
 """
 
 if not cfg.cutoff:
-    spatial_ews_interval = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly +
+    spatial_ews_interval = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_hourly +
                                      cfg.interval_map_snapshots, cfg.interval_map_snapshots)
 elif cfg.cutoff:
     spatial_ews_interval = np.arange(cfg.interval_map_snapshots, cfg.cutoff_point + cfg.interval_map_snapshots,
@@ -120,9 +120,7 @@ def generate_datasets_init(variable, path='./1/', nr_realizations=1, method1=Fal
         if files_present:
             if state_variable_timeseries.ndim == 1:
                 # Detrending: 'None', 'Gaussian'
-                state_variable_timeseries = generate_datasets_main(variable, state_variable_timeseries,
-                                                                   temp_NULL.detrend_, nr_realizations=nr_realizations,
-                                                                   path=path)
+                state_variable_timeseries = generate_datasets_main(variable, state_variable_timeseries, temp_NULL.detrend_, nr_realizations=nr_realizations, path=path)
                 # Generate dummy datasets
                 if method1:
                     generate_datasets_main(variable, state_variable_timeseries, temp_NULL.method1_,
@@ -143,9 +141,6 @@ def generate_datasets_init(variable, path='./1/', nr_realizations=1, method1=Fal
             state_variable_snapshots = np.asarray(state_variable_snapshots)
 
             # Generate dummy datasets
-            # Detrending: 'None', 'Linear', 'Gaussian'
-            state_variable_snapshots = generate_datasets_main(variable, state_variable_snapshots, spat_NULL.detrend_,
-                                                              nr_realizations=nr_realizations, path=path)
             if method1:
                 generate_datasets_main(variable, state_variable_snapshots, spat_NULL.method1_,
                                        nr_realizations=nr_realizations, path=path)
@@ -279,7 +274,7 @@ def temporal_data_file_loading(variable, path='./1/'):
     state_variable_timeseries = []
     EWS_calculations = True
     if variable.datatype == 'numpy':
-        file_name = ews.file_name_str(variable.name, cfg.number_of_timesteps_weekly)
+        file_name = ews.file_name_str(variable.name, cfg.number_of_timesteps_hourly)
         if os.path.exists(path + file_name + ".numpy.txt"):
             state_variable_timeseries = np.loadtxt(path + file_name + ".numpy.txt")
         else:
@@ -614,4 +609,4 @@ def EWS_hourly_calculations():
     print(f"Total elapsed time equals: {end_time} seconds")
 
 
-EWS_weekly_calculations()
+EWS_hourly_calculations()

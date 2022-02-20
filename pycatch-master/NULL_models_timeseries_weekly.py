@@ -11,12 +11,39 @@ import EWS_configuration as cfg
 
 # TODO - method 2 did not return the right mean - check solution -, check method 3
 
+# Detrend dataset
+"""
+Detrends the given dataset making use of either Gaussian filtering or linear detrending, as specified in the 
+configuration. Optionally, this data is saved.
+
+Args:
+-----
+
+data : numpy array, the timeseries data.
+
+realizations : int, the number of datasets generated. Used for folder name in the case of detrending.
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+Return:
+-----
+
+detrended_data : The detrended timeseries data.
+
+"""
+
+
 def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
     detrended_data = data
 
     if cfg.detrended_method == 'Gaussian':
         gaussian_filter = ndimage.gaussian_filter1d(data, cfg.detrended_sigma)
-        detrended_data = data - gaussian_filter
+        detrended_data -= gaussian_filter
+    elif cfg.detrended_method == 'Linear':
+        mean = np.nanmean(data)
+        detrended_data -= mean
     elif cfg.detrended_method is not 'None':
         print("Invalid input for detrending_temp in generate_datasets (EWS_weekly.py). No detrending done.")
 
@@ -39,7 +66,29 @@ def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
 
     return detrended_data
 
-## Method 1 ##
+
+# Generate datasets method 1
+"""
+Generates dataset(s) with similar mean and variance by randomly picking values from the original dataset. In the case
+of replace==False, this is similar to shuffling the dataset.
+
+Args:
+-----
+
+data : numpy array, the spatial datasets.
+
+realizations : int, the number of datasets generated.
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
+    picked values. Usually set to False to ensure similar mean and variance for smaller datasets.
+
+"""
+
+
 def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
 
@@ -57,8 +106,33 @@ def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
 
 
-## Method 2 ##
-def method2_(data, realizations=1, method='Detrending', path='./1/', file_name='xxx', replace=False):
+# Generate datasets method 2
+"""
+Generates dataset(s) with similar autocorrelation, mean and variance by generating datasets with the same Fourier 
+spectrum and amplitudes.
+
+Args:
+-----
+
+data : numpy array, the spatial datasets.
+
+realizations : int, the number of datasets generated.
+
+method : str, either 'None' or 'Detrending', if detrended data is used as input, no further detrending is needed. If
+    not-detrended data is used, linear detrending is applied before the Fourier spectrum and amplitudes are calculated,
+    with the linear detrend added after the generation of datasets. 
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
+    picked values.
+
+"""
+
+
+def method2_(data, realizations=1, method='None', path='./1/', file_name='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
     if method == 'Detrending':
         y = data
@@ -107,7 +181,30 @@ def method2_(data, realizations=1, method='Detrending', path='./1/', file_name='
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
 
 
-## Method 3 ##
+# Generate datasets method 3
+"""
+Generates dataset(s) with similar autocorrelation, mean and variance by generating datasets with an AR(1) model trained
+on the original dataset.
+
+Args:
+-----
+
+data : numpy array, the spatial datasets.
+
+realizations : int, the number of datasets generated.
+
+method : str, either 'Normal' or 'Adjusted'. For 'Normal', the standard AR(1) format is used. For 'Adjusted', the AR(1)
+    format of Jon Yearsley (2021) is used.
+
+path : str, the filepath where the original dataset can be found.
+
+file_name : str, name of the variable.
+
+stdev_error : int/float, the standard deviation of the white noise process.
+
+"""
+
+
 def method3_(data, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1):
     generated_number_length = ews.generated_number_length(realizations)
 

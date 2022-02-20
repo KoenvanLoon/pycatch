@@ -72,7 +72,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
     def initial(self):
 
-        self.initializeTime(2001, 2, 26, self.timeStepDuration)
+        self.initializeTime(cfg.startTimeYearValue, cfg.startTimeMonthValue, cfg.startTimeDayValue,
+                            self.timeStepDuration)
 
         self.createInstancesInitial()
 
@@ -465,14 +466,6 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             generalfunctions_test01.report_as_array(variable_mean_array, 'gA', self.currentSampleNumber(),
                                                     self.currentTimeStep())
 
-        # some extra outputs - TODO: Check if saving maps is necessary (see below):
-        # for growth part: Small variations, -0.00013576 -0.0001353
-        # for grazing part: Small variations, 0.0001137  0.00011369
-        # for net growth: Small variations, -0.00022432 -0.0002257
-        # for net deposition: 0 for short run (5200 weeks), small variations for longer runs
-        # for net weathering: Small variations, 9.95988594e-05 1.00064834e-04
-        # for net creep deposition: Small variations, 1.51124597e-03  1.48558617e-03
-
         # growth part
         variable = self.d_biomassModifiedMay.growthPart
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))
@@ -694,7 +687,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         # surface store
         initialSurfaceStore = scalar(0.0)
-        maxSurfaceStore = scalar(0.0001)
+        maxSurfaceStore = scalar(cfg.maxSurfaceStoreValue)
         self.d_surfaceStore = surfacestore.SurfaceStore(
             initialSurfaceStore,
             maxSurfaceStore,
@@ -718,14 +711,12 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
             cfg.infiltration_report_rasters_weekly)
 
         # subsurface water
-        # loam values from Niko Wanders, see mac disk articles/crittransGeom table # TODO - Make this scientific
-        # initialSoilMoistureFraction=scalar(0.03)
-        initialSoilMoistureFraction = scalar(0.43)
+        initialSoilMoistureFraction = scalar(cfg.initialSoilMoistureFractionCFG)
 
-        soilPorosityFraction = scalar(0.43)
-        fieldCapacityFraction = scalar(0.22)
-        limitingPointFraction = scalar(0.05)
-        wiltingPointFraction = scalar(0.019)
+        soilPorosityFraction = scalar(cfg.soilPorosityFractionValue)
+        fieldCapacityFraction = scalar(cfg.fieldCapacityFractionValue)
+        limitingPointFraction = scalar(cfg.limitingPointFractionValue)
+        wiltingPointFraction = scalar(cfg.mergeWiltingPointFractionFSValue)
 
         saturatedConductivityMetrePerDay = generalfunctions_test01.mapuniformBounds(
             2, 8, scalar(12.5), cfg.createRealizations)

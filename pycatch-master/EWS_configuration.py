@@ -174,8 +174,8 @@ state_variables_for_ews_hourly = ['Gs']
 state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
 
 # Generate null models
-generate_dummy_datasets = False
-nr_generated_datasets = 10
+generate_dummy_datasets = True
+nr_generated_datasets = 1
 
 # Methods for generated null models
 method_1 = True
@@ -270,48 +270,6 @@ Multiple rainstorm scenarios are given below. Originally, these could be found i
 
 """
 
-# # scenario: original
-# probabilityOfARainstorm = 0.4
-# durationOfRainstorm = 2.0
-# expectedRainfallIntensity = 0.002
-# gammaShapeParameter = 100
-
-# # scenario: higher intensity
-# probabilityOfARainstorm=0.4*0.75
-# durationOfRainstorm=2.0
-# expectedRainfallIntensity=0.002/0.75
-# gammaShapeParameter=100
-
-# # scenario: much higher intensity
-# probabilityOfARainstorm=0.4*0.25
-# durationOfRainstorm=2.0
-# expectedRainfallIntensity=0.002/0.25
-# gammaShapeParameter=100
-
-# # scenario: less rainstorms, longer duration
-# probabilityOfARainstorm=0.4*0.50
-# durationOfRainstorm=4.0
-# expectedRainfallIntensity=0.002
-# gammaShapeParameter=100
-
-# # scenario: shorter rainstorm
-# probabilityOfARainstorm=0.4
-# durationOfRainstorm=1.0
-# expectedRainfallIntensity=0.002*2.0
-# gammaShapeParameter=100
-
-# # scenario: more rainstorms (and also more rain in total)
-# probabilityOfARainstorm=0.999
-# durationOfRainstorm=2.0
-# expectedRainfallIntensity=0.002
-# gammaShapeParameter=100
-
-# # scenario: all more
-# probabilityOfARainstorm=0.4
-# durationOfRainstorm=4.0
-# expectedRainfallIntensity=0.004
-# gammaShapeParameter=100
-
 
 #  TODO - Put the parts below above the reporting for the model components in their respective place, i.e. hour/week
 #  model parts above the EWS stuff, after removal of unnecessary statements.
@@ -322,6 +280,12 @@ Multiple rainstorm scenarios are given below. Originally, these could be found i
 
 # folder with input files (maps, timeseries)
 inputFolder = "inputs_from_weekly"
+
+# set
+cloneString = str(pathlib.Path(inputFolder, "clone.map"))
+
+# report locations, i.e. outflow points, for instance, at the outlet
+locations = str(pathlib.Path(inputFolder, "clone.map"))
 
 # switch to report for locations as small numpy files
 # mainly used for particle filtering
@@ -336,86 +300,46 @@ swapCatchments = False
 # first time users should have a False here
 readDistributionOfParametersFromDisk = False
 
-with_shading = True
+with_shading = True  # TODO - Check if this can be deleted
 
 if with_shading is False:
     fractionReceivedValue = 1.0
     fractionReceivedFlatSurfaceValue = 1.0
 
-probabilityOfRainstorm = 0.4
-rainstormDuration = 3
-expectedRainfallIntensity = 0.002
-gammaShapeParameter = 100
-
-################
-# model inputs #
-################
-
-# general ########
-
-
-# set
-cloneString = str(pathlib.Path(inputFolder, "clone.map"))
-
-# report locations, i.e. outflow points, for instance, at the outlet
-locations = str(pathlib.Path(inputFolder, "clone.map"))
-
-# meteorology #######
-
-# Deze mogen er ook uit als we evaporatie met simple doen
-airTemperatureDetermString = str(pathlib.Path(inputFolder, "airTemperatureArnaJulAugSep0506.tss"))
-relativeHumidityDetermString = str(pathlib.Path(inputFolder, "relativeHumidityArnasJulAugSep0506.tss"))
-incomingShortwaveRadiationFlatSurfaceString = str(
-    pathlib.Path(inputFolder, "incomingShortwaveRadiationArnasJulAugSep0506.tss"))
-windVelocityDetermString = str(pathlib.Path(inputFolder, "windVelocityArnasJulAugSep0506.tss"))
-elevationAboveSeaLevelOfMeteoStationValue = 900.0
-
-# interception #######
-# maximumInterceptionCapacityValue = mogelijk relevant voor w-model
-# leafAreaIndexValue = mogelijk relevant voor w-model
-
-
 # surface storage ######
-maxSurfaceStoreValue = 0.0001
-
-# infiltration #######
-
-
-# regolith geometry ########
-# regolithThickness = mogelijk relevant voor w-model
-
+maxSurfaceStoreValue = 0.0001  # Move
 
 # TIJMEN reeds verandert in w-model parameters
 # 'groundwater' (saturated flow) ##########
 saturatedConductivityMetrePerDayValue = 12.5
-limitingPointFractionValue = 0.05
-mergeWiltingPointFractionFSValue = 0.019
-fieldCapacityFractionValue = 0.22
+limitingPointFractionValue = 0.05  # Move
+mergeWiltingPointFractionFSValue = 0.019  # Move
+fieldCapacityFractionValue = 0.22  # Move
 
 # green and ampt
 # ksatValue = mogelijk relevant voor w-model
-initialSoilMoistureFractionCFG = 0.22  # (= fieldCapacityFractionValue)
-soilPorosityFractionValue = 0.43
+initialSoilMoistureFractionCFG = 0.22  # (= fieldCapacityFractionValue)  # Move
+soilPorosityFractionValue = 0.43  # Move
 
 # evapotranspiration ###########
 
 # penman
-# Irrelevant bij simple evaporation
-multiplierMaxStomatalConductanceValue = 1.0
+multiplierMaxStomatalConductanceValue = 1.0  # TODO - Check in hourly model / move to hourly model
 
-# Irrelevant bij simple evaporation
-albedoSoil = 0.3
-albedoVeg = 0.2
 
 # real time of first time step, duration of time step
 # IMPORTANT NOTE: THIS IS NOW UTC TIME ALMOST CERTAINLY AT LEAST FOR SHADING
 # print("# IMPORTANT NOTE: THIS IS NOW UTC TIME ALMOST CERTAINLY AT LEAST FOR SHADING")
-startTimeYearValue = 2005
-startTimeMonthValue = 7
-startTimeDayValue = 1
-timeStepDurationHoursFloatingPointValue = 1.0  # only tested for one hour!!!!
+startTimeYearValue = 2005  # Move
+startTimeMonthValue = 7  # Move
+startTimeDayValue = 1  # Move
+timeStepDurationHoursFloatingPointValue = 1.0  # only tested for one hour!!!!  TODO - Move to hourly model
 
-# lat long for shading (solar radiation)
+# lat long for shading (solar radiation)  # TODO - Check in hourly model / move to hourly model
 latitudeOfCatchment = 52.12833333
 longitudeOfCatchment = 5.19861111
 timeZone = "Europe/Madrid"
+
+#Loop over snapshots
+stepsInShift = 1
+stepsTotal = 1
