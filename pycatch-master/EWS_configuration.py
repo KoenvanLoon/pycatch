@@ -14,6 +14,13 @@ Settings for hour/week pycatch models.
 Args:
 -----
 
+inputFolder : str, folder where inputs for the hourly model are stored. Inputs for the weekly model is 'weekly_inputs'
+    by default.
+    
+cloneString : str, .map file location of 'clone.map' for hourly model.
+
+locations : str, .map file location of 'locs.map' for hourly model.
+
 number_of_timesteps_hourly/weekly : The number of steps in time for which the respective model (hourly/weekly) 
     calculates model outputs.
 
@@ -35,9 +42,13 @@ timesteps_to_report_all_hourly/weekly : Defines timesteps at which all variables
 
 timesteps_to_report_some_hourly/weekly : Defines timesteps at which some variables are reported.
 
-timeStepsToReportRqs : Defines timesteps were Rq is reported in the hour model.
+doReportComponentsDynamicAsNumpy : Switch to report for locations in the hourly model as "small" numpy files, mainly 
+    used for particle filtering.
 
 nrOfSamples : The number of Monte Carlo (MC) samples or particles, realizations are written in folder(s) 1, 2, ...
+
+readDistributionOfParametersFromDisk : When True, one can read a set of parameters for all Monte Carlo realizations from
+    disk (e.g. representing probability distributions from a calibration). First time users should use False.
 
 filtering : When True, a particle filtering run is done. Usually False for first time users.
 
@@ -52,11 +63,30 @@ fixedStates : Option to fix both the regolith and the vegetation states (week mo
 
 changeGeomorphology : Option to call on the methods that change the geomorphology (week model). Usually True.
 
+swapCatchments : Switch to swap parameter values between two catchments, first time users will need to set this to 
+    False.
+
 rainstorm_probability : Chance of rainstorm per week, e.g. if set to 0.4, there is a 40% chance of rain per week.
 
 rainstorm_duration : The time in hours for modelled rainfall events.
 
-rainstorm_expected_intensity : 
+rainstorm_expected_intensity : Expected value of the intensity of a given rainstorm.
+
+rainstorm_gamma_shape_param : Gamma shape parameter used for rainstorm intensity.
+
+maxSurfaceStoreValue : int/flt, the maximum store of water at the surface level (in m).
+
+saturatedConductivityMetrePerDayValue : int/flt, the saturated conductivity in meter per day.
+
+limitingPointFractionValue : float, the lower limit of soil moisture fraction.
+
+mergeWiltingPointFractionFSValue : float, the lower limit of soil moisture fraction at which plants start to wilt.
+
+fieldCapacityFractionValue : float, the equilibrium of soil moisture fraction in the field.
+
+initialSoilMoistureFractionCFG : float, the initial soil moisture fraction at the start of the model run.
+
+soilPorosityFractionValue : float, the porosity of the soil.
 
 rel_start_grazing : Ratio between 0 and 1 which sets the starting point over the number of timesteps
 
@@ -64,9 +94,19 @@ tot_increase_grazing : The total increase of grazing over the grazing period.
 
 return_ini_grazing : Selects whether the grazing rates return to the initial value after the halfway point of the
     grazing period. Usually False. (Note that this halfway point occurs on (1 - rel_start) * total time / 2) .
+    
+startTimeYearValue , startTimeMonthValue , startTimeDayValue : int, starting time of model run specified by YYYY/MM/DD
+
+withShading : bool, selects whether shading is used or not in the hourly model. This is not used for the
+    evaporationsimple module.
 
 -----
 """
+
+# Hourly model input folder/file(s)
+inputFolder = "inputs_from_weekly"
+cloneString = str(pathlib.Path(inputFolder, "clone.map"))
+locations = str(pathlib.Path(inputFolder, "clone.map"))
 
 # Duration of model runs
 number_of_timesteps_hourly = 8760  # ~1y in hours (24 hours per day)
@@ -94,8 +134,14 @@ timesteps_to_report_all_weekly = list(range(0, number_of_timesteps_weekly + 1, i
 timesteps_to_report_some_hourly = list(range(100, number_of_timesteps_hourly + 1, 100))
 timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, interval_map_snapshots))
 
+# Hourly model report as numpy
+doReportComponentsDynamicAsNumpy = False
+
 # Monte Carlo (MC) realizations
 nrOfSamples = 1
+
+# Read set of parameters for all MC realizations from disk
+readDistributionOfParametersFromDisk = False
 
 # Particle filtering
 filtering = False
@@ -112,17 +158,44 @@ fixedStates = False
 # Change geomorphology
 changeGeomorphology = True
 
+# Swap catchments
+swapCatchments = False
+
 # Rainstorm parameters
 # # scenario: original
-rainstorm_probability = 0.4
+rainstorm_probability = 1.1
 rainstorm_duration = 2.0
 rainstorm_expected_intensity = 0.002
 rainstorm_gamma_shape_param = 100
+
+# Surface store
+maxSurfaceStoreValue = 0.0001
+
+# Groundwater (saturated flow) and soil (moisture) parameters
+saturatedConductivityMetrePerDayValue = 12.5
+limitingPointFractionValue = 0.05
+mergeWiltingPointFractionFSValue = 0.019
+fieldCapacityFractionValue = 0.22
+
+initialSoilMoistureFractionCFG = 0.22
+soilPorosityFractionValue = 0.43
 
 # Grazing
 rel_start_grazing = 0
 tot_increase_grazing = 0.00025
 return_ini_grazing = False
+
+# Real-time of first time step of model run(s)
+# ! - Note: This is now UTC time almost certainly at least for shading.
+startTimeYearValue = 2005
+startTimeMonthValue = 7
+startTimeDayValue = 1
+
+# Shading
+with_shading = True  # TODO - Check if this can be deleted
+if with_shading is False:
+    fractionReceivedValue = 1.0
+    fractionReceivedFlatSurfaceValue = 1.0
 
 # EWS configuration
 """
@@ -135,7 +208,13 @@ Settings for EWS calculations.
 Args:
 -----
 
-state_variables_for_ews_hourly/weekly : State variables for which early warning signals/statistics are calculated. 
+state_variables_for_ews_hourly/weekly : State variables for which early warning signals/statistics are calculated.
+    Either list of strings or 'full'.
+
+stepsInShift : int, number of snapshots for which the hourly model is going to be run in a specified period.
+
+stepsTotal : int, number of snapshots for which the hourly model is going to be run over the whole period as specified
+    for the weekly model. Evenly distributed before and after the stepsInShift period if possible.
 
 generate_dummy_datasets : Selects whether null model realizations are generated or not.
 
@@ -169,9 +248,12 @@ cutoff_point : Time at which states shift. Retrieved from plotting the biomass t
 # State variables
 state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
-# state_variables_for_ews_weekly = ['bioA', 'demM', 'micM', 'regM', 'laiM', 'moiM', 'bioM']
 # state_variables_for_ews_weekly = ['bioA', 'bioM']
 state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
+
+# Loop over snapshots in hourly model
+stepsInShift = 20
+stepsTotal = 30
 
 # Generate null models
 generate_dummy_datasets = True
@@ -184,7 +266,7 @@ method_3 = True
 
 # Temporal data detrending
 detrended_method = 'Gaussian'
-detrended_sigma = 50
+detrended_sigma = 5000
 save_detrended_data = True
 
 # Cutoff transition
@@ -261,85 +343,3 @@ elif setOfVariablesToReport == 'None':
     baselevel_report_rasters = []
     creep_report_rasters = []
     randomparameters_report_rasters = []
-
-# Rainstorm scenarios
-"""
-Multiple rainstorm scenarios are given below. Originally, these could be found in the pycatch models.
-
-    ! - Note that the names of these variables have been changed.
-
-"""
-
-
-#  TODO - Put the parts below above the reporting for the model components in their respective place, i.e. hour/week
-#  model parts above the EWS stuff, after removal of unnecessary statements.
-
-######################
-# Hourly inputs only #
-######################
-
-# folder with input files (maps, timeseries)
-inputFolder = "inputs_from_weekly"
-
-# set
-cloneString = str(pathlib.Path(inputFolder, "clone.map"))
-
-# report locations, i.e. outflow points, for instance, at the outlet
-locations = str(pathlib.Path(inputFolder, "clone.map"))
-
-# switch to report for locations as small numpy files
-# mainly used for particle filtering
-doReportComponentsDynamicAsNumpy = False
-
-# switch to swap parameter values between two catchments
-# first time users will need to set this to False
-swapCatchments = False
-
-# when True, one can read a set of parameters for all Monte Carlo realizations
-# from disk (e.g. representing probability distributions from a calibration)
-# first time users should have a False here
-readDistributionOfParametersFromDisk = False
-
-with_shading = True  # TODO - Check if this can be deleted
-
-if with_shading is False:
-    fractionReceivedValue = 1.0
-    fractionReceivedFlatSurfaceValue = 1.0
-
-# surface storage ######
-maxSurfaceStoreValue = 0.0001  # Move
-
-# TIJMEN reeds verandert in w-model parameters
-# 'groundwater' (saturated flow) ##########
-saturatedConductivityMetrePerDayValue = 12.5
-limitingPointFractionValue = 0.05  # Move
-mergeWiltingPointFractionFSValue = 0.019  # Move
-fieldCapacityFractionValue = 0.22  # Move
-
-# green and ampt
-# ksatValue = mogelijk relevant voor w-model
-initialSoilMoistureFractionCFG = 0.22  # (= fieldCapacityFractionValue)  # Move
-soilPorosityFractionValue = 0.43  # Move
-
-# evapotranspiration ###########
-
-# penman
-multiplierMaxStomatalConductanceValue = 1.0  # TODO - Check in hourly model / move to hourly model
-
-
-# real time of first time step, duration of time step
-# IMPORTANT NOTE: THIS IS NOW UTC TIME ALMOST CERTAINLY AT LEAST FOR SHADING
-# print("# IMPORTANT NOTE: THIS IS NOW UTC TIME ALMOST CERTAINLY AT LEAST FOR SHADING")
-startTimeYearValue = 2005  # Move
-startTimeMonthValue = 7  # Move
-startTimeDayValue = 1  # Move
-timeStepDurationHoursFloatingPointValue = 1.0  # only tested for one hour!!!!  TODO - Move to hourly model
-
-# lat long for shading (solar radiation)  # TODO - Check in hourly model / move to hourly model
-latitudeOfCatchment = 52.12833333
-longitudeOfCatchment = 5.19861111
-timeZone = "Europe/Madrid"
-
-#Loop over snapshots
-stepsInShift = 1
-stepsTotal = 1

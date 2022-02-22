@@ -67,13 +67,15 @@ def detrend_(dataset, realizations=1, path='./1/', file_name='xxx'):
             fname1 = ews.file_name_str(file_name, steps[k])
             fpath1 = os.path.join(dir_name, fname1)
             # np.savetxt(fpath1 + '.numpy.txt', detrended_data)
-            report(detrended_data, fpath1)
+            detrended_data_pcr = numpy2pcr(Scalar, detrended_data, np.NaN)
+            report(detrended_data_pcr, fpath1)
 
             if cfg.detrended_method == 'Gaussian':
                 fname2 = ews.file_name_str(file_name + 'g', steps[k])
                 fpath2 = os.path.join(dir_name, fname2)
                 # np.savetxt(fpath2 + '.numpy.txt', gaussian_filter)
-                report(gaussian_filter, fpath2)
+                gaussian_filter_pcr = numpy2pcr(Scalar, gaussian_filter, np.NaN)
+                report(gaussian_filter_pcr, fpath2)
 
     return detrended_dataset
 
