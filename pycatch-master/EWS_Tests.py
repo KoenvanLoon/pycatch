@@ -286,11 +286,11 @@ def test_windowgauss(path='./1/'):
     #     window_sizes = np.arange(1000, cfg.number_of_timesteps_weekly // 2 + 1, 10)
 
     # Zoom
-    gaussian_filter = np.arange(100, 20000, 100)
+    gaussian_filter = np.arange(50, 20000, 50)
     if cfg.cutoff:
-        window_sizes = np.arange(100, 15000, 100)
+        window_sizes = np.arange(100, 25000, 100)
     else:
-        window_sizes = np.arange(100, 15000, 100)
+        window_sizes = np.arange(100, 25000, 100)
 
     # X and Y coords
     x, y = np.meshgrid(gaussian_filter, window_sizes)
@@ -308,7 +308,7 @@ def test_windowgauss(path='./1/'):
             stack_of_windows = window(biomass_timeseries_detrended, window_size, 0)
 
             mean = np.nanmean(stack_of_windows, axis=1)
-            stat = ews.temporal_var(stack_of_windows)
+            stat = ews.temporal_AR1(stack_of_windows)
 
             tau, p = scipy.stats.kendalltau(stat, mean, nan_policy='propagate')
             # tau_arr[i, j] = tau
@@ -330,14 +330,14 @@ def test_windowgauss(path='./1/'):
     for ax, z in zip(axs, z_array):
         # Making the contour plot
         if z.all() == tau_arr.all():
-            ax.set_title('Biomass var window-gaussian-test \u03C4-value')
+            ax.set_title('Biomass AR1 window-gaussian-test \u03C4-value')
             # # Max value(s)
             # max_value = np.max(z)
             # local_max_index = np.where(z == max_value)
             # max_x, max_y = x[local_max_index[0], local_max_index[1]], y[local_max_index[0], local_max_index[1]]
             # ax.plot(max_x, max_y, color='red', marker="v", zorder=10, markersize=10, clip_on=False)
         elif z.all() == p_arr.all():
-            ax.set_title('Biomass var window-gaussian-test p-value')
+            ax.set_title('Biomass AR1 window-gaussian-test p-value')
         cs = ax.contourf(x, y, z, 10)
         #ax.contour(cs, colors='k')
 

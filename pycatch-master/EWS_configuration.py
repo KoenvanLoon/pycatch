@@ -128,10 +128,10 @@ setOfVariablesToReport = 'filtering'
 # setOfVariablesToReport = 'None'
 
 # Timesteps of reporting variables
-timesteps_to_report_all_hourly = list(range(1, number_of_timesteps_hourly + 1, 1))  # TODO - set step-size to map int.?
+timesteps_to_report_all_hourly = list(range(1, number_of_timesteps_hourly + 1, 1))  # TODO - set step-size to map interval?
 timesteps_to_report_all_weekly = list(range(0, number_of_timesteps_weekly + 1, interval_map_snapshots))
 
-timesteps_to_report_some_hourly = list(range(100, number_of_timesteps_hourly + 1, 100))
+timesteps_to_report_some_hourly = list(range(100, number_of_timesteps_hourly + 1, 100))  # TODO - set step-size to map interval?
 timesteps_to_report_some_weekly = list(range(0, number_of_timesteps_weekly + 1, interval_map_snapshots))
 
 # Hourly model report as numpy
@@ -163,7 +163,7 @@ swapCatchments = False
 
 # Rainstorm parameters
 # # scenario: original
-rainstorm_probability = 1.1
+rainstorm_probability = 0.4
 rainstorm_duration = 2.0
 rainstorm_expected_intensity = 0.002
 rainstorm_gamma_shape_param = 100

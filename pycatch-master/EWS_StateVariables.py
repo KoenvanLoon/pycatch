@@ -104,6 +104,7 @@ demL = StateVariable('demL', temporal=True, datatype='numpy', full_name='DEM at 
 
 # Discharge
 qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal', unit=1)
+Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', window_size=876)
 
 # Grazing rate
 gA = StateVariable('gA', temporal=True, datatype='numpy', full_name='Grazing rate temporal', unit="kg m^-2 h^-1")
@@ -136,17 +137,15 @@ creA = StateVariable('creA', temporal=True, datatype='numpy', full_name='Net cre
 creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net creep deposition at location', unit=1)
 
 
-# Rq
-Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', window_size=876)
-
-
 # Check which variables are present in the configuration and append these to the list of variables
 
-full_set_of_variables_weekly = [micM, micA, micL, laiM, laiA, laiL, moiM, moiA, moiL, bioM, bioA, bioL, regM, regA,
-                                regL, demM, demA, demL, qA, gA, gpM, gpA, grM, grA, grnM, grnA, depM, depA, depL, weaM,
-                                weaA, weaL, creM, creA, creL]
+# full_set_of_variables_weekly = [micM, micA, micL, laiM, laiA, laiL, moiM, moiA, moiL, bioM, bioA, bioL, regM, regA,
+#                                 regL, demM, demA, demL, qA, gA, gpM, gpA, grM, grA, grnM, grnA, depM, depA, depL, weaM,
+#                                 weaA, weaL, creM, creA, creL]
 
-full_set_of_variables_hourly = [Rq]
+full_set_of_variables_weekly = [laiA, laiM, moiA, moiM, moiL, bioA, bioM, bioL, qA, grnA, grnM]
+
+full_set_of_variables_hourly = [Rq, moiA, moiM]
 
 if cfg.state_variables_for_ews_weekly == 'full':
     variables_weekly = full_set_of_variables_weekly

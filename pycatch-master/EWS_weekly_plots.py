@@ -2,6 +2,7 @@ import numpy as np
 import os
 from cycler import cycler
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 import EWS_configuration as cfg
 import EWSPy as ews
@@ -68,6 +69,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
     ax1.set_xlabel('time (weeks)')
 
     if variable1.spatial:
+        ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]}")
         if cfg.cutoff:
             x_axis1 = np.arange(cfg.interval_map_snapshots, cfg.cutoff_point + 1, cfg.interval_map_snapshots)
         else:
@@ -75,6 +77,7 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
                                 cfg.interval_map_snapshots)
         dim1 = '.s.'
     elif variable1.temporal:
+        ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]}")
         if cfg.cutoff:
             x_axis1 = np.arange(variable1.window_size, cfg.cutoff_point + 1, variable1.window_size - variable1.window_overlap)
         else:
@@ -88,12 +91,14 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
         timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
         timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
         plot1 = ax1.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable1.full_name}')
+        ax1.set_ylabel(f"{ews_temporal_signals[signal1]} ({variable1.unit})", color=colours1[0])
     elif signal1 == 'gauss':
         fname = ews.file_name_str(variable1.name + 'g', number_of_timesteps)
         fpath = os.path.join(path + fname)
         timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
         timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
         plot1 = ax1.plot(timeseries_x_axis, timeseries_y_axis, label=f'Gaussian detrending {variable1.full_name}')
+        ax1.set_ylabel(f"{ews_temporal_signals[signal1]} ({variable1.unit})", color=colours1[0])
     elif signal1 != 'None':
         fpath = os.path.join(path + variable1.name + dim1 + signal1)
         signal1_array = np.loadtxt(fpath + '.numpy.txt')
@@ -105,8 +110,10 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
                 line.set_label(f'{variable1.full_name} {location + 1} - {ews_temporal_signals[signal1]}')
         elif variable1.spatial:
             plot1 = ax1.plot(x_axis1, signal1_array, label=f'{variable1.full_name} {ews_spatial_signals[signal1]}')
+            ax1.set_ylabel(f"{ews_temporal_signals[signal1]}", color=colours1[0])
         elif variable1.temporal:
             plot1 = ax1.plot(x_axis1, signal1_array, label=f'{variable1.full_name} {ews_temporal_signals[signal1]}')
+            ax1.set_ylabel(f"{ews_temporal_signals[signal1]}", color=colours1[0])
 
     # Signal 2
     if variable2 != 'None':
@@ -137,12 +144,14 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
             plot2 = ax2.plot(timeseries_x_axis, timeseries_y_axis, label=f'Continues measurement of {variable2.full_name}')
+            ax2.set_ylabel(f"{ews_temporal_signals[signal2]} ({variable2.unit})", color=colours2[0])
         elif signal2 == 'gauss':
             fname = ews.file_name_str(variable1.name + 'g', number_of_timesteps)
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
             plot2 = ax2.plot(timeseries_x_axis, timeseries_y_axis, label=f'Gaussian detrending {variable2.full_name}')
+            ax2.set_ylabel(f"{ews_temporal_signals[signal2]} ({variable2.unit})", color=colours2[0])
         elif signal2 != 'None':
             fpath = os.path.join(path + variable2.name + dim2 + signal2)
             signal2_array = np.loadtxt(fpath + '.numpy.txt')
@@ -154,29 +163,23 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
                     line.set_label(f'{variable2.full_name} {location + 1} - {ews_temporal_signals[signal2]}')
             elif variable2.spatial:
                 plot2 = ax2.plot(x_axis2, signal2_array, label=f'{variable2.full_name} {ews_spatial_signals[signal2]}')
+                ax2.set_ylabel(f"{ews_temporal_signals[signal2]}", color=colours2[0])
             elif variable2.temporal:
                 plot2 = ax2.plot(x_axis2, signal2_array, label=f'{variable2.full_name} {ews_temporal_signals[signal2]}')
+                ax2.set_ylabel(f"{ews_temporal_signals[signal2]}", color=colours2[0])
 
         if variable1.temporal:
             if variable2.temporal:
-                ax1.set_ylabel(f"{ews_temporal_signals[signal1]}", color=colours1[0])
-                ax2.set_ylabel(f"{ews_temporal_signals[signal2]}", color=colours2[0])
                 ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]} & {variable2.full_name} "
                           f"{ews_temporal_signals[signal2]}")
             elif variable2.spatial:
-                ax1.set_ylabel(f"{ews_temporal_signals[signal1]}", color=colours1[0])
-                ax2.set_ylabel(f"{ews_spatial_signals[signal2]}", color=colours2[0])
                 ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]} & {variable2.full_name} "
                           f"{ews_spatial_signals[signal2]}")
         elif variable1.spatial:
             if variable2.temporal:
-                ax1.set_ylabel(f"{ews_spatial_signals[signal1]}", color=colours1[0])
-                ax2.set_ylabel(f"{ews_temporal_signals[signal2]}", color=colours2[0])
                 ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]} & {variable2.full_name} "
                           f"{ews_temporal_signals[signal2]}")
             elif variable2.spatial:
-                ax1.set_ylabel(f"{ews_spatial_signals[signal1]}", color=colours1[0])
-                ax2.set_ylabel(f"{ews_spatial_signals[signal2]}", color=colours2[0])
                 ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]} & {variable2.full_name} "
                           f"{ews_spatial_signals[signal2]}")
 
@@ -185,12 +188,6 @@ def plot2(variable1, signal1='None', variable2='None', signal2='None', path='./1
     # If signal 2 not present
     else:
         plots = plot1
-        if variable1.spatial:
-            ax1.set_ylabel(f"{ews_spatial_signals[signal1]}")
-            ax1.set_title(f"{variable1.full_name} {ews_spatial_signals[signal1]}")
-        elif variable1.temporal:
-            ax1.set_ylabel(f"{ews_temporal_signals[signal1]}")
-            ax1.set_title(f"{variable1.full_name} {ews_temporal_signals[signal1]}")
 
     # Legend
     if legend:
@@ -383,8 +380,14 @@ def weekly_hourly_coupled():
     print("Save the plot as a .pdf? [Y/n]")
     save_plot = input()
     if save_plot == 'Y' or save_plot == 'y':
-        fig.savefig('./plots/' + f'{timeseries_.full_name}_timeseries_from_weekly_and_{variable.name}_{ews_temporal_signals[statistic_input]}.pdf',
-                    format="pdf")
+        timestamp = datetime.now()
+        dir_name = './plots/'
+
+        if os.path.isdir(dir_name) == False:
+            os.makedirs(dir_name)
+
+        fig.savefig(dir_name + f'{timeseries_.full_name}_timeseries_from_weekly_and_{variable.name}_{ews_temporal_signals[statistic_input]}_'
+                               f'{timestamp.hour}.{timestamp.minute}.{timestamp.second}.pdf', format="pdf")
 
     plt.show()
 
