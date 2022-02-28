@@ -1,10 +1,10 @@
 import numpy as np
-from scipy import fft
+from scipy import fft, ndimage, signal
 import statsmodels.api
 import os
-from scipy import ndimage
 import EWSPy as ews
 import EWS_configuration as cfg
+import matplotlib.pyplot as plt
 
 
 ### Null models timeseries (Dakos et al. 2008) ###
@@ -25,7 +25,7 @@ realizations : int, the number of datasets generated. Used for folder name in th
 
 path : str, the filepath where the original dataset can be found.
 
-file_name : str, name of the variable.
+variable : name of the variable.
 
 Return:
 -----
@@ -35,15 +35,14 @@ detrended_data : The detrended timeseries data.
 """
 
 
-def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
+def detrend_(data, realizations=1, path='./1/', variable='xxx'):
     detrended_data = data
 
     if cfg.detrended_method == 'Gaussian':
         gaussian_filter = ndimage.gaussian_filter1d(data, cfg.detrended_sigma)
         detrended_data -= gaussian_filter
     elif cfg.detrended_method == 'Linear':
-        mean = np.nanmean(data)
-        detrended_data -= mean
+        detrended_data = signal.detrend(data, bp=np.arange(0, cfg.number_of_timesteps_weekly, variable.window_size))
     elif cfg.detrended_method is not 'None':
         print("Invalid input for detrending_temp in generate_datasets (EWS_weekly.py). No detrending done.")
 
@@ -55,14 +54,18 @@ def detrend_(data, realizations=1, path='./1/', file_name='xxx'):
         if os.path.isdir(dir_name) == False:
             os.makedirs(dir_name)
 
-        fname1 = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
+        fname1 = ews.file_name_str(variable.name, cfg.number_of_timesteps_weekly)
         fpath1 = os.path.join(dir_name, fname1)
         np.savetxt(fpath1 + '.numpy.txt', detrended_data)
 
         if cfg.detrended_method == 'Gaussian':
-            fname2 = ews.file_name_str(file_name + 'g', cfg.number_of_timesteps_weekly)
+            fname2 = ews.file_name_str(variable.name + 'g', cfg.number_of_timesteps_weekly)
             fpath2 = os.path.join(dir_name, fname2)
             np.savetxt(fpath2 + '.numpy.txt', gaussian_filter)
+        if cfg.detrended_method == 'Linear':
+            fname2 = ews.file_name_str(variable.name + 'l', cfg.number_of_timesteps_weekly)
+            fpath2 = os.path.join(dir_name, fname2)
+            np.savetxt(fpath2 + '.numpy.txt', data - detrended_data)
 
     return detrended_data
 
@@ -81,7 +84,7 @@ realizations : int, the number of datasets generated.
 
 path : str, the filepath where the original dataset can be found.
 
-file_name : str, name of the variable.
+variable : name of the variable.
 
 replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
     picked values. Usually set to False to ensure similar mean and variance for smaller datasets.
@@ -89,7 +92,7 @@ replace : bool, selects whether new values are picked from the original dataset 
 """
 
 
-def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
+def method1_(data, realizations=1, path='./1/', variable='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
 
     for realization in range(realizations):
@@ -101,7 +104,7 @@ def method1_(data, realizations=1, path='./1/', file_name='xxx', replace=False):
         if os.path.isdir(dir_name) == False:
             os.makedirs(dir_name)
 
-        fname = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
+        fname = ews.file_name_str(variable.name, cfg.number_of_timesteps_weekly)
         fpath = os.path.join(dir_name, fname)
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
 
@@ -124,7 +127,7 @@ method : str, either 'None' or 'Detrending', if detrended data is used as input,
 
 path : str, the filepath where the original dataset can be found.
 
-file_name : str, name of the variable.
+variable : name of the variable.
 
 replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
     picked values.
@@ -132,15 +135,12 @@ replace : bool, selects whether new values are picked from the original dataset 
 """
 
 
-def method2_(data, realizations=1, method='None', path='./1/', file_name='xxx', replace=False):
+def method2_(data, realizations=1, method='Detrending', path='./1/', variable='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
     if method == 'Detrending':
-        y = data
-        x = np.arange(len(data))
-        coef = np.polyfit(x, y, 1)
-        poly1d_fn = np.poly1d(coef)  # Function which takes in x and returns an estimate for y
-        lin_detr = poly1d_fn(x)
-        data = data - lin_detr  # Remove trend from data
+        detrended_data = signal.detrend(data, bp=np.arange(0, cfg.number_of_timesteps_weekly, variable.window_size))
+        lin_detr = data - detrended_data
+        data = detrended_data
 
     fft_ = fft.fft(data)
     fft_mag = np.abs(fft_)
@@ -176,7 +176,7 @@ def method2_(data, realizations=1, method='None', path='./1/', file_name='xxx', 
         if os.path.isdir(dir_name) == False:
             os.makedirs(dir_name)
 
-        fname = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
+        fname = ews.file_name_str(variable.name, cfg.number_of_timesteps_weekly)
         fpath = os.path.join(dir_name, fname)
         np.savetxt(fpath + '.numpy.txt', generated_dataset)
 
@@ -198,14 +198,14 @@ method : str, either 'Normal' or 'Adjusted'. For 'Normal', the standard AR(1) fo
 
 path : str, the filepath where the original dataset can be found.
 
-file_name : str, name of the variable.
+variable : name of the variable.
 
 stdev_error : int/float, the standard deviation of the white noise process.
 
 """
 
 
-def method3_(data, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1):
+def method3_(data, realizations=1, method='Normal', path='./1/', variable='xxx', stdev_error=1):
     generated_number_length = ews.generated_number_length(realizations)
 
     alpha1 = statsmodels.api.tsa.acf(data, nlags=1)
@@ -230,6 +230,6 @@ def method3_(data, realizations=1, method='Normal', path='./1/', file_name='xxx'
         if os.path.isdir(dir_name) == False:
             os.makedirs(dir_name)
 
-        fname = ews.file_name_str(file_name, cfg.number_of_timesteps_weekly)
+        fname = ews.file_name_str(variable.name, cfg.number_of_timesteps_weekly)
         fpath = os.path.join(dir_name, fname)
         np.savetxt(fpath + '.numpy.txt', generated_dataset)

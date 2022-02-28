@@ -185,7 +185,7 @@ detrended_data : Optional return, only returns when method==detrend_ for time se
 
 def generate_datasets_main(variable, state_variable, method, nr_realizations=1, path='./1/'):
     print(f"Started generating dataset(s) for {variable.name} using {method.__name__}")
-    detrended_data = method(state_variable, realizations=nr_realizations, path=path, file_name=variable.name)
+    detrended_data = method(state_variable, realizations=nr_realizations, path=path, variable=variable)
     print(f"Finished generating dataset(s) for {variable.name} using {method.__name__} \n")
     if method.__name__ == temp_NULL.detrend_.__name__:
         return detrended_data

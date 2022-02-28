@@ -36,7 +36,7 @@ detrended_data : The detrended spatial datasets.
 """
 
 
-def detrend_(dataset, realizations=1, path='./1/', file_name='xxx'):
+def detrend_(dataset, realizations=1, path='./1/', variable='xxx'):
     generated_number_length = ews.generated_number_length(realizations)
 
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
@@ -64,14 +64,14 @@ def detrend_(dataset, realizations=1, path='./1/', file_name='xxx'):
             if os.path.isdir(dir_name) == False:
                 os.makedirs(dir_name)
 
-            fname1 = ews.file_name_str(file_name, steps[k])
+            fname1 = ews.file_name_str(variable.name, steps[k])
             fpath1 = os.path.join(dir_name, fname1)
             # np.savetxt(fpath1 + '.numpy.txt', detrended_data)
             detrended_data_pcr = numpy2pcr(Scalar, detrended_data, np.NaN)
             report(detrended_data_pcr, fpath1)
 
             if cfg.detrended_method == 'Gaussian':
-                fname2 = ews.file_name_str(file_name + 'g', steps[k])
+                fname2 = ews.file_name_str(variable.name + 'g', steps[k])
                 fpath2 = os.path.join(dir_name, fname2)
                 # np.savetxt(fpath2 + '.numpy.txt', gaussian_filter)
                 gaussian_filter_pcr = numpy2pcr(Scalar, gaussian_filter, np.NaN)
@@ -94,7 +94,7 @@ realizations : int, the number of datasets generated.
 
 path : str, the filepath where the original dataset can be found.
 
-file_name : str, name of the variable.
+variable : str, name of the variable.
 
 replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
     picked values. Usually set to False to ensure similar mean and variance for smaller datasets.
@@ -102,7 +102,7 @@ replace : bool, selects whether new values are picked from the original dataset 
 """
 
 
-def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=False):
+def method1_(dataset, realizations=1, path='./1/', variable='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
 
     data_shape = dataset[0].shape
@@ -122,7 +122,7 @@ def method1_(dataset, realizations=1, path='./1/', file_name='xxx', replace=Fals
             if os.path.isdir(dir_name) == False:
                 os.makedirs(dir_name)
 
-            fname = ews.file_name_str(file_name, steps[k])
+            fname = ews.file_name_str(variable.name, steps[k])
             fpath = os.path.join(dir_name, fname)
             # np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)
@@ -146,7 +146,7 @@ method : str, either 'None' or 'Detrending', if detrended data is used as input,
 
 path : str, the filepath where the original dataset can be found.
 
-file_name : str, name of the variable.
+variable : name of the variable.
 
 replace : bool, selects whether new values are picked from the original dataset or the original dataset minus previously
     picked values.
@@ -154,7 +154,7 @@ replace : bool, selects whether new values are picked from the original dataset 
 """
 
 
-def method2_(dataset, realizations=1, method='None', path='./1/', file_name='xxx', replace=False):
+def method2_(dataset, realizations=1, method='Detrending', path='./1/', variable='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
 
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
@@ -189,7 +189,7 @@ def method2_(dataset, realizations=1, method='None', path='./1/', file_name='xxx
             if os.path.isdir(dir_name) == False:
                 os.makedirs(dir_name)
 
-            fname = ews.file_name_str(file_name, steps[k])
+            fname = ews.file_name_str(variable.name, steps[k])
             fpath = os.path.join(dir_name, fname)
             # np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)
@@ -218,13 +218,13 @@ method : str, either 'Normal' or 'Adjusted'. For 'Normal', the standard AR(1) fo
 
 path : str, the filepath where the original dataset can be found.
 
-file_name : str, name of the variable.
+variable : name of the variable.
 
 stdev_error : int/float, the standard deviation of the white noise process.
 
 """
 
-def method3_(dataset, realizations=1, method='Normal', path='./1/', file_name='xxx', stdev_error=1.0):
+def method3_(dataset, realizations=1, method='Normal', path='./1/', variable='xxx', stdev_error=1.0):
     generated_number_length = ews.generated_number_length(realizations)
 
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,
@@ -266,7 +266,7 @@ def method3_(dataset, realizations=1, method='Normal', path='./1/', file_name='x
             if os.path.isdir(dir_name) == False:
                 os.makedirs(dir_name)
 
-            fname = ews.file_name_str(file_name, steps[k])
+            fname = ews.file_name_str(variable.name, steps[k])
             fpath = os.path.join(dir_name, fname)
             # np.savetxt(fpath + '.numpy.txt', generated_dataset)
             report(generated_dataset, fpath)

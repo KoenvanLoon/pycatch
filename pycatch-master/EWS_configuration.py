@@ -256,22 +256,22 @@ stepsInShift = 20
 stepsTotal = 30
 
 # Generate null models
-generate_dummy_datasets = True
-nr_generated_datasets = 1
+generate_dummy_datasets = False
+nr_generated_datasets = 100
 
 # Methods for generated null models
 method_1 = True
 method_2 = True
 method_3 = True
 
-# Temporal data detrending
-detrended_method = 'Gaussian'
-detrended_sigma = 5000
+# Data detrending
+detrended_method = 'None'
+detrended_sigma = 100
 save_detrended_data = True
 
 # Cutoff transition
 cutoff = False
-cutoff_point = 96000  # TODO - Implement a way to cutoff data before/at (?) CT --> if tuple, elif int/scalar.
+cutoff_point = 95500  # TODO - Implement a way to cutoff data before/at (?) CT --> if tuple, elif int/scalar.
 
 # Reporting for the model components (both hourly and weekly)
 """
