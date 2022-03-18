@@ -180,10 +180,22 @@ fieldCapacityFractionValue = 0.22
 initialSoilMoistureFractionCFG = 0.22
 soilPorosityFractionValue = 0.43
 
-# Grazing
+# Grazing increase
 rel_start_grazing = 0
-tot_increase_grazing = 0.00025
+tot_increase_grazing = 0.000055 * 1.25
 return_ini_grazing = False
+
+# Carrying capacity
+
+# High carrying capacity
+initial_grazing = 0.00045
+waterUseEfficiency = 5.0 * 1.75
+maintenanceRate = (0.5 / 1.75) / (365.0 * 24.0)
+
+# Low carrying capacity : tot increase of 0.000055
+# initial_grazing = 0.0001
+# waterUseEfficiency = 5.0 / 1.25
+# maintenanceRate = (0.5 * 1.25) / (365.0 * 24.0)
 
 # Real-time of first time step of model run(s)
 # ! - Note: This is now UTC time almost certainly at least for shading.
@@ -270,8 +282,8 @@ detrended_sigma = 100
 save_detrended_data = True
 
 # Cutoff transition
-cutoff = False
-cutoff_point = 95500  # TODO - Implement a way to cutoff data before/at (?) CT --> if tuple, elif int/scalar.
+cutoff = True
+cutoff_point = 48000  # TODO - Implement a way to cutoff data before/at (?) CT --> if tuple, elif int/scalar.
 
 # Reporting for the model components (both hourly and weekly)
 """

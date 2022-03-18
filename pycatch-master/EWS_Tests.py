@@ -1,3 +1,10 @@
+"""
+EWS - Early Warning Signals
+EWS weekly plots
+
+@authors: KoenvanLoon & TijmenJanssen
+"""
+
 import numpy as np
 import os
 import scipy.stats
@@ -9,14 +16,38 @@ import EWSPy as ews
 import EWS_configuration as cfg
 import EWS_StateVariables as ews_sv
 
-## Variables ##
+# State variables for EWS
+"""
+State variables present in EWS_StateVariables.py can be added through EWS_configuration.py
+
+Args:
+----
+
+variables : list of either the hourly or weekly variables from EWS_StateVariables as specified in EWS_configuration.
+
+names : list of the names (full and shortened) of the variables specified in the hourly or weekly variables.
+
+"""
+
 variables = ews_sv.variables_weekly
 
 names = []
 for variable in variables:
     names.append([f'{variable.full_name} as {variable.name}'])
 
-## Statistical EWS ##
+# Early warning signals names
+"""
+Early warning signals (both temporal and spatial) which are included in EWSPy.py
+
+Args:
+----
+
+ews_temporal_signals : dict of shorthand notation and name of the temporal early warning signals.
+
+ews_spatial_signals : dict of shorthand notation and name of the spatial early warning signals.
+
+"""
+
 ews_temporal_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance",
                         'cv': "coefficient of variation", 'skw': "skewness", 'krt': "kurtosis",
                         'dfa': "detrended fluctuation analysis", 'acr': "autocorrelation", 'AR1': "AR1",
@@ -24,6 +55,32 @@ ews_temporal_signals = {'mn': "mean", 'std': "standard deviation", 'var': "varia
                         'gauss': "gauss"}
 ews_spatial_signals = {'std': "standard deviation", 'var': "variance", 'skw': "skewness", 'krt': "kurtosis",
                        'mI': "Moran's I"}
+
+
+# Kendall tau stats
+"""
+Returns the Kendall tau value and its significance (p-value).
+
+Args:
+----
+
+state_variable : The state variable of interest.
+
+sum_stat : str, the summary statistic for which the Kendall tau value is calculated.
+ 
+comp2 : str, either 'Same' or 'Forcing', sets the comparison to the mean of the same state variable or the forcing 
+    (grazing) rate
+
+path : str, path where inputs from the hourly/weekly model are stored.
+
+Returns:
+----
+
+tau : float, the Kendall tau value (rank correlation coefficient).
+
+p : float, the p-value (significance) of the calculated Kendall tau value.
+
+"""
 
 
 def kendalltau_stats(state_variable, sum_stat, comp2='Same', path='./1/'):
@@ -45,6 +102,35 @@ def kendalltau_stats(state_variable, sum_stat, comp2='Same', path='./1/'):
         tau, p = scipy.stats.kendalltau(X, Y, nan_policy='propagate')
 
     return tau, p
+
+
+# Kendall tau stats for dummy data
+"""
+Returns the Kendall tau value and its significance (p-value).
+
+Args:
+----
+
+state_variable : The state variable of interest.
+
+sum_stat : str, the summary statistic for which the Kendall tau value is calculated.
+
+method : str, either 'm1g', 'm2g', or 'm3g', the dummy data generation method for which the Kendall tau value is 
+    calculated.
+ 
+comp2 : str, either 'Same' or 'Forcing', sets the comparison to the mean of the same state variable or the forcing 
+    (grazing) rate
+
+path : str, path where inputs from the hourly/weekly model are stored.
+
+Returns:
+----
+
+tau : array, the Kendall tau values (rank correlation coefficient) for each realization of dummy data.
+
+p : array, the p-value (significance) of the calculated Kendall tau values for each realization of dummy data.
+
+"""
 
 
 def kendalltau_stats_dummy(state_variable, sum_stat, method='m1g', comp2='Same', path='./1/'):
@@ -73,6 +159,36 @@ def kendalltau_stats_dummy(state_variable, sum_stat, method='m1g', comp2='Same',
     return taurray, parray
 
 
+# Histogram plot maker
+"""
+Returns a histogram plot of the Kendall tau value(s) of the modelled dataset and dummy datasets.
+
+Args:
+----
+
+variable : The state variable of interest.
+
+statistic : str, the summary statistic for which the Kendall tau value is calculated.
+ 
+method : str, either 'm1g', 'm2g', or 'm3g', the dummy data generation method for which the Kendall tau value is 
+    calculated.
+    
+tau_values : array, the Kendall tau values (rank correlation coefficient) for each realization of dummy data.
+
+tau_original : float, the Kendall tau value for the modelled dataset.
+
+chance_cor : float, the p-value of the Kendall tau value for the modelled dataset.
+
+path : str, path where inputs from the hourly/weekly model are stored.
+
+Returns:
+----
+
+A histogram plot of the Kendall tau value(s) of the modelled dataset and dummy datasets. Optionally saved to disk.
+
+"""
+
+
 def histogram_plot(variable, statistic, method, tau_values, tau_original=np.NaN, chance_cor=np.NaN, path='./1/'):
     bins = np.linspace(-1, 1, num=41)
     histogram = np.histogram(tau_values, bins)
@@ -99,7 +215,24 @@ def histogram_plot(variable, statistic, method, tau_values, tau_original=np.NaN,
     plt.close()
 
 
-def chance_value(values, value, sign='None'):
+# Chance value
+"""
+The chance of the Kendall tau value exceeding the value found in the dummy datasets.
+
+Args:
+----
+
+values : array, Kendall tau values of dummy datasets.
+
+value : float, Kendall tau value of modelled dataset.
+
+sign_ini : str, 'None' by default. Whether the value should be greater ('<') or smaller ('>') than values.
+
+"""
+
+
+def chance_value(values, value, sign_ini='None'):
+    sign = sign_ini
     if sign == 'None':
         if value > 0.:
             sign = '>'
@@ -117,6 +250,27 @@ def chance_value(values, value, sign='None'):
         print(f"{sign} is not supported")
 
     return p
+
+
+# Histogram plot maker user input
+"""
+Returns a histogram plot of the Kendall tau value(s) of the modelled dataset and dummy datasets by running the
+    histogram_plot() function.
+
+Args:
+----
+
+path : str, path where inputs from the hourly/weekly model are stored.
+
+Returns:
+----
+
+optionally : A histogram plot of the Kendall tau value(s) of the modelled dataset and dummy datasets. Optionally saved 
+    to disk.
+    
+optionally : Kendall tau and p-values otherwise shown in the histogram plot.
+
+"""
 
 
 def kendall_tau_valhist(path='./1/'):
@@ -164,6 +318,32 @@ def kendall_tau_valhist(path='./1/'):
 # TODO - Change method names
 
 
+# Time series to time windows
+"""
+Divides a time series (2D numpy array) into an array of evenly sized time windows (2D numpy arrays). If remaining data-
+points do not fill the last time window, they are dropped from the stack of time windows.
+
+Args:
+-----
+
+timeseries : A 2D numpy array containing data points of a early-warning signal.
+
+window_size : The size (int) of the windows into which the time series is to be divided.
+
+window_overlap : The number (int) of data points in the window equal to the last data points of the previous time 
+    window.
+
+Returns:
+-----
+
+view : A 3D numpy array containing evenly sized time windows (2D numpy arrays).
+
+    ! - Note that the amount of data points in 'view' does not need to be equal to the amount of data points in 
+    'timeseries' due to the possibility of dropping data points if they do not fill the last time window completely.
+
+"""
+
+
 def window(timeseries, window_size, window_overlap):
     actual_window_overlap = window_size - window_overlap
     sh = (timeseries.size - window_size + 1, window_size)
@@ -173,6 +353,25 @@ def window(timeseries, window_size, window_overlap):
     elif window_overlap == 0:
         view = np.lib.stride_tricks.as_strided(timeseries, strides=st, shape=sh)[::window_size]
     return view
+
+
+# Windowsize tests
+"""
+Makes a contourplot with Kendall tau and p-values for different window sizes and overlaps.
+
+Args:
+----
+
+path : str, path where inputs from the hourly/weekly model are stored.
+
+method : str, either 'None' or 'Linear'. If 'Linear', a linear detrending is performed for each window.
+
+Returns:
+----
+
+Two contourplots with Kendall tau and p-values for different window sizes and overlaps. Optionally saved to disk.
+
+"""
 
 
 def test_windowsize(path='./1/', method='None'):
@@ -214,7 +413,7 @@ def test_windowsize(path='./1/', method='None'):
                 stack_of_windows = signal.detrend(stack_of_windows)
 
             mean = np.nanmean(stack_of_windows, axis=1)
-            stat = ews.temporal_var(stack_of_windows)
+            stat = ews.temporal_autocorrelation(stack_of_windows)
 
             tau, p = scipy.stats.kendalltau(stat, mean, nan_policy='propagate')
             # tau_arr[i, j] = tau
@@ -236,14 +435,14 @@ def test_windowsize(path='./1/', method='None'):
     for ax, z in zip(axs, z_array):
         # Making the contour plot
         if z.all() == tau_arr.all():
-            ax.set_title('Biomass variance windowtest \u03C4-value')
+            ax.set_title('Biomass autocorrelation windowtest \u03C4-value')
             # # Max value(s)
             # max_value = np.max(z)
             # local_max_index = np.where(z == max_value)
             # max_x, max_y = x[local_max_index[0], local_max_index[1]], y[local_max_index[0], local_max_index[1]]
             # ax.plot(max_x, max_y, color='red', marker="v", zorder=10, markersize=10, clip_on=False)
         elif z.all() == p_arr.all():
-            ax.set_title('Biomass variance windowtest p-value')
+            ax.set_title('Biomass autocorrelation windowtest p-value')
         cs = ax.contourf(x, y, z, 10)
         #ax.contour(cs, colors='k')
 
@@ -268,7 +467,30 @@ def test_windowsize(path='./1/', method='None'):
         # min_x, min_y = x[local_min_index[0], local_min_index[1]], y[local_min_index[0], local_min_index[1]]
         # ax.plot(min_x, min_y, color='blue', marker="v", zorder=10, markersize=10, clip_on=False)
 
+    print("Save the plot as a .pdf? [Y/n]")
+    save_plot = input()
+    if save_plot == 'Y' or save_plot == 'y':
+        plt.savefig(path + f"{method}_windowsize_test_var.pdf", format="pdf")
+
     plt.show()
+
+
+# Windowsize and gaussian filtering tests
+"""
+Makes a contourplot with Kendall tau and p-values for different window sizes and Gaussian filter sizes.
+
+Args:
+----
+
+path : str, path where inputs from the hourly/weekly model are stored.
+
+Returns:
+----
+
+Two contourplots with Kendall tau and p-values for different window sizes and Gaussian filter sizes. Optionally saved to 
+    disk.
+
+"""
 
 
 def test_windowgauss(path='./1/'):
@@ -365,9 +587,14 @@ def test_windowgauss(path='./1/'):
         # min_x, min_y = x[local_min_index[0], local_min_index[1]], y[local_min_index[0], local_min_index[1]]
         # ax.plot(min_x, min_y, color='blue', marker="v", zorder=10, markersize=10, clip_on=False)
 
+    print("Save the plot as a .pdf? [Y/n]")
+    save_plot = input()
+    if save_plot == 'Y' or save_plot == 'y':
+        plt.savefig(path + f"window_gauss_test_var.pdf", format="pdf")
+
     plt.show()
 
 
 #test_windowgauss(path='./1/')
-#test_windowsize(path='./1/')
-kendall_tau_valhist()
+test_windowsize(path='./1/')
+#kendall_tau_valhist()

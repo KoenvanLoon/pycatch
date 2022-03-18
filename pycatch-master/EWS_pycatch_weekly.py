@@ -113,7 +113,7 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
         self.d_exchangevariables.cumulativePrecipitation = scalar(0)
 
         # initial values
-        self.grazingRate = 0.0
+        self.grazingRate = cfg.initial_grazing
         self.runoffMetreWaterDepthPerHour = scalar(0.0)
         self.creepDeposition = spatial(scalar(0.0))
 
@@ -624,8 +624,8 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
 
         # biomass
         initialBiomass = 2.0
-        waterUseEfficiency = 5.0
-        maintenanceRate = 0.5 / (365.0 * 24.0)
+        waterUseEfficiency = cfg.waterUseEfficiency
+        maintenanceRate = cfg.maintenanceRate
 
         # original
         gamma = 0.004  # runoff

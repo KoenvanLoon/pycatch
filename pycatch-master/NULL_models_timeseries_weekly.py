@@ -1,3 +1,10 @@
+"""
+EWS - Early Warning Signals
+Null models timeseries weekly
+
+@authors: KoenvanLoon & TijmenJanssen
+"""
+
 import numpy as np
 from scipy import fft, ndimage, signal
 import statsmodels.api

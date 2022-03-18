@@ -1,3 +1,10 @@
+"""
+EWS - Early Warning Signals
+Null models spatial weekly
+
+@authors: KoenvanLoon & TijmenJanssen
+"""
+
 import numpy as np
 from scipy import fft
 from scipy.signal import convolve
@@ -154,7 +161,7 @@ replace : bool, selects whether new values are picked from the original dataset 
 """
 
 
-def method2_(dataset, realizations=1, method='Detrending', path='./1/', variable='xxx', replace=False):
+def method2_(dataset, realizations=1, method='None', path='./1/', variable='xxx', replace=False):
     generated_number_length = ews.generated_number_length(realizations)
 
     steps = np.arange(cfg.interval_map_snapshots, cfg.number_of_timesteps_weekly + cfg.interval_map_snapshots,

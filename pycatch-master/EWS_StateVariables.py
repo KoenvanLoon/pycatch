@@ -143,7 +143,8 @@ creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net cre
 #                                 regL, demM, demA, demL, qA, gA, gpM, gpA, grM, grA, grnM, grnA, depM, depA, depL, weaM,
 #                                 weaA, weaL, creM, creA, creL]
 
-full_set_of_variables_weekly = [laiA, laiM, moiA, moiM, moiL, bioA, bioM, bioL, qA, grnA, grnM]
+full_set_of_variables_weekly = [laiA, laiM, moiA, moiM, moiL, bioA, bioM, bioL, qA, grnA, grnM,
+                                regA, regM, demA, demM, weaA, weaM, creA, creM, grA, gA]
 
 full_set_of_variables_hourly = [Rq, moiA, moiM]
 
