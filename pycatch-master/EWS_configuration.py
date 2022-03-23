@@ -88,7 +88,9 @@ initialSoilMoistureFractionCFG : float, the initial soil moisture fraction at th
 
 soilPorosityFractionValue : float, the porosity of the soil.
 
-rel_start_grazing : Ratio between 0 and 1 which sets the starting point over the number of timesteps
+rel_start_grazing : Ratio between 0 and 1 which sets the starting point over the number of timesteps.
+
+rel_end_grazing : Ratio between 0 and 1 which sets the end point over the number of timesteps.
 
 tot_increase_grazing : The total increase of grazing over the grazing period.
 
@@ -180,20 +182,28 @@ fieldCapacityFractionValue = 0.22
 initialSoilMoistureFractionCFG = 0.22
 soilPorosityFractionValue = 0.43
 
-# Grazing increase
-rel_start_grazing = 0
-tot_increase_grazing = 0.000055 * 1.25
+# Grazing increase start
+rel_start_grazing = 0.1
+rel_end_grazing = 0.8
 return_ini_grazing = False
 
-# Carrying capacity
+# Carrying capacity scenarios
 
 # High carrying capacity
-initial_grazing = 0.00045
-waterUseEfficiency = 5.0 * 1.75
-maintenanceRate = (0.5 / 1.75) / (365.0 * 24.0)
+# tot_increase_grazing = 0.0000705
+# initial_grazing = 0.00047
+# waterUseEfficiency = 5.0 * 1.75
+# maintenanceRate = (0.5 / 1.75) / (365.0 * 24.0)
+
+# Intermediate carrying capacity
+tot_increase_grazing = 0.00003
+initial_grazing = 0.0002
+waterUseEfficiency = 5.0
+maintenanceRate = 0.5 / (365.0 * 24.0)
 
 # Low carrying capacity : tot increase of 0.000055
-# initial_grazing = 0.0001
+# tot_increase_grazing = 0.000018
+# initial_grazing = 0.00012
 # waterUseEfficiency = 5.0 / 1.25
 # maintenanceRate = (0.5 * 1.25) / (365.0 * 24.0)
 

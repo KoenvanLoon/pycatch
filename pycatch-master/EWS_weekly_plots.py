@@ -429,18 +429,8 @@ def plot_maker(variables_input, signals, path='/1/', legend=False, save=False, s
         signal = signals[i]
 
         # Cycle colours and linestyles
-        even = i % 2  # True if even number, False if odd number
-        idx = math.floor(i/2)
-        if even:
-            colours = np.concatenate((np.asarray(colours_list)[idx:], np.asarray(colours_list)[:idx]))
-        if not even:
-            colours = np.concatenate((np.asarray(colours_list)[idx:], np.asarray(colours_list)[:idx]))
-            colours = colours[::-1]
+        colours = np.concatenate((np.asarray(colours_list)[i:], np.asarray(colours_list)[:i]))
         ax.set_prop_cycle(cycler(color=colours, linestyle=linestyles))
-
-        # Ticks
-        ax.minorticks_on()
-        ax.tick_params(axis='y', which='both', colors=colours[i])
 
         # Dimension and x axis
         if variable.spatial:
@@ -463,24 +453,24 @@ def plot_maker(variables_input, signals, path='/1/', legend=False, save=False, s
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Timeseries of {variable.full_name}", color=colours[i])
-            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=colours[i])
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Timeseries of {variable.full_name}")
+            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
 
         elif signal == "gauss":
             fname = ews.file_name_str(variable.name + 'g', number_of_timesteps)
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Gaussian filter of {variable.full_name}", color=colours[i])
-            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=colours[i])
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Gaussian filter of {variable.full_name}")
+            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
 
         elif signal == "linear":
             fname = ews.file_name_str(variable.name + 'l', number_of_timesteps)
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Linear detrending of {variable.full_name}", color=colours[i])
-            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=colours[i])
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Linear detrending of {variable.full_name}")
+            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
 
         elif signal != 'None':
             fpath = os.path.join(path + variable.name + dim + signal)
@@ -489,15 +479,20 @@ def plot_maker(variables_input, signals, path='/1/', legend=False, save=False, s
                 signal_array = signal_array.T
                 plot = ax.plot(x_axis, signal_array)
                 lines = ax.get_lines()
-                ax.set_ylabel(f"{ews_temporal_signals[signal]}", color=colours[i])
+                ax.set_ylabel(f"{ews_temporal_signals[signal]}", color=plot[0].get_color())
                 for loc, line in enumerate(lines):
                     line.set_label(f"{variable.full_name} {loc + 1} - {ews_temporal_signals[signal]}")
             elif variable.spatial:
-                plot = ax.plot(x_axis, signal_array, label=f"{variable.full_name} {ews_spatial_signals[signal]}", color=colours[i])
-                ax.set_ylabel(f"{ews_spatial_signals[signal]}", color=colours[i])
+                plot = ax.plot(x_axis, signal_array, label=f"{variable.full_name} {ews_spatial_signals[signal]}")
+                ax.set_ylabel(f"{ews_spatial_signals[signal]}", color=plot[0].get_color())
             elif variable.temporal:
-                plot = ax.plot(x_axis, signal_array, label=f"{variable.full_name} {ews_temporal_signals[signal]}", color=colours[i])
-                ax.set_ylabel(f"{ews_temporal_signals[signal]}", color=colours[i])
+                plot = ax.plot(x_axis, signal_array, label=f"{variable.full_name} {ews_temporal_signals[signal]}")
+                ax.set_ylabel(f"{ews_temporal_signals[signal]}", color=plot[0].get_color())
+
+        # Ticks & spines
+        ax.minorticks_on()
+        ax.tick_params(axis='y', which='both', color=colours[0])
+        plt.setp(ax.get_yticklabels(), color=colours[0])
 
         for p in plot:
             plots.append(p)
