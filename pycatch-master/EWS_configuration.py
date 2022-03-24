@@ -232,6 +232,10 @@ Args:
 
 state_variables_for_ews_hourly/weekly : State variables for which early warning signals/statistics are calculated.
     Either list of strings or 'full'.
+    
+ews_temporal_signals : dict of shorthand notation and name of the temporal early warning signals.
+
+ews_spatial_signals : dict of shorthand notation and name of the spatial early warning signals.
 
 stepsInShift : int, number of snapshots for which the hourly model is going to be run in a specified period.
 
@@ -272,6 +276,15 @@ state_variables_for_ews_hourly = ['Gs']
 # state_variables_for_ews_hourly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
 # state_variables_for_ews_weekly = ['bioA', 'bioM']
 state_variables_for_ews_weekly = 'full'  # - TODO check the 'full' list in EWS_StateVariables.py
+
+# Early Warning Signals
+ews_temporal_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance",
+                        'cv': "coefficient of variation", 'skw': "skewness", 'krt': "kurtosis",
+                        'dfa': "detrended fluctuation analysis", 'acr': "autocorrelation", 'AR1': "AR1",
+                        'rr': "return rate", 'coh': "conditional heteroskedasticity", 'timeseries': "timeseries",
+                        'gauss': "gauss", 'linear': "linear"}
+ews_spatial_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance", 'skw': "skewness",
+                       'krt': "kurtosis", 'mI': "Moran's I"}
 
 # Loop over snapshots in hourly model
 stepsInShift = 20

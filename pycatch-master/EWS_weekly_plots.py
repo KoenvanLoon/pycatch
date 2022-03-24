@@ -74,13 +74,9 @@ ews_spatial_signals : dict of shorthand notation and name of the spatial early w
 
 """
 
-ews_temporal_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance",
-                        'cv': "coefficient of variation", 'skw': "skewness", 'krt': "kurtosis",
-                        'dfa': "detrended fluctuation analysis", 'acr': "autocorrelation", 'AR1': "AR1",
-                        'rr': "return rate", 'coh': "conditional heteroskedasticity", 'timeseries': "timeseries",
-                        'gauss': "gauss", 'linear': "linear"}
-ews_spatial_signals = {'mn': "mean", 'std': "standard deviation", 'var': "variance", 'skw': "skewness",
-                       'krt': "kurtosis", 'mI': "Moran's I"}
+
+ews_temporal_signals = cfg.ews_temporal_signals
+ews_spatial_signals = cfg.ews_spatial_signals
 
 # User inputs for weekly-hourly coupled plots
 """
