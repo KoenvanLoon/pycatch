@@ -287,7 +287,7 @@ def plot_maker_weekly_hourly_coupled(timeseries, variables, signals, trendline_o
             fname_ts_weekly = ews.file_name_str(timeseries[i].name, cfg.number_of_timesteps_weekly)
             fpath_ts_weekly = f"./inputs_from_weekly/{fname_ts_weekly}"
             timeseries_y_axis = np.loadtxt(fpath_ts_weekly + '.numpy.txt')
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Timeseries of {timeseries[i].full_name}", color=colours[i])
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"{timeseries[i].full_name} timeseries ({timeseries[i].unit})", color=colours[i])
 
             for p in plot:
                 plots.append(p)
