@@ -292,7 +292,7 @@ detrended_sigma = 100
 save_detrended_data = True
 
 # Cutoff transition
-cutoff = True
+cutoff = False
 cutoff_point = 48000  # TODO - Implement a way to cutoff data before/at (?) CT --> if tuple, elif int/scalar.
 
 # Reporting for the model components (both hourly and weekly)

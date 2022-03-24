@@ -393,7 +393,7 @@ def plot_maker(variables_input, signals, path='/1/', legend=False, save=False, s
     nr_of_variables = len(variables_input)
     axes = [ax1]
     plots = []
-    offset = 60
+    offset = 70
     for i in range(10):
         if nr_of_variables > i + 1:
             ax = ax1.twinx()
@@ -453,24 +453,45 @@ def plot_maker(variables_input, signals, path='/1/', legend=False, save=False, s
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Timeseries of {variable.full_name}")
-            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"{variable.full_name} {ews_temporal_signals[signal]}")
+
+            if timeseries_y_axis.ndim > 1:
+                lines = ax.get_lines()
+                ax.set_ylabel(f"{variable.full_name} {ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
+                for loc, line in enumerate(lines):
+                    line.set_label(f"{variable.full_name} {loc + 1} - {ews_temporal_signals[signal]}")
+            else:
+                ax.set_ylabel(f"{variable.full_name} {ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
 
         elif signal == "gauss":
             fname = ews.file_name_str(variable.name + 'g', number_of_timesteps)
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Gaussian filter of {variable.full_name}")
-            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"{variable.full_name} Gaussian filter")
+
+            if timeseries_y_axis.ndim > 1:
+                lines = ax.get_lines()
+                ax.set_ylabel(f"{variable.full_name} {ews_temporal_signals[signal]}", color=plot[0].get_color())
+                for loc, line in enumerate(lines):
+                    line.set_label(f"{variable.full_name} {loc + 1} - {ews_temporal_signals[signal]}")
+            else:
+                ax.set_ylabel(f"{variable.full_name} {ews_temporal_signals[signal]}", color=plot[0].get_color())
 
         elif signal == "linear":
             fname = ews.file_name_str(variable.name + 'l', number_of_timesteps)
             fpath = os.path.join(path + fname)
             timeseries_y_axis = np.loadtxt(fpath + '.numpy.txt')
             timeseries_x_axis = np.arange(0, number_of_timesteps, 1)
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"Linear detrending of {variable.full_name}")
-            ax.set_ylabel(f"{ews_temporal_signals[signal]} ({variable.unit})", color=plot[0].get_color())
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"{variable.full_name} linear detrending")
+
+            if timeseries_y_axis.ndim > 1:
+                lines = ax.get_lines()
+                ax.set_ylabel(f"{variable.full_name} {ews_temporal_signals[signal]}", color=plot[0].get_color())
+                for loc, line in enumerate(lines):
+                    line.set_label(f"{variable.full_name} {loc + 1} - {ews_temporal_signals[signal]}")
+            else:
+                ax.set_ylabel(f"{variable.full_name} {ews_temporal_signals[signal]}", color=plot[0].get_color())
 
         elif signal != 'None':
             fpath = os.path.join(path + variable.name + dim + signal)

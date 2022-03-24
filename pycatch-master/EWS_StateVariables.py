@@ -103,38 +103,38 @@ demA = StateVariable('demA', temporal=True, datatype='numpy', full_name='DEM tem
 demL = StateVariable('demL', temporal=True, datatype='numpy', full_name='DEM at location', unit="m")
 
 # Discharge
-qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal', unit=1)
-Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', window_size=876)
+qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal', unit="m^3 h^-1")
+Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', unit="m^3 h^-1")
 
 # Grazing rate
 gA = StateVariable('gA', temporal=True, datatype='numpy', full_name='Grazing rate temporal', unit="kg m^-2 h^-1")
 
 # Growth part
-gpM = StateVariable('gpM', spatial=True, full_name='Growth part spatial', unit=1)
-gpA = StateVariable('gpA', temporal=True, datatype='numpy', full_name='Growth part temporal', unit=1)
+gpM = StateVariable('gpM', spatial=True, full_name='Growth part spatial', unit="kg m^-2 h^-1")
+gpA = StateVariable('gpA', temporal=True, datatype='numpy', full_name='Growth part temporal', unit="kg m^-2 h^-1")
 
 # Grazing part
-grM = StateVariable('grM', spatial=True, full_name='Grazing part spatial', unit=1)
-grA = StateVariable('grA', temporal=True, datatype='numpy', full_name='Grazing part temporal', unit=1)
+grM = StateVariable('grM', spatial=True, full_name='Grazing part spatial', unit="kg m^-2 h^-1")
+grA = StateVariable('grA', temporal=True, datatype='numpy', full_name='Grazing part temporal', unit="kg m^-2 h^-1")
 
-# Net growth
-grnM = StateVariable('grnM', spatial=True, full_name='Net growth spatial', unit=1)
-grnA = StateVariable('grnA', temporal=True, datatype='numpy', full_name='Net growth temporal', unit=1)
+# Net growth (growth part + grazing)
+grnM = StateVariable('grnM', spatial=True, full_name='Net growth spatial', unit="kg m^-2 h^-1")
+grnA = StateVariable('grnA', temporal=True, datatype='numpy', full_name='Net growth temporal', unit="kg m^-2 h^-1")
 
 # Net deposition
-depM = StateVariable('depM', spatial=True, full_name='Net deposition spatial', unit=1)
-depA = StateVariable('depA', temporal=True, datatype='numpy', full_name='Net deposition temporal', unit=1)
-depL = StateVariable('depL', temporal=True, datatype='numpy', full_name='Net deposition at location', unit=1)
+depM = StateVariable('depM', spatial=True, full_name='Net deposition spatial', unit="~ m h^-1")
+depA = StateVariable('depA', temporal=True, datatype='numpy', full_name='Net deposition temporal', unit="~ m h^-1")
+depL = StateVariable('depL', temporal=True, datatype='numpy', full_name='Net deposition at location', unit="~ m h^-1")
 
 # Net weathering
-weaM = StateVariable('weaM', spatial=True, full_name='Net weathering spatial', unit=1)
-weaA = StateVariable('weaA', temporal=True, datatype='numpy', full_name='Net weathering temporal', unit=1)
-weaL = StateVariable('weaL', temporal=True, datatype='numpy', full_name='Net weathering at location', unit=1)
+weaM = StateVariable('weaM', spatial=True, full_name='Net weathering spatial', unit="m y^-1")
+weaA = StateVariable('weaA', temporal=True, datatype='numpy', full_name='Net weathering temporal', unit="m y^-1")
+weaL = StateVariable('weaL', temporal=True, datatype='numpy', full_name='Net weathering at location', unit="m y^-1")
 
 # Net creep deposition
-creM = StateVariable('creM', spatial=True, full_name='Net creep deposition spatial', unit=1)
-creA = StateVariable('creA', temporal=True, datatype='numpy', full_name='Net creep deposition temporal', unit=1)
-creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net creep deposition at location', unit=1)
+creM = StateVariable('creM', spatial=True, full_name='Net creep deposition spatial', unit="m")
+creA = StateVariable('creA', temporal=True, datatype='numpy', full_name='Net creep deposition temporal', unit="m")
+creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net creep deposition at location', unit="m")
 
 
 # Check which variables are present in the configuration and append these to the list of variables
