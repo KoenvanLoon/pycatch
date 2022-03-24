@@ -270,24 +270,20 @@ def plot_maker_weekly_hourly_coupled(timeseries, variables, signals, trendline_o
         ax = axes[i]
 
         # Cycle colours and linestyles
-        even = i % 2  # True if even number, False if odd number
-        idx = math.floor(i/2)
-        if even:
-            colours = np.concatenate((np.asarray(colours_list)[idx:], np.asarray(colours_list)[:idx]))
-        if not even:
-            colours = np.concatenate((np.asarray(colours_list)[idx:], np.asarray(colours_list)[:idx]))
-            colours = colours[::-1]
+        colours = np.concatenate((np.asarray(colours_list)[i:], np.asarray(colours_list)[:i]))
         ax.set_prop_cycle(cycler(color=colours, linestyle=linestyles))
-
-        # Ticks
-        ax.minorticks_on()
-        ax.tick_params(axis='y', which='both', colors=colours[i])
 
         if i <= len(timeseries) - 1:
             fname_ts_weekly = ews.file_name_str(timeseries[i].name, cfg.number_of_timesteps_weekly)
             fpath_ts_weekly = f"./inputs_from_weekly/{fname_ts_weekly}"
             timeseries_y_axis = np.loadtxt(fpath_ts_weekly + '.numpy.txt')
-            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"{timeseries[i].full_name} timeseries ({timeseries[i].unit})", color=colours[i])
+            plot = ax.plot(timeseries_x_axis, timeseries_y_axis, label=f"{timeseries[i].full_name} timeseries")
+            ax.set_ylabel(f"{timeseries[i].full_name} timeseries ({timeseries[i].unit})", color=plot[0].get_color())
+
+            # Ticks
+            ax.minorticks_on()
+            ax.tick_params(axis='y', which='both', colors=colours[0])
+            plt.setp(ax.get_yticklabels(), color=colours[0])
 
             for p in plot:
                 plots.append(p)
@@ -298,15 +294,10 @@ def plot_maker_weekly_hourly_coupled(timeseries, variables, signals, trendline_o
 
             if variables[i - len(timeseries)].temporal:
                 dim = '.t.'
-                slabel = f'{variables[i - len(timeseries)].full_name} {ews_temporal_signals[signals[i - len(timeseries)]]}'
-                ax.set_ylabel(f'{ews_temporal_signals[signals[i - len(timeseries)]]}', c=plt.cm.tab10(i))
             elif variables[i - len(timeseries)].spatial:
                 dim = '.s.'
-                slabel = f'{variables[i - len(timeseries)].full_name} {ews_spatial_signals[signals[i - len(timeseries)]]}'
-                ax.set_ylabel(f'{ews_spatial_signals[signals[i - len(timeseries)]]}', c=plt.cm.tab10(i))
 
             fname_signal_hourly = variables[i - len(timeseries)].name + dim + signals[i - len(timeseries)] + '.numpy.txt'
-            print(fname_signal_hourly)
 
             for nr, _ in enumerate(snapshot_timeseries):
                 fpath_signal_hourly = os.path.join("./h" + str(nr).zfill(2) + "/" + fname_signal_hourly)
@@ -316,7 +307,14 @@ def plot_maker_weekly_hourly_coupled(timeseries, variables, signals, trendline_o
                 elif statistic.ndim == 1:
                     snapshot_y_axis.append(statistic[-1])
 
-            plot = ax.scatter(snapshot_x_axis, snapshot_y_axis, label=slabel, c=plt.cm.tab10(i))
+            if variables[i - len(timeseries)].temporal:
+                slabel = f'{variables[i - len(timeseries)].full_name} {ews_temporal_signals[signals[i - len(timeseries)]]}'
+                plot = ax.scatter(snapshot_x_axis, snapshot_y_axis, label=slabel)
+                ax.set_ylabel(f'{ews_temporal_signals[signals[i - len(timeseries)]]}', color=colours[0])
+            elif variables[i - len(timeseries)].spatial:
+                slabel = f'{variables[i - len(timeseries)].full_name} {ews_spatial_signals[signals[i - len(timeseries)]]}'
+                plot = ax.scatter(snapshot_x_axis, snapshot_y_axis, label=slabel)
+                ax.set_ylabel(f'{ews_spatial_signals[signals[i - len(timeseries)]]}', color=colours[0])
 
             if trendline_on:
                 z = np.polyfit(snapshot_x_axis, snapshot_y_axis, 1)
@@ -326,6 +324,11 @@ def plot_maker_weekly_hourly_coupled(timeseries, variables, signals, trendline_o
             if numbers_on:
                 for i, nr in enumerate(snapshot_timeseries):
                     ax.annotate(int(i), (snapshot_x_axis[i], snapshot_y_axis[i]))
+
+            # Ticks
+            ax.minorticks_on()
+            ax.tick_params(axis='y', which='both', colors=colours[0])
+            plt.setp(ax.get_yticklabels(), color=colours[0])
 
             plots.append(plot)
 

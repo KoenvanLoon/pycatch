@@ -1,6 +1,6 @@
 """
 EWS - Early Warning Signals
-EWS weekly plots
+EWS Tests
 
 @authors: KoenvanLoon & TijmenJanssen
 """
