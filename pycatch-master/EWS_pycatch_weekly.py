@@ -451,12 +451,11 @@ class CatchmentModel(DynamicModel, MonteCarloModel):
                                                     self.currentTimeStep())
 
         # Discharge
+        # ! - Note that although RunoffCubicMetrePerHour is used, it returns the runoff per time step.
         downstreamEdge = generalfunctions_test01.edge(self.clone, 2, 0)
         pits = pcrne(pit(self.d_runoffAccuthreshold.ldd), 0)
         outflowPoints = pcrand(downstreamEdge, pits)
-        totQ = ifthen(self.clone,
-                      maptotal(
-                          ifthenelse(outflowPoints, self.d_runoffAccuthreshold.RunoffCubicMetrePerHour, scalar(0))))
+        totQ = ifthen(self.clone, maptotal(ifthenelse(outflowPoints, self.d_runoffAccuthreshold.RunoffCubicMetrePerHour, scalar(0))))
 
         variable = totQ
         variable_mean = np.nanmean(pcr2numpy(variable, np.NaN))

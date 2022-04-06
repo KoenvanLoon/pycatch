@@ -103,7 +103,7 @@ demA = StateVariable('demA', temporal=True, datatype='numpy', full_name='DEM tem
 demL = StateVariable('demL', temporal=True, datatype='numpy', full_name='DEM at location', unit="m")
 
 # Discharge
-qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal', unit="m^3 h^-1")
+qA = StateVariable('qA', temporal=True, datatype='numpy', full_name='Discharge temporal', unit="m^3 week^-1")
 Rq = StateVariable('Rq', temporal=True, datatype='numpy', full_name='Discharge', unit="m^3 h^-1")
 
 # Grazing rate
@@ -122,9 +122,9 @@ grnM = StateVariable('grnM', spatial=True, full_name='Net growth spatial', unit=
 grnA = StateVariable('grnA', temporal=True, datatype='numpy', full_name='Net growth temporal', unit="kg m^-2 h^-1")
 
 # Net deposition
-depM = StateVariable('depM', spatial=True, full_name='Net deposition spatial', unit="~ m h^-1")
-depA = StateVariable('depA', temporal=True, datatype='numpy', full_name='Net deposition temporal', unit="~ m h^-1")
-depL = StateVariable('depL', temporal=True, datatype='numpy', full_name='Net deposition at location', unit="~ m h^-1")
+depM = StateVariable('depM', spatial=True, full_name='Net deposition spatial', unit="m week^-1")
+depA = StateVariable('depA', temporal=True, datatype='numpy', full_name='Net deposition temporal', unit="m week^-1")
+depL = StateVariable('depL', temporal=True, datatype='numpy', full_name='Net deposition at location', unit="m week^-1")
 
 # Net weathering
 weaM = StateVariable('weaM', spatial=True, full_name='Net weathering spatial', unit="m y^-1")
@@ -144,7 +144,7 @@ creL = StateVariable('creL', temporal=True, datatype='numpy', full_name='Net cre
 #                                 weaA, weaL, creM, creA, creL]
 
 full_set_of_variables_weekly = [laiA, laiM, moiA, moiM, moiL, bioA, bioM, bioL, qA, grnA, grnM,
-                                regA, regM, demA, demM, weaA, weaM, creA, creM, grA, gA]
+                                regA, regM, demA, demM, weaA, weaM, creA, creM, grA, gA, depA]
 
 full_set_of_variables_hourly = [Rq, moiA, moiM]
 
